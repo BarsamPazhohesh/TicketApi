@@ -34,8 +34,6 @@ git clone git@github.com:BarsamPazhohesh/TicketApi.git
 cd TicketApi
 ```
 
-````
-
 2. **Install dependencies**
 
 ```bash
