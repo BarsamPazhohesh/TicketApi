@@ -1,0 +1,73 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/{apiVersion}": {
+            "get": {
+                "description": "Returns the current version for the given API (v1, v2, etc.)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Version"
+                ],
+                "summary": "Get current API version",
+                "parameters": [
+                    {
+                        "enum": [
+                            "v1",
+                            "v2"
+                        ],
+                        "type": "string",
+                        "description": "API Version",
+                        "name": "apiVersion",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.VersionDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "ticket-api_internal_dto.VersionDTO": {
+            "type": "object",
+            "properties": {
+                "apiVersion": {
+                    "description": "JSON: apiVersion",
+                    "type": "string"
+                },
+                "isCurrent": {
+                    "description": "JSON: isCurrent",
+                    "type": "boolean"
+                },
+                "notes": {
+                    "description": "JSON: notes",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "JSON: version",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
