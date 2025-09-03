@@ -1,3 +1,4 @@
+--! Update `cmd/mingrate/migrations/*` files after change 
 
 CREATE TABLE app_versions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
