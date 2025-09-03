@@ -9,63 +9,65 @@ CREATE TABLE app_versions (
     is_current INTEGER NOT NULL DEFAULT 0
 );
 
-CREATE TABLE Roles (
+CREATE TABLE roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL UNIQUE,
     status INT2 NOT NULL DEFAULT 1,
     deleted INT2 NOT NULL DEFAULT 0
 );
 
-CREATE TABLE API_Handlers(
+CREATE TABLE api_handlers(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     handler TEXT NOT NULL,
     method TEXT NOT NULL,
     description TEXT,
     status INT2 NOT NULL DEFAULT 1,
     deleted INT2 NOT NULL DEFAULT 0,
-    UNIQUE(handler, method),
-)
+    UNIQUE(handler, method)
+);
 
-CREATE TABLE API_Handlers_Roles_Relation(
+CREATE TABLE api_handlers_roles_relation(
     api_handler_id INTEGER NOT NULL,
     role_id INTEGER NOT NULL,
     status INT2 NOT NULL DEFAULT 1,
     deleted INT2 NOT NULL DEFAULT 0,
     PRIMARY KEY (api_handler_id, role_id),
-    FOREIGN KEY (api_handler_id) REFERENCES API_Handlers(id) ON DELETE CASCADE
-    FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE,
-)
+    FOREIGN KEY (api_handler_id) REFERENCES api_handlers(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE
+);
 
-CREATE TABLE Users (
+CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     phone_number TEXT NOT NULL UNIQUE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    department_id INTEGER NOT NULL UNIQUE,
+    created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     status INT2 NOT NULL DEFAULT 1,
     deleted INT2 NOT NULL DEFAULT 0,
+    Foreign Key (department_id) REFERENCES departments(id)
 );
 
-CREATE TABLE Users_Roles_Relation (
+CREATE TABLE users_roles_relation (
     user_id INTEGER NOT NULL,
     role_id INTEGER NOT NULL,
     status INT2 NOT NULL DEFAULT 1,
     deleted INT2 NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_id, role_id)
-    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE
-)
+);
 
-CREATE TABLE Ticket_Types(
+CREATE TABLE ticket_types(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL UNIQUE,
     description TEXT,
     status INT2 NOT NULL DEFAULT 1,
-    deleted INT2 NOT NULL DEFAULT 0,
-)
+    deleted INT2 NOT NULL DEFAULT 0
+);
 
-CREATE TABLE Ticket_Types_Roles_Relation (
+CREATE TABLE ticket_types_roles_relation (
     ticket_type_id INTEGER NOT NULL,
     role_id INTEGER NOT NULL,
     status INT2 NOT NULL DEFAULT 1,
@@ -73,23 +75,23 @@ CREATE TABLE Ticket_Types_Roles_Relation (
     PRIMARY KEY (ticket_type_id, role_id),
     FOREIGN KEY (ticket_type_id) REFERENCES Ticket_Types(id) ON DELETE CASCADE,
     FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE
-)
+);
 
-CREATE TABLE Priority_Of_Tickets (
+CREATE TABLE ticket_priorities (
     user_id INTEGER NOT NULL,
     ticket_type_id INTEGER NOT NULL,
     priority INTEGER NOT NULL DEFAULT 0,
     status INT2 NOT NULL DEFAULT 1,
     deleted INT2 NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, ticket_type_id),
-    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (ticket_type_id) REFERENCES Ticket_Types(id) ON DELETE CASCADE
-)
+);
 
-CREATE TABLE Departments (
+CREATE TABLE departments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL UNIQUE,
     description TEXT,
     status INT2 NOT NULL DEFAULT 1,
-    deleted INT2 NOT NULL DEFAULT 0,
-)
+    deleted INT2 NOT NULL DEFAULT 0
+);
