@@ -11,7 +11,12 @@ type VersionHandler struct {
 	Repo *repository.VersionRepository
 }
 
-// GetCurrentVersionHandler handles GET /api/:apiVersion
+// NewVersionHandler constructor
+func NewVersionHandler(repo *repository.VersionRepository) *VersionHandler {
+	return &VersionHandler{Repo: repo}
+}
+
+// GetCurrentVersionHandler handles GET /
 // @Summary Get current API version
 // @Description Returns the current version for the given API (v1, v2, etc.)
 // @Tags Version
