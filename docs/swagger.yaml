@@ -1,4 +1,32 @@
+basePath: /api/v1
 definitions:
+  ticket-api_internal_dto.TicketDTO:
+    properties:
+      attachments:
+        description: پیوست آرایه آدرس فایل
+        items:
+          type: string
+        type: array
+      body:
+        description: متن بدنه
+        type: string
+      createdAt:
+        type: string
+      priority:
+        description: اولویت
+        type: string
+      title:
+        description: عنوان
+        type: string
+      type:
+        description: نوع تیکت
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        description: شناسه کاربر
+        type: string
+    type: object
   ticket-api_internal_dto.VersionDTO:
     properties:
       apiVersion:
@@ -16,6 +44,8 @@ definitions:
     type: object
 info:
   contact: {}
+  title: Ticket API
+  version: "1.0"
 paths:
   /api/{apiVersion}:
     get:
@@ -45,4 +75,38 @@ paths:
       summary: Get current API version
       tags:
       - Version
+  /tickets:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new ticket with given data
+      parameters:
+      - description: Ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.TicketDTO'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new ticket
+      tags:
+      - Ticket
 swagger: "2.0"
