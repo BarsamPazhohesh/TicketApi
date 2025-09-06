@@ -1,0 +1,1 @@
+DROP TABLE If EXISTS api_handlers_roles_relation;
