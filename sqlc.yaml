@@ -33,3 +33,11 @@ sql:
         package: "users"
         out: "internal/db/users"
 
+  - schema: "db/ticket_types/schema.sql"
+    queries: "db/ticket_types/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "ticket_types"
+        out: "internal/db/ticket_types"
+
