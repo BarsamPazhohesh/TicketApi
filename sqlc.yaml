@@ -17,3 +17,11 @@ sql:
         package: "roles"
         out: "internal/db/roles"
 
+  - schema: "db/api_handlers/schema.sql"
+    queries: "db/api_handlers/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "api_handlers"
+        out: "internal/db/api_handlers"
+
