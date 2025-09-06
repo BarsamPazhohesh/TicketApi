@@ -50,6 +50,13 @@ func main() {
 		}
 		fmt.Println("Rolled back one migration!")
 
+	case "downall":
+		err = m.Down()
+		if err != nil && err != migrate.ErrNoChange {
+			log.Fatal(err)
+		}
+		fmt.Println("Rolled back all migrations!")
+
 	default:
 		log.Fatal("Unknown command. Use 'up' or 'down'")
 	}
