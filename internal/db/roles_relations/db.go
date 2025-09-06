@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.30.0
 
-package version
+package roles_relations
 
 import (
 	"context"
