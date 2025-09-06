@@ -57,3 +57,10 @@ sql:
         package: "departments"
         out: "internal/db/departments"
 
+  - schema: "db/roles_relations/schema.sql"
+    queries: "db/roles_relations/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "roles_relations"
+        out: "internal/db/roles_relations"
