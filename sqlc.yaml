@@ -49,3 +49,11 @@ sql:
         package: "ticket_priorities"
         out: "internal/db/ticket_priorities"
 
+  - schema: "db/departments/schema.sql"
+    queries: "db/departments/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "departments"
+        out: "internal/db/departments"
+
