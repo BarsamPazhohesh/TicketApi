@@ -8,3 +8,12 @@ sql:
       go:
         package: "version"
         out: "internal/db/version"
+
+  - schema: "db/roles/schema.sql"
+    queries: "db/roles/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "roles"
+        out: "internal/db/roles"
+
