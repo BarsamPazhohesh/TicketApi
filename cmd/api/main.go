@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"log"
+	"os"
 	"ticket-api/internal/env"
 	"ticket-api/internal/handler"
 	_ "ticket-api/internal/handler"
 	"ticket-api/internal/repository"
+	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type application struct {
@@ -19,12 +25,18 @@ type application struct {
 	handlers  handler.AppHandlers
 }
 
+// @title Ticket API
+// @version 1.0
+// @BasePath /api/v1
 func main() {
-	db, err := sql.Open("sqlite3", "./data.db")
-
+	dbSql, err := sql.Open("sqlite3", "./data.db")
 	fatalIfErr(err)
 
-	repos := repository.NewRepositories(db)
+	//mongodb
+	dbMongo, err := ConnectMongo()
+	fatalIfErr(err)
+
+	repos := repository.NewRepositories(dbSql, dbMongo)
 	handlers := handler.NewAppHandlers(repos)
 
 	app := &application{
@@ -44,4 +56,29 @@ func fatalIfErr(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// ConnectMongo connects to MongoDB and returns the database.
+func ConnectMongo() (*mongo.Database, error) {
+	uri := os.Getenv("MONGODB_URI")
+	if uri == "" {
+		return nil, errors.New("MONGODB_URI is not set")
+	}
+
+	dbName := env.GetEnvString("MONGODB_DB", "ticketdb")
+	opts := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(opts)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := client.Ping(ctx, nil); err != nil {
+		return nil, err
+	}
+
+	log.Println("✅ Connected to MongoDB:", dbName)
+	return client.Database(dbName), nil
 }

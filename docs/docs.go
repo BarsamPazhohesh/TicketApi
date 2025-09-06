@@ -56,9 +56,99 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tickets": {
+            "post": {
+                "description": "Creates a new ticket with given data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Create a new ticket",
+                "parameters": [
+                    {
+                        "description": "Ticket data",
+                        "name": "ticket",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "ticket-api_internal_dto.TicketDTO": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "description": "پیوست آرایه آدرس فایل",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "body": {
+                    "description": "متن بدنه",
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "priority": {
+                    "description": "اولویت",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "عنوان",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "نوع تیکت",
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "شناسه کاربر",
+                    "type": "string"
+                }
+            }
+        },
         "ticket-api_internal_dto.VersionDTO": {
             "type": "object",
             "properties": {
@@ -85,11 +175,11 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
+	Version:          "1.0",
 	Host:             "",
-	BasePath:         "",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
+	Title:            "Ticket API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
