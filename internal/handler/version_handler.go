@@ -24,7 +24,7 @@ func NewVersionHandler(repo *repository.VersionRepository) *VersionHandler {
 // @Produce json
 // @Success 200 {object} dto.VersionDTO
 // @Failure 500 {object} map[string]string
-// @Router /api/{apiVersion} [get]
+// @Router / [get]
 func (h *VersionHandler) GetCurrentVersionHandler(c *gin.Context) {
 	apiVersion := c.Param("apiVersion") // captures "v1", "v2", etc.
 	version, err := h.Repo.GetCurrentVersion(c.Request.Context(), apiVersion)
