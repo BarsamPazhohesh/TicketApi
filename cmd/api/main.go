@@ -29,13 +29,19 @@ type application struct {
 // @version 1.0
 // @BasePath /api/v1
 func main() {
-	dbSql, err := sql.Open("sqlite3", "./data.db")
+	dbSql, err := sql.Open("sqlite3", "file:./data.db?_foreign_keys=on")
 	fatalIfErr(err)
+
+	defer dbSql.Close()
+
+	isMongoEnable := env.GetEnvInt("ENABLE_MONGO", 0)
 
 	//mongodb
-	dbMongo, err := ConnectMongo()
-	fatalIfErr(err)
-
+	var dbMongo *mongo.Database = nil
+	if isMongoEnable != 0 {
+		dbMongo, err = ConnectMongo()
+		fatalIfErr(err)
+	}
 	repos := repository.NewRepositories(dbSql, dbMongo)
 	handlers := handler.NewAppHandlers(repos)
 
