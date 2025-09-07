@@ -17,19 +17,19 @@ func NewTicketHandler(repo *repository.TicketRepository) *TicketHandler {
 	return &TicketHandler{Repo: repo}
 }
 
-// CreateTicketHandler handles POST /api/v1/tickets
+// CreateTicketHandler handles POST /tickets
 // @Summary Create a new ticket
 // @Description Creates a new ticket with given data
 // @Tags Ticket
 // @Accept json
 // @Produce json
-// @Param ticket body dto.TicketDTO true "Ticket data"
-// @Success 201 {object} dto.TicketDTO
+// @Param ticket body dto.TicketCreateRequest true "Ticket data"
+// @Success 201 {object} dto.TicketIDResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/v1/tickets [post]
+// @Router /tickets [post]
 func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
-	var ticketDTO dto.TicketDTO
+	var ticketDTO dto.TicketCreateRequest
 	if err := c.ShouldBindJSON(&ticketDTO); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -44,16 +44,16 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, createdTicket)
 }
 
-// GetTicketHandler handles GET /api/v1/tickets/:id
+// GetTicketHandler handles GET /tickets/:id
 // @Summary Get ticket by ID
 // @Description Returns a ticket by its ID
 // @Tags Ticket
 // @Produce json
 // @Param id path string true "Ticket ID"
-// @Success 200 {object} dto.TicketDTO
+// @Success 200 {object} dto.TicketResponse
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /api/v1/tickets/{id} [get]
+// @Router /tickets/{id} [get]
 func (h *TicketHandler) GetTicketHandler(c *gin.Context) {
 	id := c.Param("id")
 	ticketDTO, err := h.Repo.GetTicket(c.Request.Context(), id)
@@ -61,7 +61,6 @@ func (h *TicketHandler) GetTicketHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	if ticketDTO == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Ticket not found"})
 		return
