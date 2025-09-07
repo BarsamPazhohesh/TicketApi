@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/{apiVersion}": {
+        "/": {
             "get": {
                 "description": "Returns the current version for the given API (v1, v2, etc.)",
                 "produces": [

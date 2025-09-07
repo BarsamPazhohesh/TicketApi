@@ -89,7 +89,7 @@ info:
   title: Ticket API
   version: "1.0"
 paths:
-  /api/{apiVersion}:
+  /:
     get:
       description: Returns the current version for the given API (v1, v2, etc.)
       parameters:
