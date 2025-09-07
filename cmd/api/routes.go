@@ -21,6 +21,14 @@ func (app *application) routes() http.Handler {
 		v1.GET("/tickets/:id", app.handlers.Ticket.GetTicketHandler) // get ticket by ID
 	}
 
+	// Redirect /swagger → /swagger/index.html
+	g.GET("/swagger", redirectSwagger)
+
+	// Serve Swagger
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return g
+}
+
+func redirectSwagger(c *gin.Context) {
+	c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
 }
