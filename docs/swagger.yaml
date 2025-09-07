@@ -1,31 +1,73 @@
 basePath: /api/v1
 definitions:
-  ticket-api_internal_dto.TicketDTO:
+  ticket-api_internal_dto.ChatMessageDTO:
     properties:
       attachments:
-        description: پیوست آرایه آدرس فایل
+        items:
+          type: string
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: string
+      message:
+        type: string
+      senderId:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  ticket-api_internal_dto.TicketCreateRequest:
+    properties:
+      attachments:
         items:
           type: string
         type: array
       body:
-        description: متن بدنه
-        type: string
-      createdAt:
-        type: string
-      priority:
-        description: اولویت
+        description: First message for the ticket (instead of Body/Attachments in
+          Ticket)
         type: string
       title:
-        description: عنوان
         type: string
       type:
-        description: نوع تیکت
+        type: integer
+      userId:
+        type: integer
+    required:
+    - body
+    - title
+    - type
+    - userId
+    type: object
+  ticket-api_internal_dto.TicketIDResponse:
+    properties:
+      id:
         type: string
+    type: object
+  ticket-api_internal_dto.TicketResponse:
+    properties:
+      chat:
+        items:
+          $ref: '#/definitions/ticket-api_internal_dto.ChatMessageDTO'
+        type: array
+      createdAt:
+        type: string
+      done:
+        type: boolean
+      id:
+        type: string
+      priority:
+        type: integer
+      title:
+        type: string
+      trackId:
+        type: string
+      type:
+        type: integer
       updatedAt:
         type: string
       userId:
-        description: شناسه کاربر
-        type: string
+        type: integer
     type: object
   ticket-api_internal_dto.VersionDTO:
     properties:
@@ -86,14 +128,14 @@ paths:
         name: ticket
         required: true
         schema:
-          $ref: '#/definitions/ticket-api_internal_dto.TicketDTO'
+          $ref: '#/definitions/ticket-api_internal_dto.TicketCreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketDTO'
+            $ref: '#/definitions/ticket-api_internal_dto.TicketIDResponse'
         "400":
           description: Bad Request
           schema:
@@ -107,6 +149,37 @@ paths:
               type: string
             type: object
       summary: Create a new ticket
+      tags:
+      - Ticket
+  /tickets/{id}:
+    get:
+      description: Returns a ticket by its ID
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get ticket by ID
       tags:
       - Ticket
 swagger: "2.0"

@@ -69,7 +69,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketDTO"
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketCreateRequest"
                         }
                     }
                 ],
@@ -77,7 +77,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketDTO"
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketIDResponse"
                         }
                     },
                     "400": {
@@ -100,44 +100,155 @@
                     }
                 }
             }
+        },
+        "/tickets/{id}": {
+            "get": {
+                "description": "Returns a ticket by its ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Get ticket by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "ticket-api_internal_dto.TicketDTO": {
+        "ticket-api_internal_dto.ChatMessageDTO": {
             "type": "object",
             "properties": {
                 "attachments": {
-                    "description": "پیوست آرایه آدرس فایل",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "senderId": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.TicketCreateRequest": {
+            "type": "object",
+            "required": [
+                "body",
+                "title",
+                "type",
+                "userId"
+            ],
+            "properties": {
+                "attachments": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "body": {
-                    "description": "متن بدنه",
+                    "description": "First message for the ticket (instead of Body/Attachments in Ticket)",
                     "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "integer"
+                },
+                "userId": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ticket-api_internal_dto.TicketIDResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.TicketResponse": {
+            "type": "object",
+            "properties": {
+                "chat": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ticket-api_internal_dto.ChatMessageDTO"
+                    }
                 },
                 "createdAt": {
                     "type": "string"
                 },
-                "priority": {
-                    "description": "اولویت",
+                "done": {
+                    "type": "boolean"
+                },
+                "id": {
                     "type": "string"
                 },
+                "priority": {
+                    "type": "integer"
+                },
                 "title": {
-                    "description": "عنوان",
+                    "type": "string"
+                },
+                "trackId": {
                     "type": "string"
                 },
                 "type": {
-                    "description": "نوع تیکت",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
                 },
                 "userId": {
-                    "description": "شناسه کاربر",
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
