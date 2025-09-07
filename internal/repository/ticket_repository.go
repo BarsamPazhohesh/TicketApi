@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
-	"ticket-api/internal/dto"
-	"ticket-api/internal/model"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"ticket-api/internal/dto"
+	"ticket-api/internal/env"
+	"ticket-api/internal/model"
 )
 
 type TicketRepository struct {
@@ -15,6 +15,9 @@ type TicketRepository struct {
 
 // NewTicketRepository creates a new TicketRepository
 func NewTicketRepository(db *mongo.Database) *TicketRepository {
+	if env.GetEnvInt("ENABLE_MONGO", 0) == 0 {
+		return &TicketRepository{}
+	}
 	return &TicketRepository{
 		collection: db.Collection("tickets"),
 	}
