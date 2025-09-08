@@ -1,5 +1,9 @@
 -- name: GetAllDepartments :many
 SELECT * FROM departments
+WHERE deleted = 0;
+
+-- name: GetAllActiveDepartments :many
+SELECT * FROM departments
 WHERE deleted = 0
 AND status != 0;
 
