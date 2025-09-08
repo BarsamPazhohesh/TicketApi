@@ -1,5 +1,9 @@
 -- name: GetAllTicketTypes :many
 SELECT * FROM ticket_types
+WHERE deleted = 0;
+
+-- name: GetAllActiveTicketTypes :many
+SELECT * FROM ticket_types
 WHERE deleted = 0
 AND status != 0;
 
