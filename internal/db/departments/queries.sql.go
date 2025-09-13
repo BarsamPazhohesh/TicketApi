@@ -26,10 +26,44 @@ func (q *Queries) AddDepartment(ctx context.Context, arg AddDepartmentParams) (i
 	return id, err
 }
 
-const getAllDepartments = `-- name: GetAllDepartments :many
+const getAllActiveDepartments = `-- name: GetAllActiveDepartments :many
 SELECT id, title, description, status, deleted FROM departments
 WHERE deleted = 0
 AND status != 0
+`
+
+func (q *Queries) GetAllActiveDepartments(ctx context.Context) ([]Department, error) {
+	rows, err := q.db.QueryContext(ctx, getAllActiveDepartments)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Department
+	for rows.Next() {
+		var i Department
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllDepartments = `-- name: GetAllDepartments :many
+SELECT id, title, description, status, deleted FROM departments
+WHERE deleted = 0
 `
 
 func (q *Queries) GetAllDepartments(ctx context.Context) ([]Department, error) {
