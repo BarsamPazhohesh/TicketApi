@@ -26,10 +26,44 @@ func (q *Queries) AddTicketType(ctx context.Context, arg AddTicketTypeParams) (i
 	return id, err
 }
 
-const getAllTicketTypes = `-- name: GetAllTicketTypes :many
+const getAllActiveTicketTypes = `-- name: GetAllActiveTicketTypes :many
 SELECT id, title, description, status, deleted FROM ticket_types
 WHERE deleted = 0
 AND status != 0
+`
+
+func (q *Queries) GetAllActiveTicketTypes(ctx context.Context) ([]TicketType, error) {
+	rows, err := q.db.QueryContext(ctx, getAllActiveTicketTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TicketType
+	for rows.Next() {
+		var i TicketType
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Status,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllTicketTypes = `-- name: GetAllTicketTypes :many
+SELECT id, title, description, status, deleted FROM ticket_types
+WHERE deleted = 0
 `
 
 func (q *Queries) GetAllTicketTypes(ctx context.Context) ([]TicketType, error) {
