@@ -1,5 +1,25 @@
 basePath: /api/v1
 definitions:
+  ticket-api_internal_apperror.Error:
+    properties:
+      code:
+        type: integer
+      debug:
+        type: string
+      message:
+        type: string
+    type: object
+  ticket-api_internal_dto.ChatMessageCreateRequest:
+    properties:
+      attachments:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      senderId:
+        type: integer
+    type: object
   ticket-api_internal_dto.ChatMessageDTO:
     properties:
       attachments:
@@ -121,7 +141,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Creates a new ticket with given data
+      description: Creates a new ticket with the provided data
       parameters:
       - description: Ticket data
         in: body
@@ -139,15 +159,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
       summary: Create a new ticket
       tags:
       - Ticket
@@ -170,16 +190,51 @@ paths:
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
       summary: Get ticket by ID
+      tags:
+      - Ticket
+  /tickets/{id}/chat:
+    post:
+      consumes:
+      - application/json
+      description: Adds a new chat message to an existing ticket
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Chat message data
+        in: body
+        name: chat
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.ChatMessageCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.ChatMessageDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_apperror.Error'
+      summary: Add chat message to a ticket
       tags:
       - Ticket
 swagger: "2.0"
