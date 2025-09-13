@@ -9,27 +9,27 @@ import (
 	"context"
 )
 
-const checkRoleExistence = `-- name: CheckRoleExistence :one
+const addRole = `-- name: AddRole :one
+INSERT INTO roles(title) VALUES (?) RETURNING id
+`
+
+func (q *Queries) AddRole(ctx context.Context, title string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, addRole, title)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const isRoleExist = `-- name: IsRoleExist :one
 SELECT count(id) as exist_of_id FROM roles
 WHERE deleted = 0
 AND status != 0
 AND id = ?
 `
 
-func (q *Queries) CheckRoleExistence(ctx context.Context, id int64) (int64, error) {
-	row := q.db.QueryRowContext(ctx, checkRoleExistence, id)
+func (q *Queries) IsRoleExist(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, isRoleExist, id)
 	var exist_of_id int64
 	err := row.Scan(&exist_of_id)
 	return exist_of_id, err
-}
-
-const insertRole = `-- name: InsertRole :one
-INSERT INTO roles(title) VALUES (?) RETURNING id
-`
-
-func (q *Queries) InsertRole(ctx context.Context, title string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, insertRole, title)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
 }
