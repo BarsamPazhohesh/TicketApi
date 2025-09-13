@@ -2,45 +2,48 @@ package handler
 
 import (
 	"net/http"
+
+	"ticket-api/internal/apperror"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
+// TicketHandler handles ticket-related HTTP requests
 type TicketHandler struct {
-	Repo *repository.TicketRepository
+	repo *repository.TicketRepository
 }
 
-// NewTicketHandler constructor
+// NewTicketHandler creates a new TicketHandler instance
 func NewTicketHandler(repo *repository.TicketRepository) *TicketHandler {
-	return &TicketHandler{Repo: repo}
+	return &TicketHandler{repo: repo}
 }
 
 // CreateTicketHandler handles POST /tickets
 // @Summary Create a new ticket
-// @Description Creates a new ticket with given data
+// @Description Creates a new ticket with the provided data
 // @Tags Ticket
 // @Accept json
 // @Produce json
 // @Param ticket body dto.TicketCreateRequest true "Ticket data"
 // @Success 201 {object} dto.TicketIDResponse
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 400 {object} apperror.Error
+// @Failure 409 {object} apperror.Error
+// @Failure 500 {object} apperror.Error
 // @Router /tickets [post]
 func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 	var ticketDTO dto.TicketCreateRequest
 	if err := c.ShouldBindJSON(&ticketDTO); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, apperror.Make(apperror.ErrInvalidInput, err))
 		return
 	}
 
-	createdTicket, err := h.Repo.CreateTicket(c.Request.Context(), &ticketDTO)
+	createdTicket, err := h.repo.CreateTicket(c.Request.Context(), &ticketDTO)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(err.HTTPStatus, err)
 		return
 	}
-
 	c.JSON(http.StatusCreated, createdTicket)
 }
 
@@ -51,29 +54,16 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Ticket ID"
 // @Success 200 {object} dto.TicketResponse
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
+// @Failure 404 {object} apperror.Error
+// @Failure 500 {object} apperror.Error
 // @Router /tickets/{id} [get]
 func (h *TicketHandler) GetTicketHandler(c *gin.Context) {
 	id := c.Param("id")
-	ticketDTO, err := h.Repo.GetTicket(c.Request.Context(), id)
+	ticketDTO, err := h.repo.GetTicket(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(err.HTTPStatus, err)
 		return
 	}
-	if ticketDTO == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Ticket not found"})
-		return
-	}
-
 	c.JSON(http.StatusOK, ticketDTO)
 }
 
-// RegisterRoutes registers ticket routes in Gin
-func (h *TicketHandler) RegisterRoutes(router *gin.Engine) {
-	v1 := router.Group("/api/v1")
-	{
-		v1.POST("/tickets", h.CreateTicketHandler)
-		v1.GET("/tickets/:id", h.GetTicketHandler)
-	}
-}
