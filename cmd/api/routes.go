@@ -19,6 +19,8 @@ func (app *application) routes() http.Handler {
 		// Ticket routes
 		v1.POST("/tickets", app.handlers.Ticket.CreateTicketHandler) // create new ticket
 		v1.GET("/tickets/:id", app.handlers.Ticket.GetTicketHandler) // get ticket by ID
+
+		v1.POST("/tickets/:id/chat", app.handlers.Chat.CreateChatHandler) // create chat
 	}
 
 	// Redirect /swagger → /swagger/index.html
