@@ -39,6 +39,37 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 	return id, err
 }
 
+const getUser = `-- name: GetUser :one
+SELECT u.id, u.username, u.department_id, u.created_at, u.updated_at, u.status, u.deleted
+FROM users u
+WHERE u.id = ? AND u.deleted = 0
+`
+
+type GetUserRow struct {
+	ID           int64
+	Username     string
+	DepartmentID int64
+	CreatedAt    string
+	UpdatedAt    string
+	Status       int64
+	Deleted      int64
+}
+
+func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
+	var i GetUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.DepartmentID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
+		&i.Deleted,
+	)
+	return i, err
+}
+
 const getUserByUsername = `-- name: GetUserByUsername :one
 SELECT id FROM users
 WHERE deleted = 0

@@ -94,3 +94,20 @@ func (q *Queries) GetAllTicketTypes(ctx context.Context) ([]TicketType, error) {
 	}
 	return items, nil
 }
+
+const getTicketTypesByID = `-- name: GetTicketTypesByID :one
+SELECT id, title, description, status, deleted FROM ticket_types WHERE deleted = ?
+`
+
+func (q *Queries) GetTicketTypesByID(ctx context.Context, deleted int64) (TicketType, error) {
+	row := q.db.QueryRowContext(ctx, getTicketTypesByID, deleted)
+	var i TicketType
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.Deleted,
+	)
+	return i, err
+}

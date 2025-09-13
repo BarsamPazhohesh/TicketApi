@@ -94,3 +94,25 @@ func (q *Queries) GetAllDepartments(ctx context.Context) ([]Department, error) {
 	}
 	return items, nil
 }
+
+const getDepartmentByID = `-- name: GetDepartmentByID :one
+SELECT id, title, description, status, deleted FROM departments WHERE deleted = ? AND status = ?
+`
+
+type GetDepartmentByIDParams struct {
+	Deleted int64
+	Status  int64
+}
+
+func (q *Queries) GetDepartmentByID(ctx context.Context, arg GetDepartmentByIDParams) (Department, error) {
+	row := q.db.QueryRowContext(ctx, getDepartmentByID, arg.Deleted, arg.Status)
+	var i Department
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Status,
+		&i.Deleted,
+	)
+	return i, err
+}
