@@ -5,14 +5,16 @@ import (
 )
 
 // Ticket is the MongoDB model for tickets
+// todo: add dep id and prarity id
 type Ticket struct {
-	ID        string        `bson:"_id"`       // UUID generated in Go
-	TrackCode string        `bson:"TrackCode"` // 8-char user-facing code
-	UserID    int           `bson:"userId"`
-	Type      int           `bson:"type"`
-	Title     string        `bson:"title"`
-	Done      bool          `bson:"done"`
-	CreatedAt time.Time     `bson:"createdAt"`
-	UpdatedAt time.Time     `bson:"updatedAt"`
-	Chat      []ChatMessage `bson:"chat"`
+	ID             string        `bson:"_id"`          // Unique ticket ID (UUID)
+	UserID         int           `bson:"userId"`       // ID of the user who created the ticket
+	DepartmentID   int           `bson:"departmentId"` // Department of the user
+	TypeID         int           `bson:"typeId"`       // Type/category of the ticket
+	TicketStatusID int           `bson:"statusId"`     // Current status (open, closed, etc.)
+	Title          string        `bson:"title"`        // Short descriptive title
+	TrackCode      string        `bson:"trackCode"`    // 8-char code shown to user
+	CreatedAt      time.Time     `bson:"createdAt"`    // Ticket creation timestamp
+	UpdatedAt      time.Time     `bson:"updatedAt"`    // Last update timestamp
+	Chat           []ChatMessage `bson:"chat"`         // Conversation messages for this ticket
 }
