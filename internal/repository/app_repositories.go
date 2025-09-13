@@ -8,6 +8,7 @@ import (
 	"ticket-api/internal/db/roles_relations"
 	"ticket-api/internal/db/ticket_priorities"
 	"ticket-api/internal/db/ticket_types"
+	"ticket-api/internal/db/users"
 	"ticket-api/internal/db/version"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -22,6 +23,7 @@ type AppRepositories struct {
 	TicketPriorities *TicketPrioritiesRepository
 	ApiHandlers      *ApiHandlerRepository
 	RolesRelations   *RolesRelationsRepository
+	Users            *UsersRepository
 }
 
 func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
@@ -34,5 +36,6 @@ func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
 		TicketPriorities: NewTicketPrioritiesRepository(ticket_priorities.New(sqldb)),
 		ApiHandlers:      NewApiHandlerRepository(api_handlers.New(sqldb)),
 		RolesRelations:   NewRolesRelationRepository(roles_relations.New(sqldb)),
+		Users:            NewUsersRepository(users.New(sqldb)),
 	}
 }
