@@ -9,3 +9,6 @@ AND status != 0;
 
 -- name: AddTicketType :one
 INSERT INTO ticket_types (title, description) VALUES (?, ?) RETURNING id;
+
+-- name: GetTicketTypesByID :one
+SELECT * FROM ticket_types WHERE deleted = ?
