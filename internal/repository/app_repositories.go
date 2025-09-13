@@ -16,6 +16,7 @@ import (
 
 type AppRepositories struct {
 	Ticket           *TicketRepository
+	ChatRepository   *ChatRepository
 	Version          *VersionRepository
 	Roles            *RolesRepository
 	Departments      *DepartmentsRepository
@@ -29,6 +30,7 @@ type AppRepositories struct {
 func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
 	return &AppRepositories{
 		Ticket:           NewTicketRepository(mongodb),
+		ChatRepository:   NewChatRepository(mongodb),
 		Version:          NewVersionRepository(version.New(sqldb)),
 		Roles:            NewRolesRepository(roles.New(sqldb)),
 		Departments:      NewDepartmentsRepository(departments.New(sqldb)),
