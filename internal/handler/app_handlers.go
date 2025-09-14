@@ -12,7 +12,7 @@ type AppHandlers struct {
 func NewAppHandlers(repos *repository.AppRepositories) *AppHandlers {
 	return &AppHandlers{
 		Version: NewVersionHandler(repos.Version),
-		Ticket:  NewTicketHandler(repos.Ticket),
+		Ticket:  NewTicketHandler(repos.Ticket, repos.TicketTypes, repos.TicketPriorities, repos.Users, repos.Departments),
 		Chat:    NewChatHandler(repos.Ticket),
 		User:    NewUserHandler(repos.Users),
 	}
