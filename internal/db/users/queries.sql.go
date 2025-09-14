@@ -40,9 +40,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, password, department_id, created_at, updated_at, status, deleted
-FROM users
-WHERE id = ? AND deleted = 0 AND status != 0
+SELECT id, username, password, department_id, created_at, updated_at, status, deleted FROM users
+WHERE id = ? 
+AND deleted = 0 
+AND status != 0
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
