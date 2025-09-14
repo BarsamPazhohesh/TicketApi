@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS users (
     Foreign Key (department_id) REFERENCES departments(id)
 );
 
-INSERT INTO users (username, department_id) VALUES ('SampleUser', 1) RETURNING id;
+INSERT INTO users (username, department_id) VALUES ('SampleUser', 1);

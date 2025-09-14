@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS roles (
     deleted INT2 NOT NULL DEFAULT 0
 );
 
-INSERT INTO roles(title) VALUES ('BaseRole') RETURNING id;
+INSERT INTO roles(title) VALUES ('BaseRole');

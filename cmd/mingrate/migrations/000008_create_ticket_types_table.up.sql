@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS ticket_types(
     deleted INT2 NOT NULL DEFAULT 0
 );
 
-INSERT INTO ticket_types (title, description) VALUES ('SampleType', 'its a sample ticket type!') RETURNING id;
+INSERT INTO ticket_types (title, description) VALUES ('SampleType', 'its a sample ticket type!');

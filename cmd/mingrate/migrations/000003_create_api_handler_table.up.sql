@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS api_handlers(
     UNIQUE(handler, method)
 );
 
-INSERT INTO api_handlers (handler, method, description) VALUES ('SampleHandler', 'SampleMethod', 'its a sample record!') RETURNING id;
+INSERT INTO api_handlers (handler, method, description) VALUES ('SampleHandler', 'SampleMethod', 'its a sample record!');

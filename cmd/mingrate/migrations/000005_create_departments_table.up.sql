@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS departments (
     deleted INT2 NOT NULL DEFAULT 0
 );
 
-INSERT INTO departments (title, description) VALUES ('SampleDep', 'its a sample department!') RETURNING id;
+INSERT INTO departments (title, description) VALUES ('SampleDep', 'its a sample department!');
