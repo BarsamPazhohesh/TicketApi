@@ -2,8 +2,8 @@ package repository
 
 import (
 	"context"
-	"ticket-api/internal/appError"
 	"ticket-api/internal/db/ticket_priorities"
+	"ticket-api/internal/errx"
 )
 
 type TicketPrioritiesRepository struct {
@@ -21,7 +21,7 @@ func (repo *TicketPrioritiesRepository) AddTicketPriority(ctx context.Context, t
 	return err
 }
 
-func (repo *TicketPrioritiesRepository) GerTicketPriority(ctx context.Context, userId int, ticketTypeId int) (int, *appError.APIError) {
+func (repo *TicketPrioritiesRepository) GerTicketPriority(ctx context.Context, userId int, ticketTypeId int) (int, *errx.APIError) {
 	// TODO: add logic here someone :)
 	return -1, nil
 }
