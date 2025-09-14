@@ -43,7 +43,7 @@ func (r *TicketRepository) CreateTicket(ctx context.Context, ticketDTO *dto.Tick
 }
 
 // GetTicket retrieves a single ticket by ID and converts it to TicketRaw.
-func (r *TicketRepository) GetTicket(ctx context.Context, id string) (*dto.TicketRaw, *apperror.APIError) {
+func (r *TicketRepository) GetTicket(ctx context.Context, id string) (*dto.TicketResponse, *apperror.APIError) {
 	var ticket model.Ticket
 	if err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&ticket); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -52,11 +52,11 @@ func (r *TicketRepository) GetTicket(ctx context.Context, id string) (*dto.Ticke
 		return nil, apperror.Respond(apperror.ErrInternalServerError, err)
 	}
 
-	return dto.ToTicketRaw(&ticket), nil
+	return dto.ToTicketResponse(&ticket), nil
 }
 
 // GetAllTickets retrieves all tickets for a specific user and converts them to TicketRaw.
-func (r *TicketRepository) GetAllTickets(ctx context.Context, userID int) ([]dto.TicketRaw, *apperror.APIError) {
+func (r *TicketRepository) GetAllTickets(ctx context.Context, userID int) ([]dto.TicketResponse, *apperror.APIError) {
 	if r.collection == nil {
 		return nil, apperror.Respond(apperror.ErrInternalServerError, nil)
 	}
@@ -67,13 +67,13 @@ func (r *TicketRepository) GetAllTickets(ctx context.Context, userID int) ([]dto
 	}
 	defer cursor.Close(ctx)
 
-	var tickets []dto.TicketRaw
+	var tickets []dto.TicketResponse
 	for cursor.Next(ctx) {
 		var t model.Ticket
 		if err := cursor.Decode(&t); err != nil {
 			return nil, apperror.Respond(apperror.ErrInternalServerError, err)
 		}
-		tickets = append(tickets, *dto.ToTicketRaw(&t))
+		tickets = append(tickets, *dto.ToTicketResponse(&t))
 	}
 
 	return tickets, nil
