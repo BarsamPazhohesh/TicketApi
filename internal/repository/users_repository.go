@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"os/user"
 	"ticket-api/internal/apperror"
 	"ticket-api/internal/db/users"
 	"ticket-api/internal/dto"
@@ -66,3 +65,4 @@ func (repo *UsersRepository) GetUserByID(ctx context.Context, userId int) (*dto.
 	userDTO := dto.ToUserDTO(user)
 	return userDTO, nil
 }
+
