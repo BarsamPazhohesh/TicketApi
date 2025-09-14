@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"ticket-api/internal/db/ticket_types"
+	"ticket-api/internal/errx"
 )
 
 type TicketTypesRepository struct {
@@ -30,4 +31,12 @@ func (repo *TicketTypesRepository) GetAllTicketTypes(ctx context.Context) ([]tic
 
 func (repo *TicketTypesRepository) GetAllActiveTicketTypes(ctx context.Context) ([]ticket_types.TicketType, error) {
 	return repo.queries.GetAllActiveTicketTypes(ctx)
+}
+
+func (repo *TicketTypesRepository) IsTicketTypeExits(ctx context.Context, typeID int64) (bool, *errx.APIError) {
+	count, err := repo.queries.CheckTicketTypeByID(ctx, typeID)
+	if err != nil {
+		return false, errx.Respond(errx.ErrInternalServerError, err)
+	}
+	return count != 0, nil
 }
