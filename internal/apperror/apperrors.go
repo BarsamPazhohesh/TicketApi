@@ -25,6 +25,7 @@ const (
 	ErrInvalidInput
 	ErrDuplicate
 	ErrBadRequest
+	ErrUserNotFound
 )
 
 type errorDef struct {
@@ -40,6 +41,7 @@ var errors = map[int]errorDef{
 	ErrInvalidInput:        {"داده ورودی نامعتبر است", http.StatusBadRequest},
 	ErrDuplicate:           {"رکورد تکراری است", http.StatusConflict},
 	ErrBadRequest:          {"درخواست نامعتبر", http.StatusBadRequest},
+	ErrUserNotFound:        {"کاربر پیدا نشد", http.StatusNotFound},
 }
 
 // Make creates a plain Error
