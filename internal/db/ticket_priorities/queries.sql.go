@@ -25,11 +25,20 @@ func (q *Queries) AddTicketPriority(ctx context.Context, arg AddTicketPriorityPa
 }
 
 const getTicketPriorityByID = `-- name: GetTicketPriorityByID :one
-SELECT user_id, ticket_type_id, priority, status, deleted FROM ticket_priorities WHERE   deleted =0
+SELECT user_id, ticket_type_id, priority, status, deleted FROM ticket_priorities 
+WHERE deleted = 0
+AND status != 0
+AND user_id = ?
+AND ticket_type_id = ?
 `
 
-func (q *Queries) GetTicketPriorityByID(ctx context.Context) (TicketPriority, error) {
-	row := q.db.QueryRowContext(ctx, getTicketPriorityByID)
+type GetTicketPriorityByIDParams struct {
+	UserID       int64
+	TicketTypeID int64
+}
+
+func (q *Queries) GetTicketPriorityByID(ctx context.Context, arg GetTicketPriorityByIDParams) (TicketPriority, error) {
+	row := q.db.QueryRowContext(ctx, getTicketPriorityByID, arg.UserID, arg.TicketTypeID)
 	var i TicketPriority
 	err := row.Scan(
 		&i.UserID,
