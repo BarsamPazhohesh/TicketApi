@@ -14,6 +14,7 @@ AND id = ?;
 INSERT INTO users (username, department_id) VALUES (?, ?) RETURNING id;
 
 -- name: GetUserByID :one
-SELECT *
-FROM users
-WHERE id = ? AND deleted = 0 AND status != 0;
+SELECT * FROM users
+WHERE id = ? 
+AND deleted = 0 
+AND status != 0;
