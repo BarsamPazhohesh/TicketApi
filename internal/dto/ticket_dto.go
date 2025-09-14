@@ -62,8 +62,8 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 // Ticket raw DTO (Mongo document)
 // ---------------------------
 
-// TicketRaw represents the ticket data stored in MongoDB
-type TicketRaw struct {
+// TicketResponse represents the ticket data stored in MongoDB
+type TicketResponse struct {
 	ID             string           `json:"id" bson:"_id"`
 	TrackCode      string           `json:"trackCode" bson:"trackCode"`
 	UserID         int              `json:"userId" bson:"userId"`
@@ -77,7 +77,7 @@ type TicketRaw struct {
 }
 
 // ToModel converts TicketRaw into model.Ticket
-func (r *TicketRaw) ToModel() *model.Ticket {
+func (r *TicketResponse) ToModel() *model.Ticket {
 	chat := make([]model.ChatMessage, len(r.Chat))
 	for i, msg := range r.Chat {
 		chat[i] = model.ChatMessage{
@@ -104,10 +104,9 @@ func (r *TicketRaw) ToModel() *model.Ticket {
 }
 
 // ---------------------------
-// TicketResponse DTO (for API)
+// TicketFullResponse DTO (for API)
 // ---------------------------
-
-type TicketResponse struct {
+type TicketFullResponse struct {
 	ID             string           `json:"id"`
 	TrackCode      string           `json:"trackId"`
 	UserID         int              `json:"userId"`
@@ -124,7 +123,7 @@ type TicketResponse struct {
 	Chat           []ChatMessageDTO `json:"chat"`
 }
 
-func ToTicketRaw(ticket *model.Ticket) *TicketRaw {
+func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 	chatDTOs := make([]ChatMessageDTO, len(ticket.Chat))
 	for i, msg := range ticket.Chat {
 		chatDTOs[i] = ChatMessageDTO{
@@ -137,7 +136,7 @@ func ToTicketRaw(ticket *model.Ticket) *TicketRaw {
 		}
 	}
 
-	return &TicketRaw{
+	return &TicketResponse{
 		ID:             ticket.ID,
 		TrackCode:      ticket.TrackCode,
 		UserID:         ticket.UserID,
@@ -147,42 +146,6 @@ func ToTicketRaw(ticket *model.Ticket) *TicketRaw {
 		TicketStatusID: ticket.TicketStatusID,
 		CreatedAt:      ticket.CreatedAt,
 		UpdatedAt:      ticket.UpdatedAt,
-		Chat:           chatDTOs,
-	}
-}
-
-// TicketToTicketResponse converts a model.Ticket and related data into a TicketResponse
-func (r *TicketRaw) ToTicketResponse(
-	user *model.User,
-	typ *model.TicketType,
-	dep *model.Department,
-) *TicketResponse {
-	chatDTOs := make([]ChatMessageDTO, len(r.Chat))
-	for i, msg := range r.Chat {
-		chatDTOs[i] = ChatMessageDTO{
-			ID:          msg.ID,
-			SenderID:    msg.SenderID,
-			Message:     msg.Message,
-			Attachments: msg.Attachments,
-			CreatedAt:   msg.CreatedAt,
-			UpdatedAt:   msg.UpdatedAt,
-		}
-	}
-
-	return &TicketResponse{
-		ID:             r.ID,
-		UserID:         r.UserID,
-		Username:       user.Username,
-		TrackCode:      r.TrackCode,
-		Priority:       0,
-		TypeID:         int(typ.ID),
-		Type:           typ.Title,
-		DepartmentId:   int(dep.ID),
-		DepartmentName: dep.Title,
-		Title:          r.Title,
-		TicketStatus:   "فعال",
-		CreatedAt:      r.CreatedAt,
-		UpdatedAt:      r.UpdatedAt,
 		Chat:           chatDTOs,
 	}
 }
