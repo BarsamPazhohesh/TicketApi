@@ -23,6 +23,9 @@ func NewUsersRepository(queries *users.Queries) *UsersRepository {
 func (repo *UsersRepository) IsUserExist(ctx context.Context, userId int64) (bool, *appError.APIError) {
 	count, err := repo.queries.CheckUserByID(ctx, userId)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, appError.Respond(appError.ErrUserNotFound, err)
+		}
 		return false, appError.Respond(appError.ErrInternalServerError, err)
 	}
 	return count != 0, nil

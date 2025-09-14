@@ -2,7 +2,7 @@ package handler
 
 import (
 	"net/http"
-	apperror "ticket-api/internal/apperror"
+	apperror "ticket-api/internal/appError"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/repository"
 

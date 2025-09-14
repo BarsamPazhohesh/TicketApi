@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
-	"ticket-api/internal/apperror"
+	"ticket-api/internal/appError"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/env"
 
@@ -26,7 +26,7 @@ func NewChatRepository(db *mongo.Database) *ChatRepository {
 }
 
 // CreateChatMessageForTicket adds a chat message to an existing ticket
-func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageResponseID, *apperror.APIError) {
+func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageResponseID, *appError.APIError) {
 	model := message.ToModel()
 	update := bson.M{
 		"$push": bson.M{"chat": model},
@@ -34,10 +34,10 @@ func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticke
 
 	res, err := r.collection.UpdateOne(ctx, bson.M{"_id": ticketID}, update)
 	if err != nil {
-		return nil, apperror.Respond(apperror.ErrInternalServerError, err)
+		return nil, appError.Respond(appError.ErrInternalServerError, err)
 	}
 	if res.MatchedCount == 0 {
-		return nil, apperror.Respond(apperror.ErrTicketNotFound, errors.New("ticket not found"))
+		return nil, appError.Respond(appError.ErrTicketNotFound, errors.New("ticket not found"))
 	}
 	return &dto.ChatMessageResponseID{ID: model.ID}, nil
 }

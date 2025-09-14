@@ -2,8 +2,7 @@ package handler
 
 import (
 	"net/http"
-
-	"ticket-api/internal/apperror"
+	"ticket-api/internal/appError"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/repository"
 
@@ -28,14 +27,14 @@ func NewTicketHandler(repo *repository.TicketRepository) *TicketHandler {
 // @Produce json
 // @Param ticket body dto.TicketCreateRequest true "Ticket data"
 // @Success 201 {object} dto.TicketIDResponse
-// @Failure 400 {object} apperror.Error
-// @Failure 409 {object} apperror.Error
-// @Failure 500 {object} apperror.Error
+// @Failure 400 {object} appError.Error
+// @Failure 409 {object} appError.Error
+// @Failure 500 {object} appError.Error
 // @Router /tickets [post]
 func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 	var ticketDTO dto.TicketCreateRequest
 	if err := c.ShouldBindJSON(&ticketDTO); err != nil {
-		c.JSON(http.StatusBadRequest, apperror.Make(apperror.ErrInvalidInput, err))
+		c.JSON(http.StatusBadRequest, appError.Make(appError.ErrInvalidInput, err))
 		return
 	}
 
@@ -54,8 +53,8 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 // @Produce json
 // @Param id path string true "Ticket ID"
 // @Success 200 {object} dto.TicketResponse
-// @Failure 404 {object} apperror.Error
-// @Failure 500 {object} apperror.Error
+// @Failure 404 {object} appError.Error
+// @Failure 500 {object} appError.Error
 // @Router /tickets/{id} [get]
 func (h *TicketHandler) GetTicketHandler(c *gin.Context) {
 	id := c.Param("id")
@@ -66,4 +65,3 @@ func (h *TicketHandler) GetTicketHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, ticketDTO)
 }
-

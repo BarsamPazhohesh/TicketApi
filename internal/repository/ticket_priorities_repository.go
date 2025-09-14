@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"ticket-api/internal/apperror"
+	"ticket-api/internal/appError"
 	"ticket-api/internal/db/ticket_priorities"
 )
 
@@ -21,7 +21,7 @@ func (repo *TicketPrioritiesRepository) AddTicketPriority(ctx context.Context, t
 	return err
 }
 
-func (repo *TicketPrioritiesRepository) GerTicketPriority(ctx context.Context, userId int, ticketTypeId int) (int, *apperror.APIError) {
+func (repo *TicketPrioritiesRepository) GerTicketPriority(ctx context.Context, userId int, ticketTypeId int) (int, *appError.APIError) {
 	// TODO: add logic here someone :)
 	return -1, nil
 }

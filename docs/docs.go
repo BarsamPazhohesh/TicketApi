@@ -57,6 +57,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/LoginWithNoAuth": {
+            "post": {
+                "description": "If a user with the provided username and department ID exists, it returns the user's ID. Otherwise, it creates a new user and returns the new ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login or create user without authentication",
+                "parameters": [
+                    {
+                        "description": "Login data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.LoginWitNoAuthDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User found and ID returned",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse"
+                        }
+                    },
+                    "201": {
+                        "description": "New user created and ID returned",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/tickets": {
             "post": {
                 "description": "Creates a new ticket with the provided data",
@@ -91,19 +143,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     }
                 }
@@ -138,13 +190,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     }
                 }
@@ -191,19 +243,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_apperror.Error"
+                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
                         }
                     }
                 }
@@ -211,7 +263,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ticket-api_internal_apperror.Error": {
+        "ticket-api_internal_appError.Error": {
             "type": "object",
             "properties": {
                 "code": {
@@ -268,6 +320,29 @@ const docTemplate = `{
                 }
             }
         },
+        "ticket-api_internal_dto.IDResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ticket-api_internal_dto.LoginWitNoAuthDTO": {
+            "type": "object",
+            "required": [
+                "departmentId",
+                "username"
+            ],
+            "properties": {
+                "departmentId": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "ticket-api_internal_dto.TicketCreateRequest": {
             "type": "object",
             "required": [
@@ -284,7 +359,6 @@ const docTemplate = `{
                     }
                 },
                 "body": {
-                    "description": "First message for the ticket (instead of Body/Attachments in Ticket)",
                     "type": "string"
                 },
                 "title": {
@@ -318,22 +392,22 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "done": {
-                    "type": "boolean"
+                "departmentId": {
+                    "type": "integer"
                 },
                 "id": {
                     "type": "string"
                 },
-                "priority": {
+                "ticketStatusId": {
                     "type": "integer"
                 },
                 "title": {
                     "type": "string"
                 },
-                "trackId": {
+                "trackCode": {
                     "type": "string"
                 },
-                "type": {
+                "typeId": {
                     "type": "integer"
                 },
                 "updatedAt": {
