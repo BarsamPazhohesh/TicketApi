@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 	"net/http"
@@ -12,6 +14,9 @@ func (app *application) routes() http.Handler {
 	g := gin.Default()
 
 	v1 := g.Group("/api/v1")
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
+	}
 	{
 		// Version route
 		v1.GET("", app.handlers.Version.GetCurrentVersionHandler)
