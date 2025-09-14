@@ -26,6 +26,21 @@ func (q *Queries) AddDepartment(ctx context.Context, arg AddDepartmentParams) (i
 	return id, err
 }
 
+const checkDepartmentByID = `-- name: CheckDepartmentByID :one
+SELECT COUNT(id) AS exist_of_id
+FROM departments
+WHERE deleted = 0
+AND status != 0
+AND id = ?
+`
+
+func (q *Queries) CheckDepartmentByID(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, checkDepartmentByID, id)
+	var exist_of_id int64
+	err := row.Scan(&exist_of_id)
+	return exist_of_id, err
+}
+
 const getAllActiveDepartments = `-- name: GetAllActiveDepartments :many
 SELECT id, title, description, status, deleted FROM departments
 WHERE deleted = 0

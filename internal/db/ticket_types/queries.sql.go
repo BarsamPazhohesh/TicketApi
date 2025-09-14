@@ -26,6 +26,21 @@ func (q *Queries) AddTicketType(ctx context.Context, arg AddTicketTypeParams) (i
 	return id, err
 }
 
+const checkTicketTypeByID = `-- name: CheckTicketTypeByID :one
+SELECT COUNT(id) AS exist_of_id
+FROM ticket_types
+WHERE deleted = 0
+AND status != 0
+AND id = ?
+`
+
+func (q *Queries) CheckTicketTypeByID(ctx context.Context, id int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, checkTicketTypeByID, id)
+	var exist_of_id int64
+	err := row.Scan(&exist_of_id)
+	return exist_of_id, err
+}
+
 const getAllActiveTicketTypes = `-- name: GetAllActiveTicketTypes :many
 SELECT id, title, description, status, deleted FROM ticket_types
 WHERE deleted = 0
@@ -93,21 +108,4 @@ func (q *Queries) GetAllTicketTypes(ctx context.Context) ([]TicketType, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const getTicketTypesByID = `-- name: GetTicketTypesByID :one
-SELECT id, title, description, status, deleted FROM ticket_types WHERE deleted = ?
-`
-
-func (q *Queries) GetTicketTypesByID(ctx context.Context, deleted int64) (TicketType, error) {
-	row := q.db.QueryRowContext(ctx, getTicketTypesByID, deleted)
-	var i TicketType
-	err := row.Scan(
-		&i.ID,
-		&i.Title,
-		&i.Description,
-		&i.Status,
-		&i.Deleted,
-	)
-	return i, err
 }
