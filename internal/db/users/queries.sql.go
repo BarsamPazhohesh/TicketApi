@@ -39,28 +39,19 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, 
 	return id, err
 }
 
-const getUser = `-- name: GetUser :one
-SELECT u.id, u.username, u.department_id, u.created_at, u.updated_at, u.status, u.deleted
-FROM users u
-WHERE u.id = ? AND u.deleted = 0
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, username, password, department_id, created_at, updated_at, status, deleted
+FROM users
+WHERE id = ? AND deleted = 0 AND status != 0
 `
 
-type GetUserRow struct {
-	ID           int64
-	Username     string
-	DepartmentID int64
-	CreatedAt    string
-	UpdatedAt    string
-	Status       int64
-	Deleted      int64
-}
-
-func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
-	row := q.db.QueryRowContext(ctx, getUser, id)
-	var i GetUserRow
+func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
+		&i.Password,
 		&i.DepartmentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -71,15 +62,24 @@ func (q *Queries) GetUser(ctx context.Context, id int64) (GetUserRow, error) {
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id FROM users
+SELECT id, username, password, department_id, created_at, updated_at, status, deleted FROM users
 WHERE deleted = 0
 AND status != 0
 AND username = ?
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (int64, error) {
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.DepartmentID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
+		&i.Deleted,
+	)
+	return i, err
 }
