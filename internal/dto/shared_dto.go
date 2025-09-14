@@ -1,5 +1,5 @@
 package dto
 
-type IDResponse struct {
-	ID int64 `json:"id"`
+type IDResponse[T int64 | int32 | string] struct {
+	ID T `json:"id"`
 }
