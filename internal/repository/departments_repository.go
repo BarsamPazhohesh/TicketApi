@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"ticket-api/internal/db/departments"
+	"ticket-api/internal/errx"
 )
 
 type DepartmentsRepository struct {
@@ -26,4 +27,12 @@ func (repo *DepartmentsRepository) AddDepartment(ctx context.Context, department
 
 func (repo *DepartmentsRepository) GetAllDepartments(ctx context.Context) ([]departments.Department, error) {
 	return repo.queries.GetAllDepartments(ctx)
+}
+
+func (repo *DepartmentsRepository) IsDepartmentExits(ctx context.Context, departmentID int64) (bool, *errx.APIError) {
+	count, err := repo.queries.CheckDepartmentByID(ctx, departmentID)
+	if err != nil {
+		return false, errx.Respond(errx.ErrInternalServerError, err)
+	}
+	return count != 0, nil
 }
