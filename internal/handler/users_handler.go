@@ -2,9 +2,9 @@ package handler
 
 import (
 	"net/http"
-	"ticket-api/internal/appError"
 	"ticket-api/internal/db/users"
 	"ticket-api/internal/dto"
+	"ticket-api/internal/errx"
 	"ticket-api/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -25,16 +25,16 @@ func NewUserHandler(repo *repository.UsersRepository) *UserHandler {
 // @Accept json
 // @Produce json
 // @Param login body dto.LoginWitNoAuthDTO true "Login data"
-// @Success 200 {object} dto.IDResponse "User found and ID returned"
-// @Success 201 {object} dto.IDResponse "New user created and ID returned"
-// @Failure 400 {object} appError.Error
-// @Failure 500 {object} appError.Error
+// @Success 200 {object} dto.IDResponse[int64] "User found and ID returned"
+// @Success 201 {object} dto.IDResponse[int64] "New user created and ID returned"
+// @Failure 400 {object} errx.Error
+// @Failure 500 {object} errx.Error
 // @Router /auth/LoginWithNoAuth [post]
 func (handler *UserHandler) LoginWithNoAuth(c *gin.Context) {
 	var loginWithNoAuthDTO dto.LoginWitNoAuthDTO
 
 	if err := c.ShouldBindJSON(&loginWithNoAuthDTO); err != nil {
-		err := appError.Respond(appError.ErrBadRequest, err)
+		err := errx.Respond(errx.ErrBadRequest, err)
 		c.JSON(err.HTTPStatus, err)
 		return
 	}
@@ -58,5 +58,5 @@ func (handler *UserHandler) LoginWithNoAuth(c *gin.Context) {
 	}
 
 	// user found
-	c.JSON(http.StatusOK, dto.IDResponse{user.ID})
+	c.JSON(http.StatusOK, dto.IDResponse[int64]{ID: user.ID})
 }
