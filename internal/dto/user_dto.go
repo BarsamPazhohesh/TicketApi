@@ -30,3 +30,8 @@ func ToUserDTO(u model.User) *UserDTO {
 		UpdatedAt:    u.UpdatedAt,
 	}
 }
+
+type LoginWitNoAuthDTO struct {
+	Username     string `json:"username" binding:"required,phoneNumber"`
+	DepartmentID int64  `json:"departmentId" binding:"required"`
+}
