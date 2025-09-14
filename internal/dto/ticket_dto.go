@@ -15,16 +15,13 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	UserID      int      `json:"userId" binding:"required"`
-	Type        int      `json:"type" binding:"required"`
-	Title       string   `json:"title" binding:"required"`
-	Body        string   `json:"body" binding:"required"`
-	Attachments []string `json:"attachments,omitempty"`
-}
-
-// TicketIDResponse is returned after ticket creation
-type TicketIDResponse struct {
-	ID string `json:"id"`
+	UserID         int      `json:"userId" binding:"required"`
+	TicketTypeID   int      `json:"ticketTypeID" binding:"required"`
+	TicketStatusID int      `json:"ticketStatusID" binding:"required"`
+	DepartmentID   int      `json:"departmentId" binding:"required"`
+	Title          string   `json:"title" binding:"required"`
+	Body           string   `json:"body" binding:"required"`
+	Attachments    []string `json:"attachments,omitempty"`
 }
 
 // ToModel converts a TicketCreateRequest into a model.Ticket
@@ -49,9 +46,10 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 		ID:             util.GenerateUUID(),
 		TrackCode:      trackCode,
 		UserID:         dto.UserID,
-		TypeID:         dto.Type,
+		TicketTypeID:   dto.TicketTypeID,
+		DepartmentID:   dto.DepartmentID,
+		TicketStatusID: dto.TicketStatusID,
 		Title:          dto.Title,
-		TicketStatusID: 0,
 		CreatedAt:      now,
 		UpdatedAt:      now,
 		Chat:           []model.ChatMessage{firstMessage},
@@ -67,7 +65,7 @@ type TicketResponse struct {
 	ID             string           `json:"id" bson:"_id"`
 	TrackCode      string           `json:"trackCode" bson:"trackCode"`
 	UserID         int              `json:"userId" bson:"userId"`
-	TypeID         int              `json:"typeId" bson:"typeId"`
+	TicketTypeID   int              `json:"ticketTypeId" bson:"typeId"`
 	DepartmentID   int              `json:"departmentId" bson:"departmentId"`
 	Title          string           `json:"title" bson:"title"`
 	TicketStatusID int              `json:"ticketStatusId" bson:"ticketStatusId"`
@@ -94,9 +92,10 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 		ID:             r.ID,
 		TrackCode:      r.TrackCode,
 		UserID:         r.UserID,
-		TypeID:         r.TypeID,
-		Title:          r.Title,
+		TicketTypeID:   r.TicketTypeID,
 		TicketStatusID: r.TicketStatusID,
+		DepartmentID:   r.DepartmentID,
+		Title:          r.Title,
 		CreatedAt:      r.CreatedAt,
 		UpdatedAt:      r.UpdatedAt,
 		Chat:           chat,
@@ -111,8 +110,8 @@ type TicketFullResponse struct {
 	TrackCode      string           `json:"trackId"`
 	UserID         int              `json:"userId"`
 	Username       string           `json:"username"`
-	TypeID         int              `json:"typeId"`
-	Type           string           `json:"type"`
+	TicketTypeID   int              `json:"ticketTypeId"`
+	TicketType     string           `json:"ticketType"`
 	DepartmentId   int              `json:"departmentId"`
 	DepartmentName string           `json:"departmentName"`
 	Priority       int              `json:"priority"`
@@ -140,7 +139,7 @@ func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 		ID:             ticket.ID,
 		TrackCode:      ticket.TrackCode,
 		UserID:         ticket.UserID,
-		TypeID:         ticket.TypeID,
+		TicketTypeID:   ticket.TicketTypeID,
 		DepartmentID:   ticket.DepartmentID,
 		Title:          ticket.Title,
 		TicketStatusID: ticket.TicketStatusID,
