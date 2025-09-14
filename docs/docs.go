@@ -85,25 +85,25 @@ const docTemplate = `{
                     "200": {
                         "description": "User found and ID returned",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse"
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-int64"
                         }
                     },
                     "201": {
                         "description": "New user created and ID returned",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse"
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-int64"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
                         }
                     }
                 }
@@ -137,25 +137,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketIDResponse"
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-string"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     }
                 }
@@ -190,13 +190,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     }
                 }
@@ -243,19 +243,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_appError.Error"
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
                         }
                     }
                 }
@@ -263,20 +263,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ticket-api_internal_appError.Error": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "debug": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
         "ticket-api_internal_dto.ChatMessageCreateRequest": {
             "type": "object",
             "properties": {
@@ -320,11 +306,19 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.IDResponse": {
+        "ticket-api_internal_dto.IDResponse-int64": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "ticket-api_internal_dto.IDResponse-string": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
                 }
             }
         },
@@ -347,8 +341,10 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "body",
+                "departmentId",
+                "ticketStatusID",
+                "ticketTypeID",
                 "title",
-                "type",
                 "userId"
             ],
             "properties": {
@@ -361,28 +357,29 @@ const docTemplate = `{
                 "body": {
                     "type": "string"
                 },
+                "departmentId": {
+                    "type": "integer"
+                },
+                "ticketStatusID": {
+                    "type": "integer"
+                },
+                "ticketTypeID": {
+                    "type": "integer"
+                },
                 "title": {
                     "type": "string"
-                },
-                "type": {
-                    "type": "integer"
                 },
                 "userId": {
                     "type": "integer"
                 }
             }
         },
-        "ticket-api_internal_dto.TicketIDResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
         "ticket-api_internal_dto.TicketResponse": {
             "type": "object",
             "properties": {
+                "TicketTypeId": {
+                    "type": "integer"
+                },
                 "chat": {
                     "type": "array",
                     "items": {
@@ -406,9 +403,6 @@ const docTemplate = `{
                 },
                 "trackCode": {
                     "type": "string"
-                },
-                "typeId": {
-                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -435,6 +429,31 @@ const docTemplate = `{
                 },
                 "version": {
                     "description": "JSON: version",
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_errx.APIError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                }
+            }
+        },
+        "ticket-api_internal_errx.Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "debug": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "stack": {
                     "type": "string"
                 }
             }

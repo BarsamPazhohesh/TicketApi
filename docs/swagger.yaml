@@ -1,14 +1,5 @@
 basePath: /api/v1
 definitions:
-  ticket-api_internal_appError.Error:
-    properties:
-      code:
-        type: integer
-      debug:
-        type: string
-      message:
-        type: string
-    type: object
   ticket-api_internal_dto.ChatMessageCreateRequest:
     properties:
       attachments:
@@ -37,10 +28,15 @@ definitions:
       updatedAt:
         type: string
     type: object
-  ticket-api_internal_dto.IDResponse:
+  ticket-api_internal_dto.IDResponse-int64:
     properties:
       id:
         type: integer
+    type: object
+  ticket-api_internal_dto.IDResponse-string:
+    properties:
+      id:
+        type: string
     type: object
   ticket-api_internal_dto.LoginWitNoAuthDTO:
     properties:
@@ -60,25 +56,28 @@ definitions:
         type: array
       body:
         type: string
+      departmentId:
+        type: integer
+      ticketStatusID:
+        type: integer
+      ticketTypeID:
+        type: integer
       title:
         type: string
-      type:
-        type: integer
       userId:
         type: integer
     required:
     - body
+    - departmentId
+    - ticketStatusID
+    - ticketTypeID
     - title
-    - type
     - userId
-    type: object
-  ticket-api_internal_dto.TicketIDResponse:
-    properties:
-      id:
-        type: string
     type: object
   ticket-api_internal_dto.TicketResponse:
     properties:
+      TicketTypeId:
+        type: integer
       chat:
         items:
           $ref: '#/definitions/ticket-api_internal_dto.ChatMessageDTO'
@@ -95,8 +94,6 @@ definitions:
         type: string
       trackCode:
         type: string
-      typeId:
-        type: integer
       updatedAt:
         type: string
       userId:
@@ -115,6 +112,22 @@ definitions:
         type: string
       version:
         description: 'JSON: version'
+        type: string
+    type: object
+  ticket-api_internal_errx.APIError:
+    properties:
+      error:
+        $ref: '#/definitions/ticket-api_internal_errx.Error'
+    type: object
+  ticket-api_internal_errx.Error:
+    properties:
+      code:
+        type: integer
+      debug:
+        type: string
+      message:
+        type: string
+      stack:
         type: string
     type: object
 info:
@@ -170,19 +183,19 @@ paths:
         "200":
           description: User found and ID returned
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.IDResponse'
+            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-int64'
         "201":
           description: New user created and ID returned
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.IDResponse'
+            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-int64'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
       summary: Login or create user without authentication
       tags:
       - Auth
@@ -204,19 +217,19 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketIDResponse'
+            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-string'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
       summary: Create a new ticket
       tags:
       - Ticket
@@ -239,11 +252,11 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
       summary: Get ticket by ID
       tags:
       - Ticket
@@ -274,15 +287,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ticket-api_internal_appError.Error'
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
       summary: Add chat message to a ticket
       tags:
       - Ticket
