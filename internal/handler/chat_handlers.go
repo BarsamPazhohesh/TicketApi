@@ -37,7 +37,7 @@ func (h *ChatHandler) CreateChatHandler(c *gin.Context) {
 	var chatDTO dto.ChatMessageCreateRequest
 	if err := c.ShouldBindJSON(&chatDTO); err != nil {
 		appErr := errx.Respond(errx.ErrBadRequest, err)
-		c.JSON(errx.ErrBadRequest, appErr)
+		c.JSON(appErr.HTTPStatus, appErr)
 		return
 	}
 
