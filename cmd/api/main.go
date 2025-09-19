@@ -6,10 +6,13 @@ import (
 	"errors"
 	"log"
 	"os"
+	"ticket-api/internal/config"
 	"ticket-api/internal/env"
+	"ticket-api/internal/errx"
 	"ticket-api/internal/handler"
 	_ "ticket-api/internal/handler"
 	"ticket-api/internal/repository"
+	"ticket-api/internal/services"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -19,37 +22,39 @@ import (
 )
 
 type application struct {
-	port      int
-	jwtSecret string
-	repos     repository.AppRepositories
-	handlers  handler.AppHandlers
+	port     int
+	services *services.AppServices
+	repos    *repository.AppRepositories
+	handlers *handler.AppHandlers
 }
 
 // @title Ticket API
 // @version 1.0
 // @BasePath /api/v1
 func main() {
+
+	config.Load("config.yaml")
 	dbSql, err := sql.Open("sqlite3", "file:./data.db?_foreign_keys=on")
 	fatalIfErr(err)
+	errx.NewRegistry(dbSql)
 
 	defer dbSql.Close()
 
-	isMongoEnable := env.GetEnvInt("ENABLE_MONGO", 0)
-
 	//mongodb
 	var dbMongo *mongo.Database = nil
-	if isMongoEnable != 0 {
+	if config.Get().Mongo.Enable {
 		dbMongo, err = ConnectMongo()
 		fatalIfErr(err)
 	}
+	services := services.NewAppService()
 	repos := repository.NewRepositories(dbSql, dbMongo)
-	handlers := handler.NewAppHandlers(repos)
+	handlers := handler.NewAppHandlers(repos, services)
 
 	app := &application{
-		port:      env.GetEnvInt("PORT", 8080),
-		jwtSecret: env.GetEnvString("JWT_SECRET", "super-storng-key-123456"),
-		repos:     *repos,
-		handlers:  *handlers,
+		port:     config.Get().App.Port,
+		services: services,
+		repos:    repos,
+		handlers: handlers,
 	}
 
 	if err := app.serve(); err != nil {
@@ -71,7 +76,7 @@ func ConnectMongo() (*mongo.Database, error) {
 		return nil, errors.New("MONGODB_URI is not set")
 	}
 
-	dbName := env.GetEnvString("MONGODB_DB", "ticketdb")
+	dbName := env.GetEnvString("MONGODB_DB", config.Get().Mongo.DBName)
 	opts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(opts)
 
