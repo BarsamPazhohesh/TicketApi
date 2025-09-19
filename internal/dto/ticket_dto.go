@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
-	"go.mongodb.org/mongo-driver/v2/mongo"
 	"ticket-api/internal/model"
 	"ticket-api/internal/util"
+
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // ---------------------------
@@ -27,7 +28,6 @@ type TicketCreateRequest struct {
 // ToModel converts a TicketCreateRequest into a model.Ticket
 func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *mongo.Collection) (*model.Ticket, error) {
 	now := time.Now()
-
 	trackCode, err := util.GenerateUniqueTrackCode(ctx, ticketCollection)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 }
 
 // ---------------------------
-// Ticket raw DTO (Mongo document)
+// Ticket Response DTO (Mongo document)
 // ---------------------------
 
 // TicketResponse represents the ticket data stored in MongoDB
@@ -147,4 +147,29 @@ func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 		UpdatedAt:      ticket.UpdatedAt,
 		Chat:           chatDTOs,
 	}
+}
+
+type TicketByIDRequestDTO struct {
+	ID string `json:"id" binding:"required,uuid"` // assuming UUID
+}
+
+type TicketCreateResponse struct {
+	ID        string `json:"id"`
+	TrackCode string `json:"trackCode"`
+}
+
+type TicketByTrackCodeRequestDTO struct {
+	TrackCode string `json:"trackCode" binding:"required"`
+}
+
+type TicketQueryParams struct {
+	Page     int `json:"page,omitempty"`      // page number
+	PageSize int `json:"page_size,omitempty"` // items per page
+
+	StatusID     int64 `json:"status,omitempty"`  // optional filter
+	UserID       int64 `json:"user_id,omitempty"` // optional filter
+	DepartmentID int64 `json:"departmentId,omitempty"`
+
+	OrderBy  string `json:"order_by,omitempty"`  // field to order by
+	OrderDir string `json:"order_dir,omitempty"` // asc or desc
 }
