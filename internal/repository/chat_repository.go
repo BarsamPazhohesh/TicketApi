@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
+	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
-	"ticket-api/internal/env"
 	"ticket-api/internal/errx"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -17,11 +17,11 @@ type ChatRepository struct {
 
 // NewChatRepository creates a new ChatRepository
 func NewChatRepository(db *mongo.Database) *ChatRepository {
-	if env.GetEnvInt("ENABLE_MONGO", 0) == 0 {
+	if config.Get().Mongo.Enable {
 		return &ChatRepository{}
 	}
 	return &ChatRepository{
-		collection: db.Collection("tickets"),
+		collection: db.Collection(config.Get().Mongo.TicketCollectionName),
 	}
 }
 
