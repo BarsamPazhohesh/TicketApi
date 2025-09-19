@@ -1,0 +1,47 @@
+app:
+  port: 8080 # Application HTTP port (used when starting the program)
+
+captcha:
+  length: 6 # Number of characters in the captcha
+  timeout_minutes: 5 # Captcha lifetime (in-memory cache TTL, minutes)
+  expired_time_token: 15 # Captcha JWT token TTL (minutes)
+  cookie_name: "captcha_token" # Cookie name for storing captcha JWT token
+  cleanup_interval: 10 # Cleanup interval for expired captchas (minutes)
+  max_cashed_captcha: 100000 # Max number of captchas stored in cache
+  image_width: 240 # Captcha image width in pixels
+  image_height: 80 # Captcha image height in pixels
+
+token:
+  httponly: true # Use HttpOnly flag for cookies (recommended true)
+  secure: false # Use Secure flag for cookies (true if HTTPS)
+
+one_time_token:
+  cleanup_interval: 10 # Cleanup interval for expired one-time tokens (minutes)
+  max_cashed_tokens: 100000 # Max number of one-time tokens stored in cache
+  expired_time_token: 3 # One-time JWT token TTL (minutes)
+
+auth:
+  expired_time_token: 60 # Auth JWT token TTL (minutes)
+  cookie_name: "auth_token" # Cookie name for auth JWT token
+
+mongo:
+  enable: true # Enable MongoDB integration
+  db_name: "ticket_db" # MongoDB database name
+  ticket_collocation_name: "tickets" # Collection name for tickets
+
+ticket:
+  # The maximum number of items a client can request per page.
+  # Any request asking for more than this will use default_paging_size.
+  max_paging_size: 100
+
+  # The default number of items per page if the client does not specify a limit,
+  # or if the requested limit is larger than max_paging_size.
+  default_paging_size: 10
+
+  # The minimum number of items allowed per page.
+  # Requests below this size will also use default_paging_size.
+  min_paging_size: 5
+
+  # The maximum number of items that can be counted or processed in bulk.
+  # Useful to prevent slow queries on large collections.
+  max_counting_item: 10000
