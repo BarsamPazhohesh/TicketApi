@@ -7,6 +7,7 @@ package users
 
 import (
 	"context"
+	"database/sql"
 )
 
 const checkUserByID = `-- name: CheckUserByID :one
@@ -34,6 +35,23 @@ type CreateUserParams struct {
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (int64, error) {
 	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.DepartmentID)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createUserWithPassword = `-- name: CreateUserWithPassword :one
+INSERT INTO users (username, password, department_id) VALUES (?, ?, ?) RETURNING id
+`
+
+type CreateUserWithPasswordParams struct {
+	Username     string
+	Password     sql.NullString
+	DepartmentID int64
+}
+
+func (q *Queries) CreateUserWithPassword(ctx context.Context, arg CreateUserWithPasswordParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createUserWithPassword, arg.Username, arg.Password, arg.DepartmentID)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
