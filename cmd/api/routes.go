@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	_ "ticket-api/docs"
+	"ticket-api/internal/middleware"
 	"ticket-api/internal/util"
 
 	"github.com/gin-gonic/gin"
@@ -19,18 +20,40 @@ func (app *application) routes() http.Handler {
 		v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
 	}
 
-	v1 := g.Group("/api/v1/")
+	v1 := g.Group("/api/v1")
 	{
-		// Version route
-		v1.GET("", app.handlers.Version.GetCurrentVersionHandler)
+		// Routes protected by Captcha middleware
+		captchaGroup := v1.Group("")
+		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
+		{
+			captchaGroup.POST("auth/sigup", app.handlers.Auth.SigupWithPassword)
+			captchaGroup.GET("auth/login", app.handlers.Auth.LoginWithPassword)
+			captchaGroup.POST("tickets", app.handlers.Ticket.CreateTicketHandler)
+			captchaGroup.POST("ticket/track-code", app.handlers.Ticket.GetTicketByTrackCodeHandler)
+			captchaGroup.POST("tickets/:id/chat", app.handlers.Chat.CreateChatHandler)
+		}
 
-		// Ticket routes
-		v1.POST("tickets", app.handlers.Ticket.CreateTicketHandler) // create new ticket
-		v1.GET("tickets/:id", app.handlers.Ticket.GetTicketHandler) // get ticket by ID
+		// Routes protected by Authorization middleware
+		authGroup := v1.Group("")
+		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
+		{
+			authGroup.POST("ticket/id", app.handlers.Ticket.GetTicketByIDHandler)
+			authGroup.POST("auth/LoginWithNoAuth", app.handlers.User.LoginWithNoAuth)
+		}
 
-		v1.POST("tickets/:id/chat", app.handlers.Chat.CreateChatHandler) // create chat
+		// Auth routes (no middleware for one-time token)
+		public := v1.Group("")
+		{
+			// Version and public captcha routes (no middleware)
+			public.GET("", app.handlers.Version.GetCurrentVersionHandler)
+			public.GET("captcha/new", app.handlers.Captcha.GenerateCaptchaHandler)
+			public.POST("captcha/verify", app.handlers.Captcha.VerifyCaptchaHandler)
 
-		v1.POST("auth/LoginWithNoAuth", app.handlers.User.LoginWithNoAuth)
+			public.POST("auth/one-time-token", app.handlers.Auth.GenerateOneTimeToken)
+			public.GET("auth/login/token", app.handlers.Auth.LoginWithOneTimeToken)
+
+			public.POST("tickets/list", app.handlers.Ticket.ListTicketsHandler)
+		}
 	}
 
 	// Redirect /swagger → /swagger/index.html
