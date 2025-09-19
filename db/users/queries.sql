@@ -13,6 +13,10 @@ AND id = ?;
 -- name: CreateUser :one
 INSERT INTO users (username, department_id) VALUES (?, ?) RETURNING id;
 
+
+-- name: CreateUserWithPassword :one
+INSERT INTO users (username, password, department_id) VALUES (?, ?, ?) RETURNING id;
+
 -- name: GetUserByID :one
 SELECT * FROM users
 WHERE id = ? 
