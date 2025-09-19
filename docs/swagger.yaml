@@ -1,5 +1,23 @@
 basePath: /api/v1
 definitions:
+  ticket-api_internal_dto.CaptchaResultDTO:
+    properties:
+      answer:
+        description: optional, only in debug mode
+        type: string
+      id:
+        type: string
+      image:
+        description: base64
+        type: string
+    type: object
+  ticket-api_internal_dto.CaptchaVerifyRequest:
+    properties:
+      captcha:
+        type: string
+      id:
+        type: string
+    type: object
   ticket-api_internal_dto.ChatMessageCreateRequest:
     properties:
       attachments:
@@ -28,6 +46,13 @@ definitions:
       updatedAt:
         type: string
     type: object
+  ticket-api_internal_dto.GenerateOneTimeTokenDTO:
+    properties:
+      username:
+        type: string
+    required:
+    - username
+    type: object
   ticket-api_internal_dto.IDResponse-int64:
     properties:
       id:
@@ -47,6 +72,69 @@ definitions:
     required:
     - departmentId
     - username
+    type: object
+  ticket-api_internal_dto.LoginWithPasswordDTO:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  ticket-api_internal_dto.OneTimeTokenResponseDTO:
+    properties:
+      token:
+        type: string
+    type: object
+  ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse:
+    properties:
+      items:
+        description: paged items
+        items:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
+        type: array
+      page:
+        description: current page
+        type: integer
+      page_size:
+        description: number of items per page
+        type: integer
+      total:
+        description: total number of items
+        type: integer
+      total_pages:
+        description: total pages
+        type: integer
+    type: object
+  ticket-api_internal_dto.SigupWithPasswordDTO:
+    properties:
+      departmentId:
+        type: integer
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - departmentId
+    - password
+    - username
+    type: object
+  ticket-api_internal_dto.TicketByIDRequestDTO:
+    properties:
+      id:
+        description: assuming UUID
+        type: string
+    required:
+    - id
+    type: object
+  ticket-api_internal_dto.TicketByTrackCodeRequestDTO:
+    properties:
+      trackCode:
+        type: string
+    required:
+    - trackCode
     type: object
   ticket-api_internal_dto.TicketCreateRequest:
     properties:
@@ -74,10 +162,31 @@ definitions:
     - title
     - userId
     type: object
+  ticket-api_internal_dto.TicketQueryParams:
+    properties:
+      departmentId:
+        type: integer
+      order_by:
+        description: field to order by
+        type: string
+      order_dir:
+        description: asc or desc
+        type: string
+      page:
+        description: page number
+        type: integer
+      page_size:
+        description: items per page
+        type: integer
+      status:
+        description: optional filter
+        type: integer
+      user_id:
+        description: optional filter
+        type: integer
+    type: object
   ticket-api_internal_dto.TicketResponse:
     properties:
-      TicketTypeId:
-        type: integer
       chat:
         items:
           $ref: '#/definitions/ticket-api_internal_dto.ChatMessageDTO'
@@ -89,6 +198,8 @@ definitions:
       id:
         type: string
       ticketStatusId:
+        type: integer
+      ticketTypeId:
         type: integer
       title:
         type: string
@@ -116,13 +227,13 @@ definitions:
     type: object
   ticket-api_internal_errx.APIError:
     properties:
-      error:
+      errors:
         $ref: '#/definitions/ticket-api_internal_errx.Error'
     type: object
   ticket-api_internal_errx.Error:
     properties:
       code:
-        type: integer
+        $ref: '#/definitions/ticket-api_internal_errx.ErrorCode'
       debug:
         type: string
       message:
@@ -130,6 +241,36 @@ definitions:
       stack:
         type: string
     type: object
+  ticket-api_internal_errx.ErrorCode:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    type: integer
+    x-enum-varnames:
+    - ErrInternalServerError
+    - ErrTicketNotFound
+    - ErrUnauthorized
+    - ErrInvalidInput
+    - ErrDuplicate
+    - ErrBadRequest
+    - ErrUserNotFound
+    - ErrTicketTypeNotFound
+    - ErrDepartmentNotFound
+    - ErrUserDuplicate
+    - ErrInvalidCredentials
+    - ErrWeakJWTSecret
+    - ErrIncorrectCaptcha
 info:
   contact: {}
   title: Ticket API
@@ -199,6 +340,244 @@ paths:
       summary: Login or create user without authentication
       tags:
       - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.LoginWithPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Login with username and password
+      tags:
+      - auth
+  /auth/login/token:
+    get:
+      consumes:
+      - application/json
+      description: Validates a one-time token and returns an auth JWT
+      parameters:
+      - description: One-time token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Login using a one-time token
+      tags:
+      - auth
+  /auth/one-time-token:
+    post:
+      consumes:
+      - application/json
+      description: Returns a one-time JWT token to authenticate on another service
+      parameters:
+      - description: Username
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.GenerateOneTimeTokenDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.OneTimeTokenResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Generate one-time token for a user
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with username and password
+      parameters:
+      - description: Signup credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.SigupWithPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-int64'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Sign up with username and password
+      tags:
+      - auth
+  /captcha/new:
+    get:
+      description: Generates a new captcha and returns its ID and image (base64)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.CaptchaResultDTO'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
+      summary: Generate new captcha
+      tags:
+      - Captcha
+  /captcha/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the captcha ID and user-provided answer
+      parameters:
+      - description: Captcha Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.CaptchaVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.CaptchaVerifyRequest'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.Error'
+      summary: Verify captcha
+      tags:
+      - Captcha
+  /ticket/id:
+    post:
+      consumes:
+      - application/json
+      description: Returns a ticket by its ID
+      parameters:
+      - description: Ticket ID Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get ticket by ID
+      tags:
+      - Ticket
+  /ticket/track-code:
+    post:
+      consumes:
+      - application/json
+      description: Returns a ticket by its track code
+      parameters:
+      - description: Track Code Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get ticket by track code
+      tags:
+      - Ticket
   /tickets:
     post:
       consumes:
@@ -231,33 +610,6 @@ paths:
           schema:
             $ref: '#/definitions/ticket-api_internal_errx.APIError'
       summary: Create a new ticket
-      tags:
-      - Ticket
-  /tickets/{id}:
-    get:
-      description: Returns a ticket by its ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-      summary: Get ticket by ID
       tags:
       - Ticket
   /tickets/{id}/chat:
@@ -297,6 +649,37 @@ paths:
           schema:
             $ref: '#/definitions/ticket-api_internal_errx.Error'
       summary: Add chat message to a ticket
+      tags:
+      - Ticket
+  /tickets/list:
+    post:
+      consumes:
+      - application/json
+      description: Returns a paginated list of tickets based on complex filter and
+        sort options
+      parameters:
+      - description: Ticket filter and paging options
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketQueryParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: List tickets with paging and filtering
       tags:
       - Ticket
 swagger: "2.0"

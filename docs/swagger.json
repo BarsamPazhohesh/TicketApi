@@ -101,6 +101,370 @@
                 }
             }
         },
+        "/auth/login": {
+            "post": {
+                "description": "Authenticate user and return JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login with username and password",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.LoginWithPasswordDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login/token": {
+            "get": {
+                "description": "Validates a one-time token and returns an auth JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login using a one-time token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "One-time token",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/one-time-token": {
+            "post": {
+                "description": "Returns a one-time JWT token to authenticate on another service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Generate one-time token for a user",
+                "parameters": [
+                    {
+                        "description": "Username",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.GenerateOneTimeTokenDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.OneTimeTokenResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup": {
+            "post": {
+                "description": "Create a new user with username and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign up with username and password",
+                "parameters": [
+                    {
+                        "description": "Signup credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.SigupWithPasswordDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-int64"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/captcha/new": {
+            "get": {
+                "description": "Generates a new captcha and returns its ID and image (base64)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Captcha"
+                ],
+                "summary": "Generate new captcha",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.CaptchaResultDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/captcha/verify": {
+            "post": {
+                "description": "Verifies the captcha ID and user-provided answer",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Captcha"
+                ],
+                "summary": "Verify captcha",
+                "parameters": [
+                    {
+                        "description": "Captcha Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.CaptchaVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.CaptchaVerifyRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/ticket/id": {
+            "post": {
+                "description": "Returns a ticket by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Get ticket by ID",
+                "parameters": [
+                    {
+                        "description": "Ticket ID Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/ticket/track-code": {
+            "post": {
+                "description": "Returns a ticket by its track code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Get ticket by track code",
+                "parameters": [
+                    {
+                        "description": "Track Code Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/tickets": {
             "post": {
                 "description": "Creates a new ticket with the provided data",
@@ -153,34 +517,39 @@
                 }
             }
         },
-        "/tickets/{id}": {
-            "get": {
-                "description": "Returns a ticket by its ID",
+        "/tickets/list": {
+            "post": {
+                "description": "Returns a paginated list of tickets based on complex filter and sort options",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Ticket"
                 ],
-                "summary": "Get ticket by ID",
+                "summary": "List tickets with paging and filtering",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Ticket ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "Ticket filter and paging options",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketQueryParams"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                            "$ref": "#/definitions/ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
@@ -255,6 +624,33 @@
         }
     },
     "definitions": {
+        "ticket-api_internal_dto.CaptchaResultDTO": {
+            "type": "object",
+            "properties": {
+                "answer": {
+                    "description": "optional, only in debug mode",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "description": "base64",
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.CaptchaVerifyRequest": {
+            "type": "object",
+            "properties": {
+                "captcha": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "ticket-api_internal_dto.ChatMessageCreateRequest": {
             "type": "object",
             "properties": {
@@ -298,6 +694,17 @@
                 }
             }
         },
+        "ticket-api_internal_dto.GenerateOneTimeTokenDTO": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "ticket-api_internal_dto.IDResponse-int64": {
             "type": "object",
             "properties": {
@@ -325,6 +732,99 @@
                     "type": "integer"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.LoginWithPasswordDTO": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.OneTimeTokenResponseDTO": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "paged items",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                    }
+                },
+                "page": {
+                    "description": "current page",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "number of items per page",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "total number of items",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "total pages",
+                    "type": "integer"
+                }
+            }
+        },
+        "ticket-api_internal_dto.SigupWithPasswordDTO": {
+            "type": "object",
+            "required": [
+                "departmentId",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "departmentId": {
+                    "type": "integer"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.TicketByIDRequestDTO": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "assuming UUID",
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.TicketByTrackCodeRequestDTO": {
+            "type": "object",
+            "required": [
+                "trackCode"
+            ],
+            "properties": {
+                "trackCode": {
                     "type": "string"
                 }
             }
@@ -366,12 +866,41 @@
                 }
             }
         },
+        "ticket-api_internal_dto.TicketQueryParams": {
+            "type": "object",
+            "properties": {
+                "departmentId": {
+                    "type": "integer"
+                },
+                "order_by": {
+                    "description": "field to order by",
+                    "type": "string"
+                },
+                "order_dir": {
+                    "description": "asc or desc",
+                    "type": "string"
+                },
+                "page": {
+                    "description": "page number",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "items per page",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "optional filter",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "optional filter",
+                    "type": "integer"
+                }
+            }
+        },
         "ticket-api_internal_dto.TicketResponse": {
             "type": "object",
             "properties": {
-                "TicketTypeId": {
-                    "type": "integer"
-                },
                 "chat": {
                     "type": "array",
                     "items": {
@@ -388,6 +917,9 @@
                     "type": "string"
                 },
                 "ticketStatusId": {
+                    "type": "integer"
+                },
+                "ticketTypeId": {
                     "type": "integer"
                 },
                 "title": {
@@ -428,7 +960,7 @@
         "ticket-api_internal_errx.APIError": {
             "type": "object",
             "properties": {
-                "error": {
+                "errors": {
                     "$ref": "#/definitions/ticket-api_internal_errx.Error"
                 }
             }
@@ -437,7 +969,7 @@
             "type": "object",
             "properties": {
                 "code": {
-                    "type": "integer"
+                    "$ref": "#/definitions/ticket-api_internal_errx.ErrorCode"
                 },
                 "debug": {
                     "type": "string"
@@ -449,6 +981,39 @@
                     "type": "string"
                 }
             }
+        },
+        "ticket-api_internal_errx.ErrorCode": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12
+            ],
+            "x-enum-varnames": [
+                "ErrInternalServerError",
+                "ErrTicketNotFound",
+                "ErrUnauthorized",
+                "ErrInvalidInput",
+                "ErrDuplicate",
+                "ErrBadRequest",
+                "ErrUserNotFound",
+                "ErrTicketTypeNotFound",
+                "ErrDepartmentNotFound",
+                "ErrUserDuplicate",
+                "ErrInvalidCredentials",
+                "ErrWeakJWTSecret",
+                "ErrIncorrectCaptcha"
+            ]
         }
     }
 }
