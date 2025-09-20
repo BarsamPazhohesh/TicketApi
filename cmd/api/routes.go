@@ -42,17 +42,17 @@ func (app *application) routes() http.Handler {
 		}
 
 		// Auth routes (no middleware for one-time token)
-		public := v1.Group("")
+		publicGroup := v1.Group("")
 		{
 			// Version and public captcha routes (no middleware)
-			public.GET("", app.handlers.Version.GetCurrentVersionHandler)
-			public.GET("captcha/new", app.handlers.Captcha.GenerateCaptchaHandler)
-			public.POST("captcha/verify", app.handlers.Captcha.VerifyCaptchaHandler)
+			publicGroup.GET("", app.handlers.Version.GetCurrentVersionHandler)
+			publicGroup.GET("captcha/new", app.handlers.Captcha.GenerateCaptchaHandler)
+			publicGroup.POST("captcha/verify", app.handlers.Captcha.VerifyCaptchaHandler)
 
-			public.POST("auth/one-time-token", app.handlers.Auth.GenerateOneTimeToken)
-			public.GET("auth/login/token", app.handlers.Auth.LoginWithOneTimeToken)
+			publicGroup.POST("auth/one-time-token", app.handlers.Auth.GenerateOneTimeToken)
+			publicGroup.GET("auth/login/token", app.handlers.Auth.LoginWithOneTimeToken)
 
-			public.POST("tickets/list", app.handlers.Ticket.ListTicketsHandler)
+			publicGroup.POST("tickets/list", app.handlers.Ticket.ListTicketsHandler)
 		}
 	}
 
