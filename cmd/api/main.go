@@ -32,7 +32,6 @@ type application struct {
 // @version 1.0
 // @BasePath /api/v1
 func main() {
-
 	config.Load("config.yaml")
 	dbSql, err := sql.Open("sqlite3", "file:./data.db?_foreign_keys=on")
 	fatalIfErr(err)
@@ -40,7 +39,8 @@ func main() {
 
 	defer dbSql.Close()
 
-	//mongodb
+
+	// mongodb
 	var dbMongo *mongo.Database = nil
 	if config.Get().Mongo.Enable {
 		dbMongo, err = ConnectMongo()
@@ -79,7 +79,6 @@ func ConnectMongo() (*mongo.Database, error) {
 	dbName := env.GetEnvString("MONGODB_DB", config.Get().Mongo.DBName)
 	opts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(opts)
-
 	if err != nil {
 		return nil, err
 	}

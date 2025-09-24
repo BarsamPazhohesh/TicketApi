@@ -1,3 +1,4 @@
+// Package util
 package util
 
 import (
@@ -50,4 +51,3 @@ func GenerateUniqueTrackCode(ctx context.Context, coll *mongo.Collection) (strin
 	}
 	return "", errors.New("failed to generate unique track code code after max attempts")
 }
-

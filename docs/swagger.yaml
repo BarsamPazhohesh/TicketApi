@@ -278,7 +278,6 @@ info:
 paths:
   /:
     get:
-      description: Returns the current version for the given API (v1, v2, etc.)
       parameters:
       - description: API Version
         enum:
@@ -290,18 +289,7 @@ paths:
         type: string
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ticket-api_internal_dto.VersionDTO'
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get current API version
+      responses: {}
       tags:
       - Version
   /auth/LoginWithNoAuth:

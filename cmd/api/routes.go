@@ -16,6 +16,7 @@ import (
 func (app *application) routes() http.Handler {
 	g := gin.Default()
 
+	// Validation
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
 	}
