@@ -17,12 +17,14 @@ const docTemplate = `{
     "paths": {
         "/": {
             "get": {
+                "description": "Returns the current version for the given API (v1, v2, etc.)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Version"
                 ],
+                "summary": "Get current API version",
                 "parameters": [
                     {
                         "enum": [
@@ -36,7 +38,23 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.VersionDTO"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/auth/LoginWithNoAuth": {
@@ -987,7 +1005,8 @@ const docTemplate = `{
                 9,
                 10,
                 11,
-                12
+                12,
+                13
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1002,7 +1021,8 @@ const docTemplate = `{
                 "ErrUserDuplicate",
                 "ErrInvalidCredentials",
                 "ErrWeakJWTSecret",
-                "ErrIncorrectCaptcha"
+                "ErrIncorrectCaptcha",
+                "ErrTicketStatusNotFound"
             ]
         }
     }
