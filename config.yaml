@@ -29,6 +29,12 @@ mongo:
   db_name: "ticket_db" # MongoDB database name
   ticket_collocation_name: "tickets" # Collection name for tickets
 
+redis:
+  enable: true # Enable Redis integration
+  host: "localhost" # Redis host
+  port: 6379 # Redis port
+  db: 0 # Redis logical database (integer 0 - 15)
+
 ticket:
   # The maximum number of items a client can request per page.
   # Any request asking for more than this will use default_paging_size.
@@ -40,7 +46,7 @@ ticket:
 
   # The minimum number of items allowed per page.
   # Requests below this size will also use default_paging_size.
-  min_paging_size: 5
+  min_paging_size: 2
 
   # The maximum number of items that can be counted or processed in bulk.
   # Useful to prevent slow queries on large collections.

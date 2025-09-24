@@ -33,6 +33,7 @@ const (
 	ErrWeakJWTSecret
 	ErrIncorrectCaptcha
 	ErrTicketStatusNotFound
+	ErrTooManyRequest
 )
 
 //
@@ -108,6 +109,7 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrWeakJWTSecret:        {"کلید JWT بسیار کوتاه یا ناامن است", http.StatusInternalServerError},
 			ErrIncorrectCaptcha:     {"کپچا نادرست است", http.StatusUnauthorized},
 			ErrTicketStatusNotFound: {"وضعیت تیکت یافت نشد", http.StatusNotFound},
+			ErrTooManyRequest:       {"تعداد درخواست‌ها بیش از حد مجاز است", http.StatusTooManyRequests},
 		},
 		db: db,
 	}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strconv"
 	"ticket-api/internal/config"
 	"ticket-api/internal/env"
 	"ticket-api/internal/errx"
@@ -16,12 +17,16 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type application struct {
 	port     int
+	mongo    *mongo.Database
+	sql      *sql.DB
+	redis    *redis.Client
 	services *services.AppServices
 	repos    *repository.AppRepositories
 	handlers *handler.AppHandlers
@@ -44,12 +49,19 @@ func main() {
 		dbMongo, err = ConnectMongo()
 		fatalIfErr(err)
 	}
+
+	dbRedis, err := ConnectRedis()
+	fatalIfErr(err)
+
 	services := services.NewAppService()
 	repos := repository.NewRepositories(dbSql, dbMongo)
 	handlers := handler.NewAppHandlers(repos, services)
 
 	app := &application{
 		port:     config.Get().App.Port,
+		sql:      dbSql,
+		mongo:    dbMongo,
+		redis:    dbRedis,
 		services: services,
 		repos:    repos,
 		handlers: handlers,
@@ -89,4 +101,27 @@ func ConnectMongo() (*mongo.Database, error) {
 
 	log.Println("✅ Connected to MongoDB:", dbName)
 	return client.Database(dbName), nil
+}
+
+// ConnectRedis connects to Redis and returns the client.
+func ConnectRedis() (*redis.Client, error) {
+	redisCfg := config.Get().Redis
+
+	addr := redisCfg.Host + ":" + strconv.Itoa(redisCfg.Port)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     addr,
+		Password: env.GetEnvString("REDIS_PASSWORD", ""),
+		DB:       redisCfg.DB,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Test the connection
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		return nil, err
+	}
+
+	log.Println("✅ Connected to Redis:", addr, "DB:", redisCfg.DB)
+	return rdb, nil
 }

@@ -47,6 +47,13 @@ type Config struct {
 		TicketCollectionName string `yaml:"ticket_collocation_name"` // MongoDB collection name for tickets
 	} `yaml:"mongo"`
 
+	Redis struct {
+		Enable bool   `yaml:"enable"` // Enable Redis integration
+		Host   string `yaml:"host"`   // Redis host
+		Port   int    `yaml:"port"`   // Redis port
+		DB     int    `yaml:"db"`     // Redis logical database (integer 0 - 15)
+	} `yaml:"redis"`
+
 	TicketConfig struct {
 		MaxPagingSize     int   `yaml:"max_paging_size"`
 		MinPagingSize     int   `yaml:"min_paging_size"`
