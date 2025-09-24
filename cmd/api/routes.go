@@ -21,11 +21,12 @@ func (app *application) routes() http.Handler {
 		v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
 	}
 
+	// Assume you already have redisClient from ConnectRedis()
 	v1 := g.Group("/api/v1")
 	{
-		// Routes protected by Captcha middleware
 		captchaGroup := v1.Group("")
 		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
+		captchaGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
 		{
 			captchaGroup.POST("auth/sigup", app.handlers.Auth.SigupWithPassword)
 			captchaGroup.GET("auth/login", app.handlers.Auth.LoginWithPassword)
@@ -34,18 +35,17 @@ func (app *application) routes() http.Handler {
 			captchaGroup.POST("tickets/:id/chat", app.handlers.Chat.CreateChatHandler)
 		}
 
-		// Routes protected by Authorization middleware
 		authGroup := v1.Group("")
 		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
+		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
 		{
 			authGroup.POST("ticket/id", app.handlers.Ticket.GetTicketByIDHandler)
 			authGroup.POST("auth/LoginWithNoAuth", app.handlers.User.LoginWithNoAuth)
 		}
 
-		// Auth routes (no middleware for one-time token)
 		publicGroup := v1.Group("")
+		publicGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
 		{
-			// Version and public captcha routes (no middleware)
 			publicGroup.GET("", app.handlers.Version.GetCurrentVersionHandler)
 			publicGroup.GET("captcha/new", app.handlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST("captcha/verify", app.handlers.Captcha.VerifyCaptchaHandler)
