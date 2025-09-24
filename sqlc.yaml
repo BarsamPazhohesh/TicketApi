@@ -64,3 +64,19 @@ sql:
       go:
         package: "roles_relations"
         out: "internal/db/roles_relations"
+
+  - schema: "db/ticket_statuses/schema.sql"
+    queries: "db/ticket_statuses/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "ticket_statuses"
+        out: "internal/db/ticket_statuses"
+
+  - schema: "db/api_keys/schema.sql"
+    queries: "db/api_keys/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "api_keys"
+        out: "internal/db/api_keys"
