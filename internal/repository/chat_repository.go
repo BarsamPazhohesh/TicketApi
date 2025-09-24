@@ -17,7 +17,7 @@ type ChatRepository struct {
 
 // NewChatRepository creates a new ChatRepository
 func NewChatRepository(db *mongo.Database) *ChatRepository {
-	if config.Get().Mongo.Enable {
+	if !config.Get().Mongo.Enable {
 		return &ChatRepository{}
 	}
 	return &ChatRepository{
