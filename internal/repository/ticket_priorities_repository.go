@@ -21,7 +21,7 @@ func (repo *TicketPrioritiesRepository) AddTicketPriority(ctx context.Context, t
 	return err
 }
 
-func (repo *TicketPrioritiesRepository) GerTicketPriority(ctx context.Context, userId int, ticketTypeId int) (int, *errx.APIError) {
+func (repo *TicketPrioritiesRepository) GetTicketPriority(ctx context.Context, userID int, ticketTypeID int) (int, *errx.APIError) {
 	// TODO: add logic here someone :)
 	return -1, nil
 }

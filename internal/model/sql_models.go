@@ -1,7 +1,8 @@
+// Package model
 package model
 
 import (
-	"ticket-api/internal/db/api_handlers"
+	"ticket-api/internal/db/api_routes"
 	"ticket-api/internal/db/departments"
 	"ticket-api/internal/db/roles"
 	"ticket-api/internal/db/roles_relations"
@@ -10,10 +11,12 @@ import (
 	"ticket-api/internal/db/version"
 )
 
-type User = users.User
-type Role = roles.Role
-type AppVersion = version.AppVersion
-type UsersRolesRelation = roles_relations.UsersRolesRelation
-type Department = departments.Department
-type TicketType = ticket_types.TicketType
-type ApiHandler = api_handlers.ApiHandler
+type (
+	User               = users.User
+	Role               = roles.Role
+	AppVersion         = version.AppVersion
+	UsersRolesRelation = roles_relations.UsersRolesRelation
+	Department         = departments.Department
+	TicketType         = ticket_types.TicketType
+	APIHandler         = api_routes.ApiRoute
+)

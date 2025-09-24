@@ -27,7 +27,7 @@ func main() {
 	fatalIfErr(err)
 
 	// Migration source (filesystem)
-	src, err := (&file.File{}).Open("cmd/mingrate/migrations")
+	src, err := (&file.File{}).Open("cmd/migrate/migrations")
 	fatalIfErr(err)
 
 	// Migrate instance

@@ -2,11 +2,13 @@ package repository
 
 import (
 	"database/sql"
-	"ticket-api/internal/db/api_handlers"
+	"ticket-api/internal/db/api_keys"
+	"ticket-api/internal/db/api_routes"
 	"ticket-api/internal/db/departments"
 	"ticket-api/internal/db/roles"
 	"ticket-api/internal/db/roles_relations"
 	"ticket-api/internal/db/ticket_priorities"
+	"ticket-api/internal/db/ticket_statuses"
 	"ticket-api/internal/db/ticket_types"
 	"ticket-api/internal/db/users"
 	"ticket-api/internal/db/version"
@@ -22,7 +24,7 @@ type AppRepositories struct {
 	Departments      *DepartmentsRepository
 	TicketTypes      *TicketTypesRepository
 	TicketPriorities *TicketPrioritiesRepository
-	ApiHandlers      *ApiHandlerRepository
+	APIRoutes        *APIRoutesRepository
 	RolesRelations   *RolesRelationsRepository
 	Users            *UsersRepository
 }
@@ -36,8 +38,11 @@ func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
 		Departments:      NewDepartmentsRepository(departments.New(sqldb)),
 		TicketTypes:      NewTicketTypesRepository(ticket_types.New(sqldb)),
 		TicketPriorities: NewTicketPrioritiesRepository(ticket_priorities.New(sqldb)),
-		ApiHandlers:      NewApiHandlerRepository(api_handlers.New(sqldb)),
-		RolesRelations:   NewRolesRelationRepository(roles_relations.New(sqldb)),
-		Users:            NewUsersRepository(users.New(sqldb)),
+		APIRoutes:        NewAPIRoutesRepository(api_routes.New(sqldb)),
+		RolesRelations: NewRolesRelationRepository(
+			roles_relations.New(sqldb),
+			api_keys.New((sqldb)),
+			api_routes.New(sqldb)),
+		Users:        NewUsersRepository(users.New(sqldb)),
 	}
 }
