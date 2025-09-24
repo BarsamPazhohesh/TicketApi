@@ -4,11 +4,18 @@
 
 package roles_relations
 
-type ApiHandlersRolesRelation struct {
-	ApiHandlerID int64
-	RoleID       int64
-	Status       int64
-	Deleted      int64
+type ApiKeysRolesRelation struct {
+	ApiKeyID int64
+	RoleID   int64
+	Status   int64
+	Deleted  int64
+}
+
+type ApiRoutesRolesRelation struct {
+	ApiRouteID int64
+	RoleID     int64
+	Status     int64
+	Deleted    int64
 }
 
 type TicketTypesRolesRelation struct {

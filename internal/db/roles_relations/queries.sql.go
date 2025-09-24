@@ -9,17 +9,31 @@ import (
 	"context"
 )
 
-const addApiHandlerToRolesRelation = `-- name: AddApiHandlerToRolesRelation :exec
-INSERT INTO api_handlers_roles_relation (api_handler_id, role_id) VALUES (?, ?)
+const addAPIKeysToRolesRelation = `-- name: AddAPIKeysToRolesRelation :exec
+INSERT INTO api_keys_roles_relation (api_key_id, role_id) VALUES (?, ?)
 `
 
-type AddApiHandlerToRolesRelationParams struct {
-	ApiHandlerID int64
-	RoleID       int64
+type AddAPIKeysToRolesRelationParams struct {
+	ApiKeyID int64
+	RoleID   int64
 }
 
-func (q *Queries) AddApiHandlerToRolesRelation(ctx context.Context, arg AddApiHandlerToRolesRelationParams) error {
-	_, err := q.db.ExecContext(ctx, addApiHandlerToRolesRelation, arg.ApiHandlerID, arg.RoleID)
+func (q *Queries) AddAPIKeysToRolesRelation(ctx context.Context, arg AddAPIKeysToRolesRelationParams) error {
+	_, err := q.db.ExecContext(ctx, addAPIKeysToRolesRelation, arg.ApiKeyID, arg.RoleID)
+	return err
+}
+
+const addApiRoutesToRolesRelation = `-- name: AddApiRoutesToRolesRelation :exec
+INSERT INTO api_routes_roles_relation (api_route_id, role_id) VALUES (?, ?)
+`
+
+type AddApiRoutesToRolesRelationParams struct {
+	ApiRouteID int64
+	RoleID     int64
+}
+
+func (q *Queries) AddApiRoutesToRolesRelation(ctx context.Context, arg AddApiRoutesToRolesRelationParams) error {
+	_, err := q.db.ExecContext(ctx, addApiRoutesToRolesRelation, arg.ApiRouteID, arg.RoleID)
 	return err
 }
 
@@ -49,4 +63,64 @@ type AddUsersToRolesRelationParams struct {
 func (q *Queries) AddUsersToRolesRelation(ctx context.Context, arg AddUsersToRolesRelationParams) error {
 	_, err := q.db.ExecContext(ctx, addUsersToRolesRelation, arg.UserID, arg.RoleID)
 	return err
+}
+
+const getAPIKeyRoleIDs = `-- name: GetAPIKeyRoleIDs :many
+SELECT role_id FROM api_keys_roles_relation
+WHERE deleted = 0
+AND status != 0
+AND api_key_id = ?
+`
+
+func (q *Queries) GetAPIKeyRoleIDs(ctx context.Context, apiKeyID int64) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, getAPIKeyRoleIDs, apiKeyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var role_id int64
+		if err := rows.Scan(&role_id); err != nil {
+			return nil, err
+		}
+		items = append(items, role_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAPIRouteRoleIDs = `-- name: GetAPIRouteRoleIDs :many
+SELECT role_id FROM api_routes_roles_relation
+WHERE deleted = 0
+AND status != 0
+AND api_route_id = ?
+`
+
+func (q *Queries) GetAPIRouteRoleIDs(ctx context.Context, apiRouteID int64) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, getAPIRouteRoleIDs, apiRouteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var role_id int64
+		if err := rows.Scan(&role_id); err != nil {
+			return nil, err
+		}
+		items = append(items, role_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

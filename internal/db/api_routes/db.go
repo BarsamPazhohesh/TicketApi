@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.30.0
 
-package api_handlers
+package api_routes
 
 import (
 	"context"

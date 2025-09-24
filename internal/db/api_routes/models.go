@@ -2,15 +2,15 @@
 // versions:
 //   sqlc v1.30.0
 
-package api_handlers
+package api_routes
 
 import (
 	"database/sql"
 )
 
-type ApiHandler struct {
+type ApiRoute struct {
 	ID          int64
-	Handler     string
+	Route       string
 	Method      string
 	Description sql.NullString
 	Status      int64
