@@ -27,6 +27,7 @@ type AppRepositories struct {
 	APIRoutes        *APIRoutesRepository
 	RolesRelations   *RolesRelationsRepository
 	Users            *UsersRepository
+	TicketStatus     *TicketStatusesRepository
 }
 
 func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
@@ -44,5 +45,6 @@ func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
 			api_keys.New((sqldb)),
 			api_routes.New(sqldb)),
 		Users:        NewUsersRepository(users.New(sqldb)),
+		TicketStatus: NewTicketStatusesRepository(ticket_statuses.New(sqldb)),
 	}
 }
