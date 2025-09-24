@@ -10,7 +10,6 @@ import (
 	"ticket-api/internal/env"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/handler"
-	_ "ticket-api/internal/handler"
 	"ticket-api/internal/repository"
 	"ticket-api/internal/services"
 	"time"
@@ -38,7 +37,6 @@ func main() {
 	errx.NewRegistry(dbSql)
 
 	defer dbSql.Close()
-
 
 	// mongodb
 	var dbMongo *mongo.Database = nil
