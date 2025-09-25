@@ -48,7 +48,7 @@ type LoginWithPasswordDTO struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type SigupWithPasswordDTO struct {
+type SignUpWithPasswordDTO struct {
 	Username     string `json:"username" binding:"required,phoneNumber"`
 	Password     string `json:"password" binding:"required"`
 	DepartmentID int64  `json:"departmentId" binding:"required"`
@@ -59,10 +59,10 @@ type AuthPasswordResponseDTO struct {
 	AccessToken string `json:"accessToken"`
 }
 
-type GenerateOneTimeTokenDTO struct {
+type GenerateSingleUseTokenDTO struct {
 	Username string `json:"username" binding:"required"`
 }
 
-type OneTimeTokenResponseDTO struct {
+type SingleUseTokenResponseDTO struct {
 	Token string `json:"token"`
 }
