@@ -10,8 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func (app *application) routes() http.Handler {
@@ -41,7 +41,7 @@ func (app *application) routes() http.Handler {
 		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
 		{
 			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, app.handlers.Ticket.GetTicketByIDHandler)
-			authGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.User.LoginWithNoAuth)
+			authGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.Auth.LoginWithNoAuth)
 		}
 
 		publicGroup := v1.Group("")
@@ -55,7 +55,7 @@ func (app *application) routes() http.Handler {
 			publicGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, app.handlers.Auth.GenerateOneTimeToken)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, app.handlers.Auth.LoginWithOneTimeToken)
 
-			publicGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.ListTicketsHandler)
+			publicGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
 		}
 	}
 
