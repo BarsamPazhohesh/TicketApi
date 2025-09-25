@@ -79,7 +79,7 @@ func (h *CaptchaHandler) VerifyCaptchaHandler(c *gin.Context) {
 		"/",                         // path
 		"",                          // domain (empty = current domain)
 		config.Get().Token.Secure,   // secure (true = only send over HTTPS)
-		config.Get().Token.HttpOnly, // httpOnly (cannot be accessed by JS)
+		config.Get().Token.HTTPOnly, // httpOnly (cannot be accessed by JS)
 	)
 	c.JSON(http.StatusOK, nil)
 }
