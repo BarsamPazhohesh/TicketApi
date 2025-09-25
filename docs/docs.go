@@ -57,7 +57,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/LoginWithNoAuth": {
+        "/auth/LoginWithNoAuth/": {
             "post": {
                 "description": "If a user with the provided username and department ID exists, it returns the user's ID. Otherwise, it creates a new user and returns the new ID.",
                 "consumes": [
@@ -297,7 +297,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/captcha/new": {
+        "/captcha/GetCaptcha/": {
             "get": {
                 "description": "Generates a new captcha and returns its ID and image (base64)",
                 "produces": [
@@ -323,7 +323,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/captcha/verify": {
+        "/captcha/VerifyCaptcha/": {
             "post": {
                 "description": "Verifies the captcha ID and user-provided answer",
                 "consumes": [
@@ -369,7 +369,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/ticket/id": {
+        "/tickets/:id/": {
             "post": {
                 "description": "Returns a ticket by its ID",
                 "consumes": [
@@ -421,157 +421,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/ticket/track-code": {
-            "post": {
-                "description": "Returns a ticket by its track code",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticket"
-                ],
-                "summary": "Get ticket by track code",
-                "parameters": [
-                    {
-                        "description": "Track Code Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/tickets": {
-            "post": {
-                "description": "Creates a new ticket with the provided data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticket"
-                ],
-                "summary": "Create a new ticket",
-                "parameters": [
-                    {
-                        "description": "Ticket data",
-                        "name": "ticket",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/tickets/list": {
-            "post": {
-                "description": "Returns a paginated list of tickets based on complex filter and sort options",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticket"
-                ],
-                "summary": "List tickets with paging and filtering",
-                "parameters": [
-                    {
-                        "description": "Ticket filter and paging options",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketQueryParams"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/tickets/{id}/chat": {
+        "/tickets/:id/CreateChat/": {
             "post": {
                 "description": "Adds a new chat message to an existing ticket",
                 "consumes": [
@@ -625,6 +475,156 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/tickets/CreateTicket/": {
+            "post": {
+                "description": "Creates a new ticket with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Create a new ticket",
+                "parameters": [
+                    {
+                        "description": "Ticket data",
+                        "name": "ticket",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tickets/GetTicketByTrackCode/": {
+            "post": {
+                "description": "Returns a ticket by its track code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Get ticket by track code",
+                "parameters": [
+                    {
+                        "description": "Track Code Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tickets/GetTicketsList/": {
+            "post": {
+                "description": "Returns a paginated list of tickets based on complex filter and sort options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "List tickets with paging and filtering",
+                "parameters": [
+                    {
+                        "description": "Ticket filter and paging options",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketQueryParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     }
                 }
@@ -1006,7 +1006,8 @@ const docTemplate = `{
                 10,
                 11,
                 12,
-                13
+                13,
+                14
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1022,7 +1023,8 @@ const docTemplate = `{
                 "ErrInvalidCredentials",
                 "ErrWeakJWTSecret",
                 "ErrIncorrectCaptcha",
-                "ErrTicketStatusNotFound"
+                "ErrTicketStatusNotFound",
+                "ErrTooManyRequest"
             ]
         }
     }

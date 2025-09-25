@@ -257,6 +257,7 @@ definitions:
     - 11
     - 12
     - 13
+    - 14
     type: integer
     x-enum-varnames:
     - ErrInternalServerError
@@ -273,6 +274,7 @@ definitions:
     - ErrWeakJWTSecret
     - ErrIncorrectCaptcha
     - ErrTicketStatusNotFound
+    - ErrTooManyRequest
 info:
   contact: {}
   title: Ticket API
@@ -306,7 +308,7 @@ paths:
       summary: Get current API version
       tags:
       - Version
-  /auth/LoginWithNoAuth:
+  /auth/LoginWithNoAuth/:
     post:
       consumes:
       - application/json
@@ -465,7 +467,7 @@ paths:
       summary: Sign up with username and password
       tags:
       - auth
-  /captcha/new:
+  /captcha/GetCaptcha/:
     get:
       description: Generates a new captcha and returns its ID and image (base64)
       produces:
@@ -482,7 +484,7 @@ paths:
       summary: Generate new captcha
       tags:
       - Captcha
-  /captcha/verify:
+  /captcha/VerifyCaptcha/:
     post:
       consumes:
       - application/json
@@ -512,7 +514,7 @@ paths:
       summary: Verify captcha
       tags:
       - Captcha
-  /ticket/id:
+  /tickets/:id/:
     post:
       consumes:
       - application/json
@@ -546,75 +548,7 @@ paths:
       summary: Get ticket by ID
       tags:
       - Ticket
-  /ticket/track-code:
-    post:
-      consumes:
-      - application/json
-      description: Returns a ticket by its track code
-      parameters:
-      - description: Track Code Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-      summary: Get ticket by track code
-      tags:
-      - Ticket
-  /tickets:
-    post:
-      consumes:
-      - application/json
-      description: Creates a new ticket with the provided data
-      parameters:
-      - description: Ticket data
-        in: body
-        name: ticket
-        required: true
-        schema:
-          $ref: '#/definitions/ticket-api_internal_dto.TicketCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-string'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-      summary: Create a new ticket
-      tags:
-      - Ticket
-  /tickets/{id}/chat:
+  /tickets/:id/CreateChat/:
     post:
       consumes:
       - application/json
@@ -653,7 +587,75 @@ paths:
       summary: Add chat message to a ticket
       tags:
       - Ticket
-  /tickets/list:
+  /tickets/CreateTicket/:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new ticket with the provided data
+      parameters:
+      - description: Ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Create a new ticket
+      tags:
+      - Ticket
+  /tickets/GetTicketByTrackCode/:
+    post:
+      consumes:
+      - application/json
+      description: Returns a ticket by its track code
+      parameters:
+      - description: Track Code Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get ticket by track code
+      tags:
+      - Ticket
+  /tickets/GetTicketsList/:
     post:
       consumes:
       - application/json
