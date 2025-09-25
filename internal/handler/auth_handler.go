@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"ticket-api/internal/db/users"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/repository"
@@ -23,7 +24,48 @@ func NewAuthHandler(repo *repository.UsersRepository, tokenService *token.TokenS
 	return &AuthHandler{Repo: repo, TokenService: tokenService}
 }
 
-// SigupWithPassword godoc
+// LoginWithNoAuth handles POST /auth/LoginWithNoAuth/
+// @Summary Login or create user without authentication
+// @Description If a user with the provided username and department ID exists, it returns the user's ID. Otherwise, it creates a new user and returns the new ID.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param login body dto.LoginWitNoAuthDTO true "Login data"
+// @Success 200 {object} dto.IDResponse[int64] "User found and ID returned"
+// @Success 201 {object} dto.IDResponse[int64] "New user created and ID returned"
+// @Failure 400 {object} errx.Error
+// @Failure 500 {object} errx.Error
+// @Router /auth/LoginWithNoAuth/ [post]
+func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
+	var loginWithNoAuthDTO dto.LoginWitNoAuthDTO
+
+	if err := c.ShouldBindJSON(&loginWithNoAuthDTO); err != nil {
+		err := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	user, err := h.Repo.GetUserByUsername(c.Request.Context(), loginWithNoAuthDTO.Username)
+	// no user found
+	if err != nil {
+		param := users.CreateUserParams{
+			Username:     loginWithNoAuthDTO.Username,
+			DepartmentID: loginWithNoAuthDTO.DepartmentID,
+		}
+
+		userID, err := h.Repo.AddUser(c.Request.Context(), param)
+		if err != nil {
+			c.JSON(err.HTTPStatus, err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, userID)
+		return
+	}
+
+	// user found
+	c.JSON(http.StatusOK, dto.IDResponse[int64]{ID: user.ID})
+}
 // @Summary      Sign up with username and password
 // @Description  Create a new user with username and password
 // @Tags         auth
