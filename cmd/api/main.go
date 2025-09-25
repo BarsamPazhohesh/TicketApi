@@ -37,11 +37,11 @@ type application struct {
 // @BasePath /api/v1
 func main() {
 	config.Load("config.yaml")
-	dbSql, err := sql.Open("sqlite3", "file:./data.db?_foreign_keys=on")
+	dbSQL, err := sql.Open("sqlite3", "file:./data.db?_foreign_keys=on")
 	fatalIfErr(err)
-	errx.NewRegistry(dbSql)
+	errx.NewRegistry(dbSQL)
 
-	defer dbSql.Close()
+	defer dbSQL.Close()
 
 	// mongodb
 	var dbMongo *mongo.Database = nil
@@ -54,12 +54,12 @@ func main() {
 	fatalIfErr(err)
 
 	services := services.NewAppService()
-	repos := repository.NewRepositories(dbSql, dbMongo)
+	repos := repository.NewRepositories(dbSQL, dbMongo)
 	handlers := handler.NewAppHandlers(repos, services)
 
 	app := &application{
 		port:     config.Get().App.Port,
-		sql:      dbSql,
+		sql:      dbSQL,
 		mongo:    dbMongo,
 		redis:    dbRedis,
 		services: services,

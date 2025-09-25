@@ -2,10 +2,9 @@ package dto
 
 import (
 	"context"
-	"time"
-
 	"ticket-api/internal/model"
 	"ticket-api/internal/util"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -102,9 +101,7 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 	}
 }
 
-// ---------------------------
 // TicketFullResponse DTO (for API)
-// ---------------------------
 type TicketFullResponse struct {
 	ID             string           `json:"id"`
 	TrackCode      string           `json:"trackId"`
@@ -112,7 +109,7 @@ type TicketFullResponse struct {
 	Username       string           `json:"username"`
 	TicketTypeID   int              `json:"ticketTypeId"`
 	TicketType     string           `json:"ticketType"`
-	DepartmentId   int              `json:"departmentId"`
+	DepartmentID   int              `json:"departmentId"`
 	DepartmentName string           `json:"departmentName"`
 	Priority       int              `json:"priority"`
 	Title          string           `json:"title"`

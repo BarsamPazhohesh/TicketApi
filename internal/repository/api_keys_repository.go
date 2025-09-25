@@ -16,7 +16,7 @@ func NewAPIKeysRepository(queries *api_keys.Queries) *APIKeysRepository {
 	}
 }
 
-func (repo *APIKeysRepository) AddApiKey(ctx context.Context, param api_keys.AddApiKeyParams) error {
+func (repo *APIKeysRepository) AddAPIKey(ctx context.Context, param api_keys.AddApiKeyParams) error {
 	err := repo.queries.AddApiKey(ctx, param)
 	if err != nil {
 		return err

@@ -11,7 +11,7 @@ type UserDTO struct {
 	UpdatedAt    string `json:"updatedAt"`
 }
 
-// ToUserDTO maps model.User to UserDTO
+// ToModel maps model.User to UserDTO
 func (u *UserDTO) ToModel() *model.User {
 	return &model.User{
 		ID:           u.ID,

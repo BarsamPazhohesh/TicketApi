@@ -43,7 +43,7 @@ func (r *TicketRepository) CreateTicket(ctx context.Context, ticketDTO *dto.Tick
 	return &dto.TicketCreateResponse{ID: ticket.ID, TrackCode: ticket.TrackCode}, nil
 }
 
-// GetTicket retrieves a single ticket by ID and converts it to TicketRaw.
+// GetTicketByID retrieves a single ticket by ID and converts it to TicketRaw.
 func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.TicketResponse, *errx.APIError) {
 	var ticket model.Ticket
 	if err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&ticket); err != nil {
@@ -95,7 +95,6 @@ func (r *TicketRepository) GetTickets(
 	ctx context.Context,
 	query dto.TicketQueryParams,
 ) (*dto.PagingResponse[dto.TicketResponse], *errx.APIError) {
-
 	cfg := config.Get().TicketConfig
 
 	// Ensure pageSize is within allowed range

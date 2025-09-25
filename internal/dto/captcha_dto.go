@@ -5,7 +5,7 @@ type CaptchaVerifyRequest struct {
 	Captcha string `json:"captcha"`
 }
 
-// CaptchaResult holds the captcha ID and image in base64
+// CaptchaResultDTO holds the captcha ID and image in base64
 type CaptchaResultDTO struct {
 	ID     string `json:"id"`
 	Image  string `json:"image"`            // base64

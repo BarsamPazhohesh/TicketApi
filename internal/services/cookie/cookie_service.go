@@ -1,3 +1,4 @@
+// Package cookie
 package cookie
 
 import (
@@ -23,7 +24,7 @@ func NewCookieService(name string, maxAge int) *CookieService {
 		Path:     "/",
 		Domain:   "",
 		Secure:   config.Get().Token.Secure,
-		HTTPOnly: config.Get().Token.HttpOnly,
+		HTTPOnly: config.Get().Token.HTTPOnly,
 	}
 }
 
