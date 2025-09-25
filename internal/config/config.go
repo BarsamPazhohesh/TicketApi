@@ -1,3 +1,4 @@
+// Package config
 package config
 
 import (
@@ -26,7 +27,7 @@ type Config struct {
 	} `yaml:"captcha"`
 
 	Token struct {
-		HttpOnly bool `yaml:"httponly"` // Use HttpOnly flag for cookies
+		HTTPOnly bool `yaml:"httponly"` // Use HttpOnly flag for cookies
 		Secure   bool `yaml:"secure"`   // Use Secure flag for cookies
 	} `yaml:"token"`
 

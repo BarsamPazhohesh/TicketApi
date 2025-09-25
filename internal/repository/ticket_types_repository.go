@@ -17,12 +17,12 @@ func NewTicketTypesRepository(queries *ticket_types.Queries) *TicketTypesReposit
 }
 
 func (repo *TicketTypesRepository) AddTicketType(ctx context.Context, ticketType ticket_types.AddTicketTypeParams) (int64, error) {
-	ticketTypeId, err := repo.queries.AddTicketType(ctx, ticketType)
+	ticketTypeID, err := repo.queries.AddTicketType(ctx, ticketType)
 	if err != nil {
 		return -1, err
 	}
 
-	return ticketTypeId, nil
+	return ticketTypeID, nil
 }
 
 func (repo *TicketTypesRepository) GetAllTicketTypes(ctx context.Context) ([]ticket_types.TicketType, error) {

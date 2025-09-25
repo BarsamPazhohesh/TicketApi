@@ -29,7 +29,7 @@ func (app *application) routes() http.Handler {
 		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
 		captchaGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
 		{
-			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SigupWithPassword)
+			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SignUpWithPassword)
 			captchaGroup.GET(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, app.handlers.Ticket.CreateTicketHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, app.handlers.Ticket.GetTicketByTrackCodeHandler)
@@ -52,7 +52,7 @@ func (app *application) routes() http.Handler {
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, app.handlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, app.handlers.Captcha.VerifyCaptchaHandler)
 
-			publicGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, app.handlers.Auth.GenerateOneTimeToken)
+			publicGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, app.handlers.Auth.GetSingleUseToken)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, app.handlers.Auth.LoginWithOneTimeToken)
 
 			publicGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
