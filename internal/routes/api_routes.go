@@ -75,7 +75,7 @@ var APIRoutes = _APIEndpoints{
 		GetTicketByID:        _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/"), method: string(GetMethod)},
 		CreateChat:           _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/CreateChat/"), method: string(PostMethod)},
 		GetTicketByTrackCode: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByTrackCode/"), method: string(PostMethod)},
-		GetTicketsList:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketsList"), method: string(PostMethod)},
+		GetTicketsList:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketsList/"), method: string(PostMethod)},
 	},
 	Auth: auth{
 		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(GetMethod)},
@@ -85,8 +85,8 @@ var APIRoutes = _APIEndpoints{
 		LoginWithSingleUseToken: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithSingleUseToken/"), method: string(GetMethod)},
 	},
 	Captcha: captcha{
-		GetCaptcha:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "GetCaptcha"), method: string(GetMethod)},
-		VerifyCaptcha: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "VerifyCaptcha"), method: string(PostMethod)},
+		GetCaptcha:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "GetCaptcha/"), method: string(GetMethod)},
+		VerifyCaptcha: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "VerifyCaptcha/"), method: string(PostMethod)},
 	},
 }
 
