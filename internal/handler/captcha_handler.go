@@ -24,14 +24,14 @@ func NewCaptchaHandler(captchaService *captcha.CaptchaService, tokenService *tok
 	}
 }
 
-// GenerateCaptchaHandler handles GET /captcha/new
+// GenerateCaptchaHandler handles GET /captcha/GetCaptcha/
 // @Summary Generate new captcha
 // @Description Generates a new captcha and returns its ID and image (base64)
 // @Tags Captcha
 // @Produce json
 // @Success 200 {object} dto.CaptchaResultDTO
 // @Failure 500 {object} errx.Error
-// @Router /captcha/new [get]
+// @Router /captcha/GetCaptcha/ [get]
 func (h *CaptchaHandler) GenerateCaptchaHandler(c *gin.Context) {
 	result, err := h.CaptchaService.GenerateCaptcha()
 	if err != nil {
@@ -43,7 +43,7 @@ func (h *CaptchaHandler) GenerateCaptchaHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// VerifyCaptchaHandler handles POST /captcha/verify
+// VerifyCaptchaHandler handles POST /captcha/VerifyCaptcha/
 // @Summary Verify captcha
 // @Description Verifies the captcha ID and user-provided answer
 // @Tags Captcha
@@ -53,7 +53,7 @@ func (h *CaptchaHandler) GenerateCaptchaHandler(c *gin.Context) {
 // @Success 200 {object} dto.CaptchaVerifyRequest
 // @Failure 400 {object} errx.Error
 // @Failure 401 {object} errx.Error
-// @Router /captcha/verify [post]
+// @Router /captcha/VerifyCaptcha/ [post]
 func (h *CaptchaHandler) VerifyCaptchaHandler(c *gin.Context) {
 	var req dto.CaptchaVerifyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

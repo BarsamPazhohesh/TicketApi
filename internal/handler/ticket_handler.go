@@ -3,10 +3,11 @@ package handler
 import (
 	"errors"
 	"net/http"
-
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/repository"
+
+	_ "ticket-api/internal/routes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +38,7 @@ func NewTicketHandler(
 	}
 }
 
-// CreateTicketHandler handles POST tickets
+// CreateTicketHandler handles POST /tickets/CreateTicket/
 // @Summary Create a new ticket
 // @Description Creates a new ticket with the provided data
 // @Tags Ticket
@@ -48,7 +49,7 @@ func NewTicketHandler(
 // @Failure 400 {object} errx.APIError
 // @Failure 409 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /tickets [post]
+// @Router /tickets/CreateTicket/ [post]
 func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 	var ticketDTO dto.TicketCreateRequest
 
@@ -104,7 +105,7 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, createdTicket)
 }
 
-// GetTicketByTrackCodeHandler handles POST /ticket/track-code
+// GetTicketByTrackCodeHandler handles POST /tickets/GetTicketByTrackCode/
 // @Summary Get ticket by track code
 // @Description Returns a ticket by its track code
 // @Tags Ticket
@@ -115,7 +116,7 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 // @Failure 400 {object} errx.APIError
 // @Failure 404 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /ticket/track-code [post]
+// @Router /tickets/GetTicketByTrackCode/ [post]
 func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 	var req dto.TicketByTrackCodeRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil || req.TrackCode == "" {
@@ -133,7 +134,7 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, ticketDTO)
 }
 
-// GetTicketByIDHandler handles POST /ticket/id
+// GetTicketByIDHandler handles POST /tickets/:id/
 // @Summary Get ticket by ID
 // @Description Returns a ticket by its ID
 // @Tags Ticket
@@ -144,7 +145,7 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 // @Failure 400 {object} errx.APIError
 // @Failure 404 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /ticket/id [post]
+// @Router /tickets/:id/ [post]
 func (h *TicketHandler) GetTicketByIDHandler(c *gin.Context) {
 	var req dto.TicketByIDRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil || req.ID == "" {
@@ -162,7 +163,7 @@ func (h *TicketHandler) GetTicketByIDHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, ticketDTO)
 }
 
-// ListTickets handles POST /tickets/list
+// GetTicketsListHandler handles POST /tickets/GetTicketsList/
 // @Summary List tickets with paging and filtering
 // @Description Returns a paginated list of tickets based on complex filter and sort options
 // @Tags Ticket
@@ -172,8 +173,8 @@ func (h *TicketHandler) GetTicketByIDHandler(c *gin.Context) {
 // @Success 200 {object} dto.PagingResponse[dto.TicketResponse]
 // @Failure 400 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /tickets/list [post]
-func (h *TicketHandler) ListTicketsHandler(c *gin.Context) {
+// @Router /tickets/GetTicketsList/ [post]
+func (h *TicketHandler) GetTicketsListHandler(c *gin.Context) {
 	var req dto.TicketQueryParams
 
 	// Bind JSON body for POST

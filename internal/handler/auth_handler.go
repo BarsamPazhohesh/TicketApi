@@ -1,3 +1,4 @@
+// Package handler
 package handler
 
 import (
@@ -66,6 +67,8 @@ func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
 	// user found
 	c.JSON(http.StatusOK, dto.IDResponse[int64]{ID: user.ID})
 }
+
+// SignUpWithPassword godoc
 // @Summary      Sign up with username and password
 // @Description  Create a new user with username and password
 // @Tags         auth
@@ -75,9 +78,9 @@ func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
 // @Success      201      {object}  dto.IDResponse[int64]
 // @Failure      400      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError
-// @Router       /auth/signup [post]
-func (h *AuthHandler) SigupWithPassword(c *gin.Context) {
-	var credential dto.SigupWithPasswordDTO
+// @Router       /auth/SignUp/ [post]
+func (h *AuthHandler) SignUpWithPassword(c *gin.Context) {
+	var credential dto.SignUpWithPasswordDTO
 	if err := c.ShouldBindJSON(&credential); err != nil {
 		appErr := errx.Respond(errx.ErrBadRequest, err)
 		c.JSON(appErr.HTTPStatus, appErr)
@@ -105,7 +108,7 @@ func (h *AuthHandler) SigupWithPassword(c *gin.Context) {
 // @Failure      400      {object}  errx.APIError
 // @Failure      401      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError
-// @Router       /auth/login [post]
+// @Router       /auth/Login/ [post]
 func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 	var credential dto.LoginWithPasswordDTO
 	if err := c.ShouldBindJSON(&credential); err != nil {
@@ -147,7 +150,7 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
-// GenerateOneTimeToken godoc
+// GetSingleUseToken godoc
 // @Summary      Generate one-time token for a user
 // @Description  Returns a one-time JWT token to authenticate on another service
 // @Tags         auth
@@ -157,9 +160,9 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 // @Success      200      {object}  dto.OneTimeTokenResponseDTO
 // @Failure      400      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError
-// @Router       /auth/one-time-token [post]
-func (h *AuthHandler) GenerateOneTimeToken(c *gin.Context) {
-	var req dto.GenerateOneTimeTokenDTO
+// @Router       /auth/GetSingleUseToken/ [post]
+func (h *AuthHandler) GetSingleUseToken(c *gin.Context) {
+	var req dto.GenerateSingleUseTokenDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
 		appErr := errx.Respond(errx.ErrBadRequest, err)
 		c.JSON(appErr.HTTPStatus, appErr)
@@ -180,23 +183,23 @@ func (h *AuthHandler) GenerateOneTimeToken(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, &dto.OneTimeTokenResponseDTO{
+	c.JSON(http.StatusOK, &dto.SingleUseTokenResponseDTO{
 		Token: token,
 	})
 }
 
 // LoginWithOneTimeToken godoc
-// @Summary      Login using a one-time token
-// @Description  Validates a one-time token and returns an auth JWT
+// @Summary      Login using a SingleUse token
+// @Description  Validates a SingleUse token and returns an auth JWT
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        token  query     string  true  "One-time token"
+// @Param        token  query     string  true  "SingleUse token"
 // @Success      200
 // @Failure      400    {object}  errx.APIError
 // @Failure      401    {object}  errx.APIError
 // @Failure      500    {object}  errx.APIError
-// @Router       /auth/login/token [get]
+// @Router       /auth/LoginWithSingleUseToken/ [get]
 func (h *AuthHandler) LoginWithOneTimeToken(c *gin.Context) {
 	tokenStr := c.Query("token")
 	if tokenStr == "" {

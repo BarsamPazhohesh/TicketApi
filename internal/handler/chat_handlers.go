@@ -18,7 +18,7 @@ func NewChatHandler(repo *repository.TicketRepository) *ChatHandler {
 	return &ChatHandler{Repo: repo}
 }
 
-// AddChatHandler handles POST /tickets/:id/chat
+// CreateChatHandler handles POST /tickets/:id/CreateChat/
 // @Summary Add chat message to a ticket
 // @Description Adds a new chat message to an existing ticket
 // @Tags Ticket
@@ -30,7 +30,7 @@ func NewChatHandler(repo *repository.TicketRepository) *ChatHandler {
 // @Failure 400 {object} errx.Error
 // @Failure 404 {object} errx.Error
 // @Failure 500 {object} errx.Error
-// @Router /tickets/{id}/chat [post]
+// @Router /tickets/:id/CreateChat/ [post]
 func (h *ChatHandler) CreateChatHandler(c *gin.Context) {
 	ticketID := c.Param("id")
 
