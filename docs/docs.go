@@ -836,10 +836,14 @@ const docTemplate = `{
         "ticket-api_internal_dto.TicketByTrackCodeRequestDTO": {
             "type": "object",
             "required": [
-                "trackCode"
+                "trackCode",
+                "username"
             ],
             "properties": {
                 "trackCode": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

@@ -133,8 +133,11 @@ definitions:
     properties:
       trackCode:
         type: string
+      username:
+        type: string
     required:
     - trackCode
+    - username
     type: object
   ticket-api_internal_dto.TicketCreateRequest:
     properties:
