@@ -57,6 +57,108 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/GetSingleUseToken/": {
+            "post": {
+                "description": "Returns a one-time JWT token to authenticate on another service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Generate one-time token for a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Username",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.GenerateSingleUseTokenDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.SingleUseTokenResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/Login/": {
+            "post": {
+                "description": "Authenticate user and return JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login with username and password",
+                "parameters": [
+                    {
+                        "description": "Login credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.LoginWithPasswordDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/LoginWithNoAuth/": {
             "post": {
                 "description": "If a user with the provided username and department ID exists, it returns the user's ID. Otherwise, it creates a new user and returns the new ID.",
@@ -109,58 +211,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/login": {
-            "post": {
-                "description": "Authenticate user and return JWT token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Login with username and password",
-                "parameters": [
-                    {
-                        "description": "Login credentials",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.LoginWithPasswordDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/login/token": {
+        "/auth/LoginWithSingleUseToken/": {
             "get": {
-                "description": "Validates a one-time token and returns an auth JWT",
+                "description": "Validates a SingleUse token and returns an auth JWT",
                 "consumes": [
                     "application/json"
                 ],
@@ -170,11 +223,11 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Login using a one-time token",
+                "summary": "Login using a SingleUse token",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "One-time token",
+                        "description": "SingleUse token",
                         "name": "token",
                         "in": "query",
                         "required": true
@@ -205,53 +258,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/one-time-token": {
-            "post": {
-                "description": "Returns a one-time JWT token to authenticate on another service",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Generate one-time token for a user",
-                "parameters": [
-                    {
-                        "description": "Username",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.GenerateOneTimeTokenDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.OneTimeTokenResponseDTO"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/signup": {
+        "/auth/SignUp/": {
             "post": {
                 "description": "Create a new user with username and password",
                 "consumes": [
@@ -271,7 +278,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.SigupWithPasswordDTO"
+                            "$ref": "#/definitions/ticket-api_internal_dto.SignUpWithPasswordDTO"
                         }
                     }
                 ],
@@ -702,7 +709,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.GenerateOneTimeTokenDTO": {
+        "ticket-api_internal_dto.GenerateSingleUseTokenDTO": {
             "type": "object",
             "required": [
                 "username"
@@ -759,14 +766,6 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.OneTimeTokenResponseDTO": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
         "ticket-api_internal_dto.PagingResponse-ticket-api_internal_dto_TicketResponse": {
             "type": "object",
             "properties": {
@@ -795,7 +794,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.SigupWithPasswordDTO": {
+        "ticket-api_internal_dto.SignUpWithPasswordDTO": {
             "type": "object",
             "required": [
                 "departmentId",
@@ -810,6 +809,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.SingleUseTokenResponseDTO": {
+            "type": "object",
+            "properties": {
+                "token": {
                     "type": "string"
                 }
             }
@@ -1007,7 +1014,8 @@ const docTemplate = `{
                 11,
                 12,
                 13,
-                14
+                14,
+                15
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1024,7 +1032,8 @@ const docTemplate = `{
                 "ErrWeakJWTSecret",
                 "ErrIncorrectCaptcha",
                 "ErrTicketStatusNotFound",
-                "ErrTooManyRequest"
+                "ErrTooManyRequest",
+                "ErrApiKeyNotFound"
             ]
         }
     }
