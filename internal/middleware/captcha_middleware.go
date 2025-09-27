@@ -19,23 +19,19 @@ func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 
 		// Check for user auth token
 		authToken, errCookie := authService.Get(c)
-		if errCookie != nil {
-			appErr := errx.Respond(errx.ErrUnauthorized, errCookie)
-			c.AbortWithStatusJSON(appErr.HTTPStatus, appErr)
-			return
-		}
+		if errCookie == nil {
+			// Validate auth token
+			_, err := tokenService.ParseAuthToken(authToken)
+			if err == nil {
+				// Auth token is valid, skip captcha
+				c.Next()
+				return
+			}
 
-		// Validate auth token
-		_, err := tokenService.ParseAuthToken(authToken)
-		if err == nil {
-			// Auth token is valid, skip captcha
-			c.Next()
-			return
-		}
-
-		if err.Err.Code != errx.ErrUnauthorized {
-			c.AbortWithStatusJSON(err.HTTPStatus, err)
-			return
+			if err.Err.Code != errx.ErrUnauthorized {
+				c.AbortWithStatusJSON(err.HTTPStatus, err)
+				return
+			}
 		}
 
 		// Check for captcha token
