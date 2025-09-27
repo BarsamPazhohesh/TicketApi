@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"ticket-api/internal/errx"
 	"time"
 
@@ -17,11 +16,7 @@ func RateLimitMiddleware(rdb *redis.Client, limitPerMinute int) gin.HandlerFunc 
 	limiter := redis_rate.NewLimiter(rdb)
 
 	return func(c *gin.Context) {
-		ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
-		if err != nil {
-			ip = c.ClientIP() // fallback
-		}
-
+		ip := c.ClientIP()
 		// build key using IP + endpoint path
 		key := fmt.Sprintf("rate:%s:%s", ip, c.FullPath())
 
