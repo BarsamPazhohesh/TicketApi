@@ -34,6 +34,7 @@ const (
 	ErrIncorrectCaptcha
 	ErrTicketStatusNotFound
 	ErrTooManyRequest
+	ErrApiKeyNotFound
 )
 
 //
@@ -110,6 +111,7 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrIncorrectCaptcha:     {"کپچا نادرست است", http.StatusUnauthorized},
 			ErrTicketStatusNotFound: {"وضعیت تیکت یافت نشد", http.StatusNotFound},
 			ErrTooManyRequest:       {"تعداد درخواست‌ها بیش از حد مجاز است", http.StatusTooManyRequests},
+			ErrApiKeyNotFound:       {"API KEY نامعتبر است", http.StatusUnauthorized},
 		},
 		db: db,
 	}

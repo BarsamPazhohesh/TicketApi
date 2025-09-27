@@ -24,12 +24,17 @@ type Config struct {
 		ImageWidth       int    `yaml:"image_width"`        // Captcha image width in pixels
 		ImageHeight      int    `yaml:"image_height"`       // Captcha image height in pixels
 		MaxCachedCaptcha int    `yaml:"max_cashed_captcha"` // Maximum number of captchas stored in cache
+		ValidateIP       bool   `yaml:"validate_ip"`        // Check that user IP matches the one stored in the CAPTCHA token
 	} `yaml:"captcha"`
 
 	Token struct {
 		HTTPOnly bool `yaml:"httponly"` // Use HttpOnly flag for cookies
 		Secure   bool `yaml:"secure"`   // Use Secure flag for cookies
 	} `yaml:"token"`
+
+	APIKey struct {
+		Size int `yaml:"size"`
+	} `yaml:"api_key"`
 
 	OneTimeToken struct {
 		CleanupInterval  int `yaml:"cleanup_interval"`   // Cleanup interval for expired one-time tokens (minutes)

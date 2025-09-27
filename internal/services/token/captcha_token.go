@@ -12,16 +12,18 @@ import (
 // CaptchaClaims defines the claims inside a captcha token
 type CaptchaClaims struct {
 	jwt.RegisteredClaims
+	IP string
 }
 
 // NewCaptchaToken creates a captcha JWT token using config
-func (s *TokenService) NewCaptchaToken() (string, *errx.APIError) {
+func (s *TokenService) NewCaptchaToken(ip string) (string, *errx.APIError) {
 	secret, errSecret := secretKeyBytes()
 	if errSecret != nil {
 		return "", errSecret
 	}
 	cfg := config.Get().Captcha
 	claims := CaptchaClaims{
+		IP: ip,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * time.Duration(cfg.ExpiredTimeToken))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

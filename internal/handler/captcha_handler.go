@@ -67,7 +67,7 @@ func (h *CaptchaHandler) VerifyCaptchaHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := h.TokenService.NewCaptchaToken()
+	token, err := h.TokenService.NewCaptchaToken(c.ClientIP())
 	if err != nil {
 		c.JSON(err.HTTPStatus, err)
 		return
