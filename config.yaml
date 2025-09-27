@@ -10,6 +10,7 @@ captcha:
   max_cashed_captcha: 100000 # Max number of captchas stored in cache
   image_width: 240 # Captcha image width in pixels
   image_height: 80 # Captcha image height in pixels
+  validate_ip: true
 
 token:
   httponly: true # Use HttpOnly flag for cookies (recommended true)
@@ -51,3 +52,6 @@ ticket:
   # The maximum number of items that can be counted or processed in bulk.
   # Useful to prevent slow queries on large collections.
   max_counting_item: 10000
+
+api_key:
+  size: 32 # API Key size in bytes
