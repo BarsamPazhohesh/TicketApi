@@ -74,7 +74,7 @@ func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        payload  body      dto.SigupWithPasswordDTO  true  "Signup credentials"
+// @Param        payload  body      dto.SignUpWithPasswordDTO  true  "Signup credentials"
 // @Success      201      {object}  dto.IDResponse[int64]
 // @Failure      400      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError
@@ -156,8 +156,8 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        payload  body      dto.GenerateOneTimeTokenDTO  true  "Username"
-// @Success      200      {object}  dto.OneTimeTokenResponseDTO
+// @Param        payload  body      dto.GenerateSingleUseTokenDTO  true  "Username"
+// @Success      200      {object}  dto.SingleUseTokenResponseDTO
 // @Failure      400      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError
 // @Router       /auth/GetSingleUseToken/ [post]
