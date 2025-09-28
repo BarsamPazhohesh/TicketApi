@@ -31,7 +31,6 @@ func RateLimitMiddleware(rdb *redis.Client, limitPerMinute int) gin.HandlerFunc 
 			key,
 			redis_rate.PerMinute(limitPerMinute),
 		)
-
 		if err != nil {
 			appErr := errx.Respond(errx.ErrInternalServerError, err)
 			c.AbortWithStatusJSON(appErr.HTTPStatus, appErr)

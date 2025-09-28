@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"ticket-api/internal/errx"
-
-	"github.com/gin-gonic/gin"
 	"ticket-api/internal/services/cookie"
 	"ticket-api/internal/services/token"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
