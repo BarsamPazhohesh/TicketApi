@@ -2,6 +2,8 @@ package dto
 
 import (
 	"context"
+	"database/sql"
+	"ticket-api/internal/db/ticket_statuses"
 	"ticket-api/internal/model"
 	"ticket-api/internal/util"
 	"time"
@@ -169,4 +171,40 @@ type TicketQueryParams struct {
 
 	OrderBy  string `json:"order_by,omitempty"`  // field to order by
 	OrderDir string `json:"order_dir,omitempty"` // asc or desc
+}
+
+type TicketTypeDto struct {
+	ID          int64   `json:"id"`
+	Title       string  `json:"title"`
+	Description *string `json:"description,omitempty"`
+}
+
+func ToTicketTypeDTO(m *model.TicketType) *TicketTypeDto {
+	var description *string
+	if m.Description.Valid {
+		description = &m.Description.String
+	}
+
+	return &TicketTypeDto{
+		ID:          m.ID,
+		Title:       m.Title,
+		Description: description,
+	}
+}
+
+func (dt *TicketTypeDto) ToModel() *model.TicketType {
+	nullDesc := sql.NullString{}
+	if dt.Description != nil {
+		nullDesc = sql.NullString{String: *dt.Description, Valid: true}
+	} else {
+		nullDesc = sql.NullString{String: "", Valid: false}
+	}
+
+	return &model.TicketType{
+		ID:          dt.ID,
+		Title:       dt.Title,
+		Description: nullDesc,
+		Status:      1,
+		Deleted:     0,
+	}
 }
