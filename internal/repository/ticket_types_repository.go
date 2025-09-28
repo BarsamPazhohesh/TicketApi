@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"ticket-api/internal/db/ticket_types"
 	"ticket-api/internal/errx"
 )
@@ -29,8 +31,15 @@ func (repo *TicketTypesRepository) GetAllTicketTypes(ctx context.Context) ([]tic
 	return repo.queries.GetAllTicketTypes(ctx)
 }
 
-func (repo *TicketTypesRepository) GetAllActiveTicketTypes(ctx context.Context) ([]ticket_types.TicketType, error) {
-	return repo.queries.GetAllActiveTicketTypes(ctx)
+func (repo *TicketTypesRepository) GetAllActiveTicketTypes(ctx context.Context) ([]ticket_types.TicketType, *errx.APIError) {
+	data, err := repo.queries.GetAllActiveTicketTypes(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errx.Respond(errx.ErrTicketTypeNotFound, err)
+		}
+		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	}
+	return data, nil
 }
 
 func (repo *TicketTypesRepository) IsTicketTypeExits(ctx context.Context, typeID int64) (bool, *errx.APIError) {
