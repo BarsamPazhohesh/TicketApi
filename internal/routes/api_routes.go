@@ -8,16 +8,18 @@ type _Prefix struct {
 }
 
 type _APIPrefixes struct {
-	Versions _Prefix
-	Tickets  _Prefix
-	Auth     _Prefix
-	Captcha  _Prefix
+	Versions   _Prefix
+	Tickets    _Prefix
+	Auth       _Prefix
+	Captcha    _Prefix
+	Department _Prefix
 }
 
 var _APIRoutesPrefixes = _APIPrefixes{
-	Tickets: _Prefix{prefix: "tickets/"},
-	Auth:    _Prefix{prefix: "auth/"},
-	Captcha: _Prefix{prefix: "captcha/"},
+	Tickets:    _Prefix{prefix: "tickets/"},
+	Auth:       _Prefix{prefix: "auth/"},
+	Captcha:    _Prefix{prefix: "captcha/"},
+	Department: _Prefix{prefix: "departments/"},
 }
 
 type HTTPMethod string
@@ -33,6 +35,7 @@ type _APIRoute struct {
 	Path        string
 	method      string
 	description string
+	Status      bool
 }
 
 type versions struct {
@@ -40,11 +43,17 @@ type versions struct {
 }
 
 type tickets struct {
-	CreateTicket         _APIRoute
-	GetTicketByID        _APIRoute
-	GetTicketByTrackCode _APIRoute
-	CreateChat           _APIRoute
-	GetTicketsList       _APIRoute
+	CreateTicket               _APIRoute
+	GetTicketByID              _APIRoute
+	GetTicketByTrackCode       _APIRoute
+	CreateChat                 _APIRoute
+	GetTicketsList             _APIRoute
+	GetAllActiveTicketTypes    _APIRoute
+	GetAllActiveTicketStatuses _APIRoute
+}
+
+type departments struct {
+	GetAllActiveDepartments _APIRoute
 }
 
 type auth struct {
@@ -60,10 +69,11 @@ type captcha struct {
 }
 
 type _APIEndpoints struct {
-	Versions versions
-	Tickets  tickets
-	Auth     auth
-	Captcha  captcha
+	Versions    versions
+	Tickets     tickets
+	Auth        auth
+	Captcha     captcha
+	Departments departments
 }
 
 var APIRoutes = _APIEndpoints{
@@ -71,22 +81,27 @@ var APIRoutes = _APIEndpoints{
 		GetCurrentVersion: _APIRoute{Path: "", method: string(GetMethod)},
 	},
 	Tickets: tickets{
-		CreateTicket:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "CreateTicket/"), method: string(PostMethod)},
-		GetTicketByID:        _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/"), method: string(GetMethod)},
-		CreateChat:           _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/CreateChat/"), method: string(PostMethod)},
-		GetTicketByTrackCode: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByTrackCode/"), method: string(PostMethod)},
-		GetTicketsList:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketsList/"), method: string(PostMethod)},
+		CreateTicket:               _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "CreateTicket/"), method: string(PostMethod), Status: true},
+		GetTicketByID:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/"), method: string(GetMethod), Status: true},
+		CreateChat:                 _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/CreateChat/"), method: string(PostMethod), Status: true},
+		GetTicketByTrackCode:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByTrackCode/"), method: string(PostMethod), Status: true},
+		GetTicketsList:             _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketsList/"), method: string(PostMethod), Status: true},
+		GetAllActiveTicketTypes:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetAllActiveTicketTypes/"), method: string(GetMethod), Status: true},
+		GetAllActiveTicketStatuses: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetAllActiveTicketStatuses/"), method: string(GetMethod), Status: true},
 	},
 	Auth: auth{
-		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(GetMethod)},
-		SignUp:                  _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "SignUp/"), method: string(PostMethod)},
-		Login:                   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "Login/"), method: string(GetMethod)},
-		GetSingleUseToken:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "GetSingleUseToken/"), method: string(PostMethod)},
-		LoginWithSingleUseToken: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithSingleUseToken/"), method: string(GetMethod)},
+		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(GetMethod), Status: true},
+		SignUp:                  _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "SignUp/"), method: string(PostMethod), Status: true},
+		Login:                   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "Login/"), method: string(GetMethod), Status: true},
+		GetSingleUseToken:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "GetSingleUseToken/"), method: string(PostMethod), Status: true},
+		LoginWithSingleUseToken: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithSingleUseToken/"), method: string(GetMethod), Status: true},
 	},
 	Captcha: captcha{
-		GetCaptcha:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "GetCaptcha/"), method: string(GetMethod)},
-		VerifyCaptcha: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "VerifyCaptcha/"), method: string(PostMethod)},
+		GetCaptcha:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "GetCaptcha/"), method: string(GetMethod), Status: true},
+		VerifyCaptcha: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "VerifyCaptcha/"), method: string(PostMethod), Status: true},
+	},
+	Departments: departments{
+		GetAllActiveDepartments: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Department.prefix, "GetAllActiveDepartments/"), method: string(GetMethod), Status: true},
 	},
 }
 
