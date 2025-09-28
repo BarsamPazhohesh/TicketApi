@@ -17,6 +17,7 @@ type TicketHandler struct {
 	TicketRepo         *repository.TicketRepository
 	TicketTypeRepo     *repository.TicketTypesRepository
 	TicketPriorityRepo *repository.TicketPrioritiesRepository
+	TicketStatusRepo   *repository.TicketStatusesRepository
 	UserRepo           *repository.UsersRepository
 	DepartmentRepo     *repository.DepartmentsRepository
 }
@@ -26,6 +27,7 @@ func NewTicketHandler(
 	ticketRepo *repository.TicketRepository,
 	ticketTypeRepo *repository.TicketTypesRepository,
 	ticketPriorityRepo *repository.TicketPrioritiesRepository,
+	ticketStatusRepo *repository.TicketStatusesRepository,
 	userRepo *repository.UsersRepository,
 	departmentRepo *repository.DepartmentsRepository,
 ) *TicketHandler {
@@ -33,6 +35,7 @@ func NewTicketHandler(
 		TicketRepo:         ticketRepo,
 		TicketTypeRepo:     ticketTypeRepo,
 		TicketPriorityRepo: ticketPriorityRepo,
+		TicketStatusRepo:   ticketStatusRepo,
 		UserRepo:           userRepo,
 		DepartmentRepo:     departmentRepo,
 	}
@@ -192,4 +195,52 @@ func (h *TicketHandler) GetTicketsListHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ticketsListDTO)
+}
+
+// GetAllActiveTicketTypesHandler handles GET /tickets/GetAllActiveTicketTypes/
+// @Summary Get all active ticket types
+// @Description Returns a list of all active ticket types
+// @Tags Ticket
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.TicketTypeResponse
+// @Failure 500 {object} errx.APIError
+// @Router /tickets/GetAllActiveTicketTypes/ [get]
+func (h *TicketHandler) GetAllActiveTicketTypesHandler(c *gin.Context) {
+	var ticketTypesDTO []dto.TicketTypeDto
+	ticketTypesList, err := h.TicketTypeRepo.GetAllActiveTicketTypes(c.Request.Context())
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	for _, v := range ticketTypesList {
+		ticketTypesDTO = append(ticketTypesDTO, *dto.ToTicketTypeDTO(&v))
+	}
+
+	c.JSON(http.StatusOK, ticketTypesDTO)
+}
+
+// GetAllActiveTicketStatusesHandler handles GET /tickets/GetAllActiveTicketStatuses/
+// @Summary Get all active ticket statuses
+// @Description Returns a list of all active ticket statuses
+// @Tags Ticket
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.TicketStatusResponse
+// @Failure 500 {object} errx.APIError
+// @Router /tickets/GetAllActiveTicketStatuses/ [get]
+func (h *TicketHandler) GetAllActiveTicketStatusesHandler(c *gin.Context) {
+	var ticketStatusDTO []dto.TicketStatusDTO
+	ticketStatuses, err := h.TicketStatusRepo.GetAllActiveTicketStatuses(c.Request.Context())
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	for _, v := range *ticketStatuses {
+		ticketStatusDTO = append(ticketStatusDTO, *dto.ToTicketStatusDTO(&v))
+	}
+
+	c.JSON(http.StatusOK, ticketStatusDTO)
 }
