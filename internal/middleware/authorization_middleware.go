@@ -11,7 +11,7 @@ import (
 
 func AuthorizationMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cookieService := cookie.NewAuthCookieService() // returns *CookieService
+		cookieService := cookie.NewAuthCookieService()
 		authToken, errCookie := cookieService.Get(c)
 		if errCookie != nil {
 			errApp := errx.Respond(errx.ErrUnauthorized, errCookie)

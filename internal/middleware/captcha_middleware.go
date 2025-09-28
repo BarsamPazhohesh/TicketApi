@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"errors"
+	"ticket-api/internal/config"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/services/cookie"
 	"ticket-api/internal/services/token"
@@ -8,27 +10,49 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CaptchaMiddleware ensures that either a valid auth token or a captcha token is present.
 func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookieService := cookie.NewCaptchaCookieService()
+		authService := cookie.NewAuthCookieService()
+		userIP := c.ClientIP()
 
-		// user is already authorized, skip captcha
-		if _, exists := c.Get("user"); exists {
-			c.Next()
-			return
+		// Check for user auth token
+		authToken, errCookie := authService.Get(c)
+		if errCookie == nil {
+			// Validate auth token
+			_, err := tokenService.ParseAuthToken(authToken)
+			if err == nil {
+				// Auth token is valid, skip captcha
+				c.Next()
+				return
+			}
+
+			if err.Err.Code != errx.ErrUnauthorized {
+				c.AbortWithStatusJSON(err.HTTPStatus, err)
+				return
+			}
 		}
 
+		// Check for captcha token
 		captchaToken, errToken := cookieService.Get(c)
 		if errToken != nil {
-			errApp := errx.Respond(errx.ErrUnauthorized, errToken)
-			c.AbortWithStatusJSON(errApp.HTTPStatus, errApp)
+			appErr := errx.Respond(errx.ErrUnauthorized, errToken)
+			c.AbortWithStatusJSON(appErr.HTTPStatus, appErr)
 			return
 		}
 
-		// parse and validate captcha token
-		_, err := tokenService.ParseCaptchaToken(captchaToken)
+		// Validate captcha token
+		parsedCaptchaToken, err := tokenService.ParseCaptchaToken(captchaToken)
 		if err != nil {
 			c.AbortWithStatusJSON(err.HTTPStatus, err)
+			return
+		}
+
+		// Optional IP validation
+		if config.Get().Captcha.ValidateIP && parsedCaptchaToken.IP != userIP {
+			appErr := errx.Respond(errx.ErrUnauthorized, errors.New("user IP does not match captcha token IP"))
+			c.AbortWithStatusJSON(appErr.HTTPStatus, appErr)
 			return
 		}
 

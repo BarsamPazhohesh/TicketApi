@@ -122,18 +122,39 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 // @Router /tickets/GetTicketByTrackCode/ [post]
 func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 	var req dto.TicketByTrackCodeRequestDTO
+
+	// Bind JSON request
 	if err := c.ShouldBindJSON(&req); err != nil || req.TrackCode == "" {
 		appErr := errx.Respond(errx.ErrBadRequest, err)
 		c.JSON(appErr.HTTPStatus, appErr)
 		return
 	}
 
+	// Get user by username
+	user, err := h.UserRepo.GetUserByUsername(c.Request.Context(), req.Username)
+	if err != nil {
+		if err.Err.Code == errx.ErrUserNotFound {
+			err = errx.Respond(errx.ErrTicketNotFound, errors.New("username not found"))
+		}
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	// Get ticket by track code
 	ticketDTO, err := h.TicketRepo.GetTicketByTrackCode(c.Request.Context(), req.TrackCode)
 	if err != nil {
 		c.JSON(err.HTTPStatus, err)
 		return
 	}
 
+	// Ensure the ticket belongs to the user
+	if ticketDTO.UserID != user.ID {
+		appErr := errx.Respond(errx.ErrTicketNotFound, errors.New("this username did not create this ticket"))
+		c.JSON(appErr.HTTPStatus, appErr)
+		return
+	}
+
+	// Return the ticket
 	c.JSON(http.StatusOK, ticketDTO)
 }
 

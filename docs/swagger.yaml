@@ -150,8 +150,11 @@ definitions:
     properties:
       trackCode:
         type: string
+      username:
+        type: string
     required:
     - trackCode
+    - username
     type: object
   ticket-api_internal_dto.TicketCreateRequest:
     properties:
@@ -293,6 +296,7 @@ definitions:
     - 12
     - 13
     - 14
+    - 15
     type: integer
     x-enum-varnames:
     - ErrInternalServerError
@@ -310,6 +314,7 @@ definitions:
     - ErrIncorrectCaptcha
     - ErrTicketStatusNotFound
     - ErrTooManyRequest
+    - ErrApiKeyNotFound
 info:
   contact: {}
   title: Ticket API
@@ -349,6 +354,11 @@ paths:
       - application/json
       description: Returns a one-time JWT token to authenticate on another service
       parameters:
+      - description: API Key
+        in: header
+        name: x-api-key
+        required: true
+        type: string
       - description: Username
         in: body
         name: payload

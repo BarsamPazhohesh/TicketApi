@@ -3,7 +3,9 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"ticket-api/internal/db/api_keys"
+	"ticket-api/internal/errx"
 )
 
 type APIKeysRepository struct {
@@ -23,4 +25,16 @@ func (repo *APIKeysRepository) AddAPIKey(ctx context.Context, param api_keys.Add
 	}
 
 	return nil
+}
+
+func (repo *APIKeysRepository) GetApiKeyIDByKey(ctx context.Context, key string) (int64, *errx.APIError) {
+	id, err := repo.queries.GetActiveAPIKeyID(ctx, key)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return -1, errx.Respond(errx.ErrApiKeyNotFound, err)
+		}
+		return -1, errx.Respond(errx.ErrInternalServerError, err)
+	}
+
+	return id, nil
 }

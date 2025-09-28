@@ -9,7 +9,7 @@ import (
 // ChatMessageDTO represents chat messages in responses
 type ChatMessageDTO struct {
 	ID          string    `json:"id"`
-	SenderID    int       `json:"senderId"`
+	SenderID    int64     `json:"senderId"`
 	Message     string    `json:"message"`
 	Attachments []string  `json:"attachments,omitempty"`
 	CreatedAt   time.Time `json:"createdAt"`
@@ -21,7 +21,7 @@ type ChatMessageResponseID struct {
 }
 
 type ChatMessageCreateRequest struct {
-	SenderID    int      `json:"senderId"`
+	SenderID    int64    `json:"senderId"`
 	Message     string   `json:"message"`
 	Attachments []string `json:"attachments,omitempty"`
 }

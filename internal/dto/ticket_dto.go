@@ -17,10 +17,10 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	UserID         int      `json:"userId" binding:"required"`
-	TicketTypeID   int      `json:"ticketTypeID" binding:"required"`
-	TicketStatusID int      `json:"ticketStatusID" binding:"required"`
-	DepartmentID   int      `json:"departmentId" binding:"required"`
+	UserID         int64    `json:"userId" binding:"required"`
+	TicketTypeID   int64    `json:"ticketTypeID" binding:"required"`
+	TicketStatusID int64    `json:"ticketStatusID" binding:"required"`
+	DepartmentID   int64    `json:"departmentId" binding:"required"`
 	Title          string   `json:"title" binding:"required"`
 	Body           string   `json:"body" binding:"required"`
 	Attachments    []string `json:"attachments,omitempty"`
@@ -65,11 +65,11 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 type TicketResponse struct {
 	ID             string           `json:"id" bson:"_id"`
 	TrackCode      string           `json:"trackCode" bson:"trackCode"`
-	UserID         int              `json:"userId" bson:"userId"`
-	TicketTypeID   int              `json:"ticketTypeId" bson:"typeId"`
-	DepartmentID   int              `json:"departmentId" bson:"departmentId"`
+	UserID         int64            `json:"userId" bson:"userId"`
+	TicketTypeID   int64            `json:"ticketTypeId" bson:"typeId"`
+	DepartmentID   int64            `json:"departmentId" bson:"departmentId"`
 	Title          string           `json:"title" bson:"title"`
-	TicketStatusID int              `json:"ticketStatusId" bson:"ticketStatusId"`
+	TicketStatusID int64            `json:"ticketStatusId" bson:"ticketStatusId"`
 	CreatedAt      time.Time        `json:"createdAt" bson:"createdAt"`
 	UpdatedAt      time.Time        `json:"updatedAt" bson:"updatedAt"`
 	Chat           []ChatMessageDTO `json:"chat" bson:"chat"`
@@ -107,11 +107,11 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 type TicketFullResponse struct {
 	ID             string           `json:"id"`
 	TrackCode      string           `json:"trackId"`
-	UserID         int              `json:"userId"`
+	UserID         int64            `json:"userId"`
 	Username       string           `json:"username"`
-	TicketTypeID   int              `json:"ticketTypeId"`
+	TicketTypeID   int64            `json:"ticketTypeId"`
 	TicketType     string           `json:"ticketType"`
-	DepartmentID   int              `json:"departmentId"`
+	DepartmentID   int64            `json:"departmentId"`
 	DepartmentName string           `json:"departmentName"`
 	Priority       int              `json:"priority"`
 	Title          string           `json:"title"`
@@ -159,6 +159,7 @@ type TicketCreateResponse struct {
 
 type TicketByTrackCodeRequestDTO struct {
 	TrackCode string `json:"trackCode" binding:"required"`
+	Username  string `json:"username" binding:"required"`
 }
 
 type TicketQueryParams struct {

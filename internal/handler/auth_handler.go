@@ -86,7 +86,6 @@ func (h *AuthHandler) SignUpWithPassword(c *gin.Context) {
 		c.JSON(appErr.HTTPStatus, appErr)
 		return
 	}
-
 	// create user
 	user, err := h.Repo.CreateUserWithPassword(c.Request.Context(), credential)
 	if err != nil {
@@ -156,7 +155,8 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        payload  body      dto.GenerateSingleUseTokenDTO  true  "Username"
+// @Param 			 x-api-key header string true "API Key"
+// @Param        payload  body      dto.GenerateSingleUseTokenDTO true  "Username"
 // @Success      200      {object}  dto.SingleUseTokenResponseDTO
 // @Failure      400      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError

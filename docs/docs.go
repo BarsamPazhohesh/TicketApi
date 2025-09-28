@@ -72,6 +72,13 @@ const docTemplate = `{
                 "summary": "Generate one-time token for a user",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "API Key",
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
                         "description": "Username",
                         "name": "payload",
                         "in": "body",
@@ -942,10 +949,14 @@ const docTemplate = `{
         "ticket-api_internal_dto.TicketByTrackCodeRequestDTO": {
             "type": "object",
             "required": [
-                "trackCode"
+                "trackCode",
+                "username"
             ],
             "properties": {
                 "trackCode": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -1148,7 +1159,8 @@ const docTemplate = `{
                 11,
                 12,
                 13,
-                14
+                14,
+                15
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1165,7 +1177,8 @@ const docTemplate = `{
                 "ErrWeakJWTSecret",
                 "ErrIncorrectCaptcha",
                 "ErrTicketStatusNotFound",
-                "ErrTooManyRequest"
+                "ErrTooManyRequest",
+                "ErrApiKeyNotFound"
             ]
         }
     }
