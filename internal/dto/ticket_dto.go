@@ -163,15 +163,15 @@ type TicketByTrackCodeRequestDTO struct {
 }
 
 type TicketQueryParams struct {
-	Page     int `json:"page,omitempty"`      // page number
-	PageSize int `json:"page_size,omitempty"` // items per page
+	Page     int `json:"page,omitempty"`     // page number
+	PageSize int `json:"pageSize,omitempty"` // items per page
 
-	StatusID     int64 `json:"status,omitempty"`  // optional filter
-	UserID       int64 `json:"user_id,omitempty"` // optional filter
+	StatusID     int64 `json:"status,omitempty"` // optional filter
+	UserID       int64 `json:"userId,omitempty"` // optional filter
 	DepartmentID int64 `json:"departmentId,omitempty"`
 
-	OrderBy  string `json:"order_by,omitempty"`  // field to order by
-	OrderDir string `json:"order_dir,omitempty"` // asc or desc
+	OrderBy  string `json:"orderBy,omitempty"`  // field to order by
+	OrderDir string `json:"orderDir,omitempty"` // asc or desc
 }
 
 type TicketTypeDto struct {
