@@ -208,3 +208,39 @@ func (dt *TicketTypeDto) ToModel() *model.TicketType {
 		Deleted:     0,
 	}
 }
+
+type TicketStatusDTO struct {
+	ID          int64   `json:"id"`
+	Title       string  `json:"title"`
+	Description *string `json:"description,omitempty"`
+}
+
+func ToTicketStatusDTO(m *ticket_statuses.TicketStatus) *TicketStatusDTO {
+	var description *string
+	if m.Description.Valid {
+		description = &m.Description.String
+	}
+
+	return &TicketStatusDTO{
+		ID:          m.ID,
+		Title:       m.Title,
+		Description: description,
+	}
+}
+
+func (dt *TicketStatusDTO) ToModel() *ticket_statuses.TicketStatus {
+	nullDesc := sql.NullString{}
+	if dt.Description != nil {
+		nullDesc = sql.NullString{String: *dt.Description, Valid: true}
+	} else {
+		nullDesc = sql.NullString{String: "", Valid: false}
+	}
+
+	return &ticket_statuses.TicketStatus{
+		ID:          dt.ID,
+		Title:       dt.Title,
+		Description: nullDesc,
+		Status:      1,
+		Deleted:     0,
+	}
+}
