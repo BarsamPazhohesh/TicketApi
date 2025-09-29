@@ -3,10 +3,13 @@ package main
 import (
 	"net/http"
 	_ "ticket-api/docs"
+	"ticket-api/internal/config"
 	"ticket-api/internal/middleware"
 	"ticket-api/internal/routes"
 	"ticket-api/internal/util"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -22,8 +25,18 @@ func (app *application) routes() http.Handler {
 		v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
 	}
 
-	// Assume you already have redisClient from ConnectRedis()
+	cfgCORS := config.Get().CORSConfig
+	g.Use(cors.New(cors.Config{
+		AllowOrigins:     cfgCORS.AllowOrigins,
+		AllowMethods:     cfgCORS.AllowMethods,
+		AllowHeaders:     cfgCORS.AllowHeaders,
+		ExposeHeaders:    cfgCORS.ExposeHeaders,
+		AllowCredentials: cfgCORS.AllowCredentials,
+		MaxAge:           time.Duration(cfgCORS.MaxAgeHours) * time.Hour,
+	}))
+
 	v1 := g.Group("/api/v1")
+	// v1.Use(middleware.CORSMiddleware())
 	{
 		captchaGroup := v1.Group("")
 		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
@@ -34,6 +47,7 @@ func (app *application) routes() http.Handler {
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, app.handlers.Ticket.CreateTicketHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, app.handlers.Ticket.GetTicketByTrackCodeHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, app.handlers.Chat.CreateChatHandler)
+			captchaGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.Auth.LoginWithNoAuth)
 		}
 
 		authGroup := v1.Group("")
@@ -41,13 +55,11 @@ func (app *application) routes() http.Handler {
 		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
 		{
 			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, app.handlers.Ticket.GetTicketByIDHandler)
-			authGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.Auth.LoginWithNoAuth)
 		}
 
 		publicGroup := v1.Group("")
 		publicGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
 		{
-			// Version and public captcha routes (no middleware)
 			publicGroup.GET(routes.APIRoutes.Versions.GetCurrentVersion.Path, app.handlers.Version.GetCurrentVersionHandler)
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, app.handlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, app.handlers.Captcha.VerifyCaptchaHandler)
