@@ -15,6 +15,15 @@ type Config struct {
 		Port int `yaml:"port"` // Application HTTP port
 	} `yaml:"app"`
 
+	CORSConfig struct {
+		AllowOrigins     []string `yaml:"allow_origins"`
+		AllowMethods     []string `yaml:"allow_methods"`
+		AllowHeaders     []string `yaml:"allow_headers"`
+		ExposeHeaders    []string `yaml:"expose_headers"`
+		AllowCredentials bool     `yaml:"allow_credentials"`
+		MaxAgeHours      int      `yaml:"max_age_hours"`
+	} `yaml:"cors"`
+
 	Captcha struct {
 		Length           int    `yaml:"length"`             // Number of characters in the captcha
 		TimeoutMinutes   int    `yaml:"timeout_minutes"`    // In-memory captcha TTL (minutes)
