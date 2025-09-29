@@ -17,13 +17,12 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	UserID         int64    `json:"userId" binding:"required"`
-	TicketTypeID   int64    `json:"ticketTypeID" binding:"required"`
-	TicketStatusID int64    `json:"ticketStatusID" binding:"required"`
-	DepartmentID   int64    `json:"departmentId" binding:"required"`
-	Title          string   `json:"title" binding:"required"`
-	Body           string   `json:"body" binding:"required"`
-	Attachments    []string `json:"attachments,omitempty"`
+	UserID       int64    `json:"userId" binding:"required"`
+	TicketTypeID int64    `json:"ticketTypeID" binding:"required"`
+	DepartmentID int64    `json:"departmentId" binding:"required"`
+	Title        string   `json:"title" binding:"required"`
+	Body         string   `json:"body" binding:"required"`
+	Attachments  []string `json:"attachments,omitempty"`
 }
 
 // ToModel converts a TicketCreateRequest into a model.Ticket
@@ -49,7 +48,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 		UserID:         dto.UserID,
 		TicketTypeID:   dto.TicketTypeID,
 		DepartmentID:   dto.DepartmentID,
-		TicketStatusID: dto.TicketStatusID,
+		TicketStatusID: 2,
 		Title:          dto.Title,
 		CreatedAt:      now,
 		UpdatedAt:      now,
