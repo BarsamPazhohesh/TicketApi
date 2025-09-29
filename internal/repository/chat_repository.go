@@ -26,7 +26,7 @@ func NewChatRepository(db *mongo.Database) *ChatRepository {
 }
 
 // CreateChatMessageForTicket adds a chat message to an existing ticket
-func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageResponseID, *errx.APIError) {
+func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageDTO, *errx.APIError) {
 	model := message.ToModel()
 	update := bson.M{
 		"$push": bson.M{"chat": model},
@@ -39,5 +39,11 @@ func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticke
 	if res.MatchedCount == 0 {
 		return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("ticket not found"))
 	}
-	return &dto.ChatMessageResponseID{ID: model.ID}, nil
+	return &dto.ChatMessageDTO{
+		ID:        model.ID,
+		SenderID:  model.SenderID,
+		Message:   model.Message,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}, nil
 }
