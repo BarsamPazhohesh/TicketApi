@@ -1,8 +1,8 @@
 package dto
 
 type CaptchaVerifyRequest struct {
-	ID      string `json:"id"`
-	Captcha string `json:"captcha"`
+	ID      string `json:"id" binding:"required"`
+	Captcha string `json:"captcha" binding:"required"`
 }
 
 // CaptchaResultDTO holds the captcha ID and image in base64
