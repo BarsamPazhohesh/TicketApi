@@ -259,7 +259,7 @@ func (h *TicketHandler) GetAllActiveTicketStatusesHandler(c *gin.Context) {
 		return
 	}
 
-	for _, v := range *ticketStatuses {
+	for _, v := range ticketStatuses {
 		ticketStatusDTO = append(ticketStatusDTO, *dto.ToTicketStatusDTO(&v))
 	}
 

@@ -26,7 +26,7 @@ func (repo *TicketStatusesRepository) AddTicketStatus(ctx context.Context, param
 	return nil
 }
 
-func (repo *TicketStatusesRepository) GetAllActiveTicketStatuses(ctx context.Context) (*[]ticket_statuses.TicketStatus, *errx.APIError) {
+func (repo *TicketStatusesRepository) GetAllActiveTicketStatuses(ctx context.Context) ([]ticket_statuses.TicketStatus, *errx.APIError) {
 	data, err := repo.queries.GetAllActiveTicketStatuses(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -35,7 +35,7 @@ func (repo *TicketStatusesRepository) GetAllActiveTicketStatuses(ctx context.Con
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
 
-	return &data, nil
+	return data, nil
 }
 
 func (repo *TicketStatusesRepository) GetActiveTicketStatusByID(ctx context.Context, ID int64) (*ticket_statuses.TicketStatus, *errx.APIError) {
