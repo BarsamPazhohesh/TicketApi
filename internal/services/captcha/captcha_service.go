@@ -68,7 +68,7 @@ func (s *CaptchaService) GenerateCaptcha() (*dto.CaptchaResultDTO, error) {
 func (s *CaptchaService) VerifyCaptcha(id, answer string) *errx.APIError {
 	val, found := s.cache.Get(id)
 	if !found {
-		return errx.Respond(errx.ErrUnauthorized, errors.New("captcha expired or not found"))
+		return errx.Respond(errx.ErrExpiredCaptcha, errors.New("captcha expired or not found"))
 	}
 
 	expected := val.([]byte)

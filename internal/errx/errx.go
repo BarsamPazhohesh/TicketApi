@@ -32,6 +32,7 @@ const (
 	ErrInvalidCredentials
 	ErrWeakJWTSecret
 	ErrIncorrectCaptcha
+	ErrExpiredCaptcha
 	ErrTicketStatusNotFound
 	ErrTooManyRequest
 	ErrApiKeyNotFound
@@ -57,7 +58,7 @@ type Error struct {
 
 // APIError is a full HTTP-aware error.
 type APIError struct {
-	Err        *Error `json:"errors"`
+	Err        *Error `json:"error"`
 	HTTPStatus int    `json:"-"`
 }
 
@@ -108,7 +109,8 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrUserDuplicate:        {"کاربر با این مشخصات قبلاً ثبت شده است", http.StatusConflict},
 			ErrInvalidCredentials:   {"نام کاربری یا رمز عبور اشتباه است", http.StatusUnauthorized},
 			ErrWeakJWTSecret:        {"کلید JWT بسیار کوتاه یا ناامن است", http.StatusInternalServerError},
-			ErrIncorrectCaptcha:     {"کپچا نادرست است", http.StatusUnauthorized},
+			ErrIncorrectCaptcha:     {"کد امنیتی نادرست است", http.StatusUnauthorized},
+			ErrExpiredCaptcha:       {"کد امنیتی منقضی شده است", http.StatusUnauthorized},
 			ErrTicketStatusNotFound: {"وضعیت تیکت یافت نشد", http.StatusNotFound},
 			ErrTooManyRequest:       {"تعداد درخواست‌ها بیش از حد مجاز است", http.StatusTooManyRequests},
 			ErrApiKeyNotFound:       {"API KEY نامعتبر است", http.StatusUnauthorized},
