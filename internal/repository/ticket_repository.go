@@ -116,6 +116,9 @@ func (r *TicketRepository) GetTickets(
 	if query.DepartmentID != 0 {
 		filter["departmentId"] = query.DepartmentID
 	}
+	if query.TicketTypeID != 0 {
+		filter["ticketTypeId"] = query.TicketTypeID
+	}
 
 	// Sorting
 	allowedSortFields := map[string]bool{

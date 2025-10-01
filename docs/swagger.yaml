@@ -1,13 +1,5 @@
 basePath: /api/v1
 definitions:
-  sql.NullString:
-    properties:
-      string:
-        type: string
-      valid:
-        description: Valid is true if String is not NULL
-        type: boolean
-    type: object
   ticket-api_internal_dto.CaptchaResultDTO:
     properties:
       answer:
@@ -25,6 +17,9 @@ definitions:
         type: string
       id:
         type: string
+    required:
+    - captcha
+    - id
     type: object
   ticket-api_internal_dto.ChatMessageCreateRequest:
     properties:
@@ -54,10 +49,10 @@ definitions:
       updatedAt:
         type: string
     type: object
-  ticket-api_internal_dto.DepartmentDto:
+  ticket-api_internal_dto.DepartmentDTO:
     properties:
       description:
-        $ref: '#/definitions/sql.NullString'
+        type: string
       id:
         type: integer
       title:
@@ -69,6 +64,11 @@ definitions:
         type: string
     required:
     - username
+    type: object
+  ticket-api_internal_dto.IDRequest-int64:
+    properties:
+      id:
+        type: integer
     type: object
   ticket-api_internal_dto.IDResponse-int64:
     properties:
@@ -166,8 +166,6 @@ definitions:
         type: string
       departmentId:
         type: integer
-      ticketStatusID:
-        type: integer
       ticketTypeID:
         type: integer
       title:
@@ -177,7 +175,6 @@ definitions:
     required:
     - body
     - departmentId
-    - ticketStatusID
     - ticketTypeID
     - title
     - userId
@@ -186,22 +183,24 @@ definitions:
     properties:
       departmentId:
         type: integer
-      order_by:
+      orderBy:
         description: field to order by
         type: string
-      order_dir:
+      orderDir:
         description: asc or desc
         type: string
       page:
         description: page number
         type: integer
-      page_size:
+      pageSize:
         description: items per page
         type: integer
-      status:
+      ticketStatusId:
         description: optional filter
         type: integer
-      user_id:
+      ticketTypeId:
+        type: integer
+      userId:
         description: optional filter
         type: integer
     type: object
@@ -230,7 +229,7 @@ definitions:
       userId:
         type: integer
     type: object
-  ticket-api_internal_dto.TicketStatusResponse:
+  ticket-api_internal_dto.TicketStatusDTO:
     properties:
       description:
         type: string
@@ -239,7 +238,7 @@ definitions:
       title:
         type: string
     type: object
-  ticket-api_internal_dto.TicketTypeResponse:
+  ticket-api_internal_dto.TicketTypeDto:
     properties:
       description:
         type: string
@@ -247,6 +246,35 @@ definitions:
         type: integer
       title:
         type: string
+    type: object
+  ticket-api_internal_dto.UserDTO:
+    properties:
+      createdAt:
+        type: string
+      departmentId:
+        type: integer
+      id:
+        type: integer
+      updatedAt:
+        type: string
+      username:
+        type: string
+    type: object
+  ticket-api_internal_dto.UserIDsDTO:
+    properties:
+      ids:
+        items:
+          type: integer
+        type: array
+    required:
+    - ids
+    type: object
+  ticket-api_internal_dto.UsernameDTO:
+    properties:
+      username:
+        type: string
+    required:
+    - username
     type: object
   ticket-api_internal_dto.VersionDTO:
     properties:
@@ -265,7 +293,7 @@ definitions:
     type: object
   ticket-api_internal_errx.APIError:
     properties:
-      errors:
+      error:
         $ref: '#/definitions/ticket-api_internal_errx.Error'
     type: object
   ticket-api_internal_errx.Error:
@@ -297,6 +325,8 @@ definitions:
     - 13
     - 14
     - 15
+    - 16
+    - 17
     type: integer
     x-enum-varnames:
     - ErrInternalServerError
@@ -312,9 +342,11 @@ definitions:
     - ErrInvalidCredentials
     - ErrWeakJWTSecret
     - ErrIncorrectCaptcha
+    - ErrExpiredCaptcha
     - ErrTicketStatusNotFound
     - ErrTooManyRequest
     - ErrApiKeyNotFound
+    - ErrServiceUnavailable
 info:
   contact: {}
   title: Ticket API
@@ -570,7 +602,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.DepartmentDto'
+            $ref: '#/definitions/ticket-api_internal_dto.DepartmentDTO'
         "500":
           description: Internal Server Error
           schema:
@@ -578,40 +610,6 @@ paths:
       summary: Get all active departments
       tags:
       - Department
-  /tickets/:id/:
-    post:
-      consumes:
-      - application/json
-      description: Returns a ticket by its ID
-      parameters:
-      - description: Ticket ID Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ticket-api_internal_errx.APIError'
-      summary: Get ticket by ID
-      tags:
-      - Ticket
   /tickets/:id/CreateChat/:
     post:
       consumes:
@@ -696,7 +694,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketStatusResponse'
+            $ref: '#/definitions/ticket-api_internal_dto.TicketStatusDTO'
         "500":
           description: Internal Server Error
           schema:
@@ -715,12 +713,46 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/ticket-api_internal_dto.TicketTypeResponse'
+            $ref: '#/definitions/ticket-api_internal_dto.TicketTypeDto'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ticket-api_internal_errx.APIError'
       summary: Get all active ticket types
+      tags:
+      - Ticket
+  /tickets/GetTicketByID/:
+    post:
+      consumes:
+      - application/json
+      description: Returns a ticket by its ID
+      parameters:
+      - description: Ticket ID Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.TicketResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get ticket by ID
       tags:
       - Ticket
   /tickets/GetTicketByTrackCode/:
@@ -788,4 +820,108 @@ paths:
       summary: List tickets with paging and filtering
       tags:
       - Ticket
+  /users/GetUserByID:
+    post:
+      consumes:
+      - application/json
+      description: Returns the requested user
+      parameters:
+      - description: User ID
+        in: body
+        name: userID
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.IDRequest-int64'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get user by ID
+      tags:
+      - User
+  /users/GetUserByUsername:
+    post:
+      consumes:
+      - application/json
+      description: Returns the requested user
+      parameters:
+      - description: Username
+        in: body
+        name: username
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.UsernameDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get user by username
+      tags:
+      - User
+  /users/GetUsersByIDs:
+    post:
+      consumes:
+      - application/json
+      description: Returns a list of all users requested
+      parameters:
+      - description: Users IDs
+        in: body
+        name: usersIDs
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.UserIDsDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ticket-api_internal_dto.UserDTO'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Get all users by IDs
+      tags:
+      - User
 swagger: "2.0"

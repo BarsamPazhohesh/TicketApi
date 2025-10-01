@@ -36,6 +36,7 @@ const (
 	ErrTicketStatusNotFound
 	ErrTooManyRequest
 	ErrApiKeyNotFound
+	ErrServiceUnavailable
 )
 
 //
@@ -114,6 +115,7 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrTicketStatusNotFound: {"وضعیت تیکت یافت نشد", http.StatusNotFound},
 			ErrTooManyRequest:       {"تعداد درخواست‌ها بیش از حد مجاز است", http.StatusTooManyRequests},
 			ErrApiKeyNotFound:       {"API KEY نامعتبر است", http.StatusUnauthorized},
+			ErrServiceUnavailable:   {"سرویس در دسترس نیست", http.StatusServiceUnavailable},
 		},
 		db: db,
 	}

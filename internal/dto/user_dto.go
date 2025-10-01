@@ -38,6 +38,14 @@ func ToUserDTO(u model.User) *UserDTO {
 	}
 }
 
+type UserIDsDTO struct {
+	IDs []int64 `json:"ids" binding:"required"`
+}
+
+type UsernameDTO struct {
+	Username string `json:"username" binding:"required"`
+}
+
 type LoginWitNoAuthDTO struct {
 	Username     string `json:"username" binding:"required,phoneNumber"`
 	DepartmentID int64  `json:"departmentId" binding:"required"`

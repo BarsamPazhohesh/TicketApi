@@ -27,7 +27,7 @@ func NewDepartmentHandler(departmentRepo *repository.DepartmentsRepository) *Dep
 // @Tags Department
 // @Accept json
 // @Produce json
-// @Success 200 {object} dto.DepartmentDto
+// @Success 200 {object} dto.DepartmentDTO
 // @Failure 500 {object} errx.APIError
 // @Router /departments/GetAllActiveDepartments/ [get]
 func (h *DepartmentHandler) GetAllActiveDepartmentsHandler(c *gin.Context) {

@@ -158,7 +158,7 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, ticketDTO)
 }
 
-// GetTicketByIDHandler handles POST /tickets/:id/
+// GetTicketByIDHandler handles POST /tickets/GetTicketByID/
 // @Summary Get ticket by ID
 // @Description Returns a ticket by its ID
 // @Tags Ticket
@@ -169,7 +169,7 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 // @Failure 400 {object} errx.APIError
 // @Failure 404 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /tickets/:id/ [post]
+// @Router /tickets/GetTicketByID/ [post]
 func (h *TicketHandler) GetTicketByIDHandler(c *gin.Context) {
 	var req dto.TicketByIDRequestDTO
 	if err := c.ShouldBindJSON(&req); err != nil || req.ID == "" {
@@ -224,19 +224,21 @@ func (h *TicketHandler) GetTicketsListHandler(c *gin.Context) {
 // @Tags Ticket
 // @Accept json
 // @Produce json
-// @Success 200 {object} dto.TicketTypeResponse
+// @Success 200 {object} dto.TicketTypeDto
 // @Failure 500 {object} errx.APIError
 // @Router /tickets/GetAllActiveTicketTypes/ [get]
 func (h *TicketHandler) GetAllActiveTicketTypesHandler(c *gin.Context) {
-	var ticketTypesDTO []dto.TicketTypeDto
+
 	ticketTypesList, err := h.TicketTypeRepo.GetAllActiveTicketTypes(c.Request.Context())
 	if err != nil {
 		c.JSON(err.HTTPStatus, err)
 		return
 	}
 
+	ticketTypesDTO := make([]*dto.TicketTypeDto, len(ticketTypesList)-1)
 	for _, v := range ticketTypesList {
-		ticketTypesDTO = append(ticketTypesDTO, *dto.ToTicketTypeDTO(&v))
+		println(ticketTypesDTO)
+		ticketTypesDTO = append(ticketTypesDTO, dto.ToTicketTypeDTO(&v))
 	}
 
 	c.JSON(http.StatusOK, ticketTypesDTO)
@@ -248,7 +250,7 @@ func (h *TicketHandler) GetAllActiveTicketTypesHandler(c *gin.Context) {
 // @Tags Ticket
 // @Accept json
 // @Produce json
-// @Success 200 {object} dto.TicketStatusResponse
+// @Success 200 {object} dto.TicketStatusDTO
 // @Failure 500 {object} errx.APIError
 // @Router /tickets/GetAllActiveTicketStatuses/ [get]
 func (h *TicketHandler) GetAllActiveTicketStatusesHandler(c *gin.Context) {

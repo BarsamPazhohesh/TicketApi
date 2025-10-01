@@ -86,15 +86,34 @@ func (repo *UsersRepository) GetUserByUsername(ctx context.Context, username str
 	return dto.ToUserDTO(user), nil
 }
 
-func (repo *UsersRepository) GetUserByID(ctx context.Context, userID int) (*dto.UserDTO, *errx.APIError) {
-	user, err := repo.queries.GetUserByID(ctx, int64(userID))
+func (repo *UsersRepository) GetUserByID(ctx context.Context, userID int64) (*dto.UserDTO, *errx.APIError) {
+	user, err := repo.queries.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errx.Respond(errx.ErrTicketNotFound, err)
+			return nil, errx.Respond(errx.ErrUserNotFound, err)
 		}
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
 
 	userDTO := dto.ToUserDTO(user)
 	return userDTO, nil
+}
+
+// GetUsersByIDs Get users by users Ids
+func (repo *UsersRepository) GetUsersByIDs(ctx context.Context, userIDs []int64) ([]*dto.UserDTO, *errx.APIError) {
+	users, err := repo.queries.GetUsersByIDs(ctx, userIDs)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errx.Respond(errx.ErrUserNotFound, err)
+		}
+		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	}
+
+	var usersDTO []*dto.UserDTO
+
+	for _, user := range users {
+		usersDTO = append(usersDTO, dto.ToUserDTO(user))
+	}
+
+	return usersDTO, nil
 }

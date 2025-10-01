@@ -393,59 +393,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.DepartmentDto"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/tickets/:id/": {
-            "post": {
-                "description": "Returns a ticket by its ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticket"
-                ],
-                "summary": "Get ticket by ID",
-                "parameters": [
-                    {
-                        "description": "Ticket ID Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/ticket-api_internal_dto.DepartmentDTO"
                         }
                     },
                     "500": {
@@ -585,7 +533,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketStatusResponse"
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketStatusDTO"
                         }
                     },
                     "500": {
@@ -614,7 +562,59 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketTypeResponse"
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketTypeDto"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tickets/GetTicketByID/": {
+            "post": {
+                "description": "Returns a ticket by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ticket"
+                ],
+                "summary": "Get ticket by ID",
+                "parameters": [
+                    {
+                        "description": "Ticket ID Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
                         }
                     },
                     "500": {
@@ -723,21 +723,168 @@ const docTemplate = `{
                     }
                 }
             }
-        }
-    },
-    "definitions": {
-        "sql.NullString": {
-            "type": "object",
-            "properties": {
-                "string": {
-                    "type": "string"
-                },
-                "valid": {
-                    "description": "Valid is true if String is not NULL",
-                    "type": "boolean"
+        },
+        "/users/GetUserByID": {
+            "post": {
+                "description": "Returns the requested user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDRequest-int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.UserDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
                 }
             }
         },
+        "/users/GetUserByUsername": {
+            "post": {
+                "description": "Returns the requested user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user by username",
+                "parameters": [
+                    {
+                        "description": "Username",
+                        "name": "username",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.UsernameDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.UserDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/GetUsersByIDs": {
+            "post": {
+                "description": "Returns a list of all users requested",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get all users by IDs",
+                "parameters": [
+                    {
+                        "description": "Users IDs",
+                        "name": "usersIDs",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.UserIDsDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ticket-api_internal_dto.UserDTO"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
         "ticket-api_internal_dto.CaptchaResultDTO": {
             "type": "object",
             "properties": {
@@ -756,6 +903,10 @@ const docTemplate = `{
         },
         "ticket-api_internal_dto.CaptchaVerifyRequest": {
             "type": "object",
+            "required": [
+                "captcha",
+                "id"
+            ],
             "properties": {
                 "captcha": {
                     "type": "string"
@@ -808,11 +959,11 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.DepartmentDto": {
+        "ticket-api_internal_dto.DepartmentDTO": {
             "type": "object",
             "properties": {
                 "description": {
-                    "$ref": "#/definitions/sql.NullString"
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -830,6 +981,14 @@ const docTemplate = `{
             "properties": {
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.IDRequest-int64": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
                 }
             }
         },
@@ -966,7 +1125,6 @@ const docTemplate = `{
             "required": [
                 "body",
                 "departmentId",
-                "ticketStatusID",
                 "ticketTypeID",
                 "title",
                 "userId"
@@ -982,9 +1140,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "departmentId": {
-                    "type": "integer"
-                },
-                "ticketStatusID": {
                     "type": "integer"
                 },
                 "ticketTypeID": {
@@ -1004,11 +1159,11 @@ const docTemplate = `{
                 "departmentId": {
                     "type": "integer"
                 },
-                "order_by": {
+                "orderBy": {
                     "description": "field to order by",
                     "type": "string"
                 },
-                "order_dir": {
+                "orderDir": {
                     "description": "asc or desc",
                     "type": "string"
                 },
@@ -1016,15 +1171,18 @@ const docTemplate = `{
                     "description": "page number",
                     "type": "integer"
                 },
-                "page_size": {
+                "pageSize": {
                     "description": "items per page",
                     "type": "integer"
                 },
-                "status": {
+                "ticketStatusId": {
                     "description": "optional filter",
                     "type": "integer"
                 },
-                "user_id": {
+                "ticketTypeId": {
+                    "type": "integer"
+                },
+                "userId": {
                     "description": "optional filter",
                     "type": "integer"
                 }
@@ -1068,7 +1226,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketStatusResponse": {
+        "ticket-api_internal_dto.TicketStatusDTO": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1082,7 +1240,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketTypeResponse": {
+        "ticket-api_internal_dto.TicketTypeDto": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1092,6 +1250,51 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.UserDTO": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "departmentId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "ticket-api_internal_dto.UserIDsDTO": {
+            "type": "object",
+            "required": [
+                "ids"
+            ],
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "ticket-api_internal_dto.UsernameDTO": {
+            "type": "object",
+            "required": [
+                "username"
+            ],
+            "properties": {
+                "username": {
                     "type": "string"
                 }
             }
@@ -1120,7 +1323,7 @@ const docTemplate = `{
         "ticket-api_internal_errx.APIError": {
             "type": "object",
             "properties": {
-                "errors": {
+                "error": {
                     "$ref": "#/definitions/ticket-api_internal_errx.Error"
                 }
             }
@@ -1160,7 +1363,9 @@ const docTemplate = `{
                 12,
                 13,
                 14,
-                15
+                15,
+                16,
+                17
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1176,9 +1381,11 @@ const docTemplate = `{
                 "ErrInvalidCredentials",
                 "ErrWeakJWTSecret",
                 "ErrIncorrectCaptcha",
+                "ErrExpiredCaptcha",
                 "ErrTicketStatusNotFound",
                 "ErrTooManyRequest",
-                "ErrApiKeyNotFound"
+                "ErrApiKeyNotFound",
+                "ErrServiceUnavailable"
             ]
         }
     }

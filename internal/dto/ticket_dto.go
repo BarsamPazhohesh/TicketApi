@@ -165,9 +165,10 @@ type TicketQueryParams struct {
 	Page     int `json:"page,omitempty"`     // page number
 	PageSize int `json:"pageSize,omitempty"` // items per page
 
-	StatusID     int64 `json:"status,omitempty"` // optional filter
-	UserID       int64 `json:"userId,omitempty"` // optional filter
+	StatusID     int64 `json:"ticketStatusId,omitempty"` // optional filter
+	UserID       int64 `json:"userId,omitempty"`         // optional filter
 	DepartmentID int64 `json:"departmentId,omitempty"`
+	TicketTypeID int64 `json:"ticketTypeId,omitempty"`
 
 	OrderBy  string `json:"orderBy,omitempty"`  // field to order by
 	OrderDir string `json:"orderDir,omitempty"` // asc or desc

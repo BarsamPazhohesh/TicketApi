@@ -8,6 +8,7 @@ package users
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 const checkUserByID = `-- name: CheckUserByID :one
@@ -101,4 +102,53 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.Deleted,
 	)
 	return i, err
+}
+
+const getUsersByIDs = `-- name: GetUsersByIDs :many
+SELECT id, username, password, department_id, created_at, updated_at, status, deleted FROM users
+WHERE id IN (/*SLICE:ids*/?)
+AND deleted = 0 
+AND status != 0
+`
+
+func (q *Queries) GetUsersByIDs(ctx context.Context, ids []int64) ([]User, error) {
+	query := getUsersByIDs
+	var queryParams []interface{}
+	if len(ids) > 0 {
+		for _, v := range ids {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:ids*/?", strings.Repeat(",?", len(ids))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:ids*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Password,
+			&i.DepartmentID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Status,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

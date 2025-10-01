@@ -22,3 +22,13 @@ SELECT * FROM users
 WHERE id = ? 
 AND deleted = 0 
 AND status != 0;
+
+-- name: GetUsersByIDs :many
+SELECT * FROM users
+WHERE id IN (sqlc.slice('ids'))
+AND deleted = 0 
+AND status != 0;
+
+
+
+

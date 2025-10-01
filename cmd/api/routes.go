@@ -35,15 +35,16 @@ func (app *application) routes() http.Handler {
 		MaxAge:           time.Duration(cfgCORS.MaxAgeHours) * time.Hour,
 	}))
 
+	g.Use(middleware.RouteStatusChecker())
+
 	v1 := g.Group("/api/v1")
-	// v1.Use(middleware.CORSMiddleware())
 	{
 		captchaGroup := v1.Group("")
 		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
 		captchaGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
 		{
 			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SignUpWithPassword)
-			captchaGroup.GET(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
+			captchaGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, app.handlers.Ticket.CreateTicketHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, app.handlers.Ticket.GetTicketByTrackCodeHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, app.handlers.Chat.CreateChatHandler)
@@ -54,6 +55,11 @@ func (app *application) routes() http.Handler {
 		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
 		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
 		{
+			//TODO : these handler should be in auth
+			authGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
+			authGroup.POST(routes.APIRoutes.Users.GetUsersByIDs.Path, app.handlers.User.GetUsersByIDs)
+			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, app.handlers.User.GetUserByID)
+			authGroup.POST(routes.APIRoutes.Users.GetUserByUsername.Path, app.handlers.User.GetUserByUsername)
 			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, app.handlers.Ticket.GetTicketByIDHandler)
 		}
 
@@ -66,11 +72,8 @@ func (app *application) routes() http.Handler {
 
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, app.handlers.Auth.LoginWithOneTimeToken)
 
-			publicGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
-
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, app.handlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, app.handlers.Ticket.GetAllActiveTicketStatusesHandler)
-
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, app.handlers.Department.GetAllActiveDepartmentsHandler)
 		}
 
@@ -81,14 +84,13 @@ func (app *application) routes() http.Handler {
 		}
 	}
 
-	// Redirect /swagger → /swagger/index.html
-	g.GET("/swagger", redirectSwagger)
+	// Redirect /swagger and /swagger/ → /swagger/index.html
+	g.GET("/swagger", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+	})
 
-	// Serve Swagger
+	// Serve Swagger UI for all other paths
 	g.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	return g
-}
 
-func redirectSwagger(c *gin.Context) {
-	c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+	return g
 }

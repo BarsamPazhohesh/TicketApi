@@ -4,6 +4,8 @@ type IDResponse[T int64 | int32 | string] struct {
 	ID T `json:"id"`
 }
 
+type IDRequest[T int64 | int32 | string] = IDResponse[T]
+
 // PagingResponse is a generic paged response
 type PagingResponse[T any] struct {
 	Items      []T   `json:"items"`       // paged items
