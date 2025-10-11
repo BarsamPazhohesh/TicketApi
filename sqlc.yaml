@@ -1,10 +1,82 @@
 version: "2"
 
 sql:
-  - schema: "db/schema.sql"
-    queries: "db/queries"
+  - schema: "db/version/schema.sql"
+    queries: "db/version/queries.sql"
     engine: "sqlite"
     gen:
       go:
         package: "version"
         out: "internal/db/version"
+
+  - schema: "db/roles/schema.sql"
+    queries: "db/roles/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "roles"
+        out: "internal/db/roles"
+
+  - schema: "db/api_routes/schema.sql"
+    queries: "db/api_routes/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "api_routes"
+        out: "internal/db/api_routes"
+
+  - schema: "db/users/schema.sql"
+    queries: "db/users/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "users"
+        out: "internal/db/users"
+
+  - schema: "db/ticket_types/schema.sql"
+    queries: "db/ticket_types/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "ticket_types"
+        out: "internal/db/ticket_types"
+
+  - schema: "db/ticket_priorities/schema.sql"
+    queries: "db/ticket_priorities/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "ticket_priorities"
+        out: "internal/db/ticket_priorities"
+
+  - schema: "db/departments/schema.sql"
+    queries: "db/departments/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "departments"
+        out: "internal/db/departments"
+
+  - schema: "db/roles_relations/schema.sql"
+    queries: "db/roles_relations/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "roles_relations"
+        out: "internal/db/roles_relations"
+
+  - schema: "db/ticket_statuses/schema.sql"
+    queries: "db/ticket_statuses/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "ticket_statuses"
+        out: "internal/db/ticket_statuses"
+
+  - schema: "db/api_keys/schema.sql"
+    queries: "db/api_keys/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "api_keys"
+        out: "internal/db/api_keys"

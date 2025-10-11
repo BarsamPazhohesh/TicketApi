@@ -1,3 +1,5 @@
+--! Update `cmd/mingrate/migrations/*` files after change 
+
 CREATE TABLE app_versions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     api_version TEXT NOT NULL,
@@ -6,4 +8,3 @@ CREATE TABLE app_versions (
     notes TEXT,
     is_current INTEGER NOT NULL DEFAULT 0
 );
-

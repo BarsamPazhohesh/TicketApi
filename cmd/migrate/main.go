@@ -27,7 +27,7 @@ func main() {
 	fatalIfErr(err)
 
 	// Migration source (filesystem)
-	src, err := (&file.File{}).Open("cmd/mingrate/migrations")
+	src, err := (&file.File{}).Open("cmd/migrate/migrations")
 	fatalIfErr(err)
 
 	// Migrate instance
@@ -49,6 +49,13 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println("Rolled back one migration!")
+
+	case "downall":
+		err = m.Down()
+		if err != nil && err != migrate.ErrNoChange {
+			log.Fatal(err)
+		}
+		fmt.Println("Rolled back all migrations!")
 
 	default:
 		log.Fatal("Unknown command. Use 'up' or 'down'")

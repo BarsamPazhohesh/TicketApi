@@ -1,3 +1,4 @@
+// Package dto
 package dto
 
 import (
@@ -7,7 +8,7 @@ import (
 
 // VersionDTO is used for API requests/responses
 type VersionDTO struct {
-	ApiVersion string `json:"apiVersion"` // JSON: apiVersion
+	APIVersion string `json:"apiVersion"` // JSON: apiVersion
 	Version    string `json:"version"`    // JSON: version
 	Notes      string `json:"notes"`      // JSON: notes
 	IsCurrent  bool   `json:"isCurrent"`  // JSON: isCurrent
@@ -21,7 +22,7 @@ func (dt *VersionDTO) ToModel() *version.AppVersion {
 	}
 
 	return &version.AppVersion{
-		ApiVersion: dt.ApiVersion,
+		ApiVersion: dt.APIVersion,
 		Version:    dt.Version,
 		Notes:      sql.NullString{String: dt.Notes, Valid: dt.Notes != ""},
 		IsCurrent:  int64(isCurrent),
@@ -30,10 +31,7 @@ func (dt *VersionDTO) ToModel() *version.AppVersion {
 
 // FromModel converts sqlc model (AppVersion) to VersionDTO
 func FromModel(m *version.AppVersion) *VersionDTO {
-	isCurrent := false
-	if m.IsCurrent == 1 {
-		isCurrent = true
-	}
+	isCurrent := m.IsCurrent == 1
 
 	notes := ""
 	if m.Notes.Valid {
@@ -41,7 +39,7 @@ func FromModel(m *version.AppVersion) *VersionDTO {
 	}
 
 	return &VersionDTO{
-		ApiVersion: m.ApiVersion,
+		APIVersion: m.ApiVersion,
 		Version:    m.Version,
 		Notes:      notes,
 		IsCurrent:  isCurrent,

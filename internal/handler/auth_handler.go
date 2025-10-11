@@ -1,0 +1,240 @@
+// Package handler
+package handler
+
+import (
+	"errors"
+	"net/http"
+	"ticket-api/internal/db/users"
+	"ticket-api/internal/dto"
+	"ticket-api/internal/errx"
+	"ticket-api/internal/repository"
+	"ticket-api/internal/security"
+	"ticket-api/internal/services/cookie"
+	"ticket-api/internal/services/token"
+
+	"github.com/gin-gonic/gin"
+)
+
+type AuthHandler struct {
+	Repo         *repository.UsersRepository
+	TokenService *token.TokenService
+}
+
+// NewAuthHandler constructor
+func NewAuthHandler(repo *repository.UsersRepository, tokenService *token.TokenService) *AuthHandler {
+	return &AuthHandler{Repo: repo, TokenService: tokenService}
+}
+
+// LoginWithNoAuth handles POST /auth/LoginWithNoAuth/
+// @Summary Login or create user without authentication
+// @Description If a user with the provided username and department ID exists, it returns the user's ID. Otherwise, it creates a new user and returns the new ID.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param login body dto.LoginWitNoAuthDTO true "Login data"
+// @Success 200 {object} dto.IDResponse[int64] "User found and ID returned"
+// @Success 201 {object} dto.IDResponse[int64] "New user created and ID returned"
+// @Failure 400 {object} errx.Error
+// @Failure 500 {object} errx.Error
+// @Router /auth/LoginWithNoAuth/ [post]
+func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
+	var loginWithNoAuthDTO dto.LoginWitNoAuthDTO
+
+	if err := c.ShouldBindJSON(&loginWithNoAuthDTO); err != nil {
+		err := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	user, err := h.Repo.GetUserByUsername(c.Request.Context(), loginWithNoAuthDTO.Username)
+	// no user found
+	if err != nil {
+		param := users.CreateUserParams{
+			Username:     loginWithNoAuthDTO.Username,
+			DepartmentID: loginWithNoAuthDTO.DepartmentID,
+		}
+
+		userID, err := h.Repo.AddUser(c.Request.Context(), param)
+		if err != nil {
+			c.JSON(err.HTTPStatus, err)
+			return
+		}
+
+		c.JSON(http.StatusCreated, userID)
+		return
+	}
+
+	// user found
+	c.JSON(http.StatusOK, dto.IDResponse[int64]{ID: user.ID})
+}
+
+// SignUpWithPassword godoc
+// @Summary      Sign up with username and password
+// @Description  Create a new user with username and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      dto.SignUpWithPasswordDTO  true  "Signup credentials"
+// @Success      201      {object}  dto.IDResponse[int64]
+// @Failure      400      {object}  errx.APIError
+// @Failure      500      {object}  errx.APIError
+// @Router       /auth/SignUp/ [post]
+func (h *AuthHandler) SignUpWithPassword(c *gin.Context) {
+	var credential dto.SignUpWithPasswordDTO
+	if err := c.ShouldBindJSON(&credential); err != nil {
+		appErr := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(appErr.HTTPStatus, appErr)
+		return
+	}
+	// create user
+	user, err := h.Repo.CreateUserWithPassword(c.Request.Context(), credential)
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, &dto.IDResponse[int64]{ID: user.ID})
+}
+
+// LoginWithPassword godoc
+// @Summary      Login with username and password
+// @Description  Authenticate user and return JWT token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        payload  body      dto.LoginWithPasswordDTO  true  "Login credentials"
+// @Success      200
+// @Failure      400      {object}  errx.APIError
+// @Failure      401      {object}  errx.APIError
+// @Failure      500      {object}  errx.APIError
+// @Router       /auth/Login/ [post]
+func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
+	var credential dto.LoginWithPasswordDTO
+	if err := c.ShouldBindJSON(&credential); err != nil {
+		appErr := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(appErr.HTTPStatus, appErr)
+		return
+	}
+
+	// 1. Get user
+	user, err := h.Repo.GetUserByUsername(c.Request.Context(), credential.Username)
+	if err != nil {
+		// hide whether username or password is wrong
+		if err.Err.Code == errx.ErrUserNotFound {
+			err = errx.Respond(errx.ErrInvalidInput, errors.New("username or password is incorrect"))
+		}
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	// 2. Compare hashed password
+	if passErr := security.CompareHashPassword(user.Password, credential.Password); passErr != nil {
+		c.JSON(passErr.HTTPStatus, passErr)
+		return
+	}
+
+	// 3. Generate JWT token
+	token, jwtErr := h.TokenService.NewAuthToken(
+		token.AuthClaims{
+			UserID:   user.ID,
+			Username: user.Username,
+			RoleIDs:  nil,
+		})
+	if jwtErr != nil {
+		c.JSON(jwtErr.HTTPStatus, jwtErr)
+		return
+	}
+	cookieService := cookie.NewAuthCookieService()
+	cookieService.Set(c, token)
+	c.JSON(http.StatusOK, nil)
+}
+
+// GetSingleUseToken godoc
+// @Summary      Generate one-time token for a user
+// @Description  Returns a one-time JWT token to authenticate on another service
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param 			 x-api-key header string true "API Key"
+// @Param        payload  body      dto.GenerateSingleUseTokenDTO true  "Username"
+// @Success      200      {object}  dto.SingleUseTokenResponseDTO
+// @Failure      400      {object}  errx.APIError
+// @Failure      500      {object}  errx.APIError
+// @Router       /auth/GetSingleUseToken/ [post]
+func (h *AuthHandler) GetSingleUseToken(c *gin.Context) {
+	var req dto.GenerateSingleUseTokenDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		appErr := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(appErr.HTTPStatus, appErr)
+		return
+	}
+
+	// Optional: verify user exists
+	_, err := h.Repo.GetUserByUsername(c.Request.Context(), req.Username)
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	// Generate one-time token
+	token, apiErr := h.TokenService.NewOneTimeToken(req.Username)
+	if apiErr != nil {
+		c.JSON(apiErr.HTTPStatus, apiErr)
+		return
+	}
+
+	c.JSON(http.StatusOK, &dto.SingleUseTokenResponseDTO{
+		Token: token,
+	})
+}
+
+// LoginWithOneTimeToken godoc
+// @Summary      Login using a SingleUse token
+// @Description  Validates a SingleUse token and returns an auth JWT
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        token  query     string  true  "SingleUse token"
+// @Success      200
+// @Failure      400    {object}  errx.APIError
+// @Failure      401    {object}  errx.APIError
+// @Failure      500    {object}  errx.APIError
+// @Router       /auth/LoginWithSingleUseToken/ [get]
+func (h *AuthHandler) LoginWithOneTimeToken(c *gin.Context) {
+	tokenStr := c.Query("token")
+	if tokenStr == "" {
+		appErr := errx.Respond(errx.ErrBadRequest, nil)
+		c.JSON(appErr.HTTPStatus, appErr)
+		return
+	}
+
+	// Validate one-time token
+	claims, apiErr := h.TokenService.ParseOneTimeToken(tokenStr)
+	if apiErr != nil {
+		c.JSON(apiErr.HTTPStatus, apiErr)
+		return
+	}
+
+	// Optional: verify user exists
+	user, err := h.Repo.GetUserByUsername(c.Request.Context(), claims.Username)
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	// Generate normal auth token
+	authToken, jwtErr := h.TokenService.NewAuthToken(token.AuthClaims{
+		UserID:   user.ID,
+		Username: user.Username,
+		RoleIDs:  nil,
+	})
+	if jwtErr != nil {
+		c.JSON(jwtErr.HTTPStatus, jwtErr)
+		return
+	}
+
+	cookieService := cookie.NewAuthCookieService()
+	cookieService.Set(c, authToken)
+
+	c.JSON(http.StatusOK, nil)
+}
