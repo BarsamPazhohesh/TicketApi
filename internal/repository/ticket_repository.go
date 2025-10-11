@@ -2,12 +2,15 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/model"
+	"ticket-api/internal/util"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -57,6 +60,10 @@ func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.T
 }
 
 func (r *TicketRepository) GetTicketByTrackCode(ctx context.Context, trackCode string) (*dto.TicketResponse, *errx.APIError) {
+	if !util.ValidateTrackCode(trackCode) {
+		return nil, errx.Respond(errx.ErrBadRequest, errors.New("ticket trackCode invalid"))
+	}
+
 	var ticket model.Ticket
 	if err := r.collection.FindOne(ctx, bson.M{"trackCode": trackCode}).Decode(&ticket); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -185,4 +192,37 @@ func (r *TicketRepository) GetTickets(
 		Total:      total,
 		Items:      ticketsDto,
 	}, nil
+}
+
+func (r *TicketRepository) SetTicketStatus(ctx context.Context, id string, statusId int64) (*dto.TicketResponse, *errx.APIError) {
+
+	// Validate UUID
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, errx.Respond(errx.ErrBadRequest, err)
+	}
+
+	filter := bson.M{"_id": id}
+
+	update := bson.D{
+		{Key: "$set", Value: bson.M{
+			"ticketStatusId": statusId,
+		}},
+		{Key: "$currentDate", Value: bson.M{
+			"updatedAt": true,
+		}},
+	}
+
+	// Options: return the updated document
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After).SetProjection(bson.M{"chat": 0})
+
+	var model model.Ticket
+	err := r.collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&model)
+	if err != nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	}
+
+	// Convert to DTO
+	ticketDTO := dto.ToTicketResponse(&model)
+
+	return ticketDTO, nil
 }
