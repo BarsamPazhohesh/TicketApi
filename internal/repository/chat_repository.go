@@ -7,6 +7,7 @@ import (
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -27,6 +28,12 @@ func NewChatRepository(db *mongo.Database) *ChatRepository {
 
 // CreateChatMessageForTicket adds a chat message to an existing ticket
 func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageDTO, *errx.APIError) {
+
+	// Validate UUID
+	if _, err := uuid.Parse(ticketID); err != nil {
+		return nil, errx.Respond(errx.ErrBadRequest, err)
+	}
+
 	model := message.ToModel()
 	update := bson.M{
 		"$push": bson.M{"chat": model},
