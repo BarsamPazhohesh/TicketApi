@@ -30,7 +30,9 @@ func NewChatRepository(db *mongo.Database) *ChatRepository {
 func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageDTO, *errx.APIError) {
 
 	// Validate UUID
-	if _, err := uuid.Parse(ticketID); err != nil {
+	uid, err := uuid.Parse(ticketID)
+
+	if err != nil {
 		return nil, errx.Respond(errx.ErrBadRequest, err)
 	}
 
@@ -39,7 +41,7 @@ func (r *TicketRepository) CreateChatMessageForTicket(ctx context.Context, ticke
 		"$push": bson.M{"chat": model},
 	}
 
-	res, err := r.collection.UpdateOne(ctx, bson.M{"_id": ticketID}, update)
+	res, err := r.collection.UpdateOne(ctx, bson.M{"_id": uid}, update)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}

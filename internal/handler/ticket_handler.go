@@ -6,6 +6,7 @@ import (
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/repository"
+	"ticket-api/internal/util"
 
 	_ "ticket-api/internal/routes"
 
@@ -99,6 +100,13 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 		return // Add return!
 	}
 
+	openStatus, err := h.TicketStatusRepo.GetOpenStatus(c.Request.Context())
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+	ticketDTO.TicketStatusID = openStatus.ID
+
 	createdTicket, err := h.TicketRepo.CreateTicket(c.Request.Context(), &ticketDTO)
 	if err != nil {
 		c.JSON(err.HTTPStatus, err)
@@ -124,8 +132,15 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 	var req dto.TicketByTrackCodeRequestDTO
 
 	// Bind JSON request
-	if err := c.ShouldBindJSON(&req); err != nil || req.TrackCode == "" {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		appErr := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(appErr.HTTPStatus, appErr)
+		return
+	}
+
+	_, parseErr := util.ParsTrackCode(req.TrackCode)
+	if parseErr != nil {
+		appErr := errx.Respond(errx.ErrBadRequest, parseErr)
 		c.JSON(appErr.HTTPStatus, appErr)
 		return
 	}
@@ -266,4 +281,34 @@ func (h *TicketHandler) GetAllActiveTicketStatusesHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, ticketStatusDTO)
+}
+
+// CloseTicketHandler handles POST /tickets/CloseTicket
+// @Summary POST CloseTicket By ID
+// @Description Returns a list of all active ticket statuses
+// @Tags Ticket
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.TicketStatusDTO
+// @Failure 500 {object} errx.APIError
+// @Router /tickets/GetAllActiveTicketStatuses/ [get]
+func (h *TicketHandler) CloseTicketHandler(c *gin.Context) {
+	var req dto.IDRequest[string]
+	if !bindJSON(c, &req) {
+		return
+	}
+
+	close, err := h.TicketStatusRepo.GetCloseStatus(c.Request.Context())
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+	ticket, err := h.TicketRepo.SetTicketStatus(c.Request.Context(), req.ID, close.ID)
+
+	if err != nil {
+		c.JSON(err.HTTPStatus, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, ticket)
 }

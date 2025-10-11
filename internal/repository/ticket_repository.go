@@ -67,12 +67,14 @@ func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.T
 }
 
 func (r *TicketRepository) GetTicketByTrackCode(ctx context.Context, trackCode string) (*dto.TicketResponse, *errx.APIError) {
-	if !util.ValidateTrackCode(trackCode) {
-		return nil, errx.Respond(errx.ErrBadRequest, errors.New("ticket trackCode invalid"))
+
+	code, err := util.ParsTrackCode(trackCode)
+	if err != nil {
+		return nil, errx.Respond(errx.ErrBadRequest, err)
 	}
 
 	var ticket model.Ticket
-	if err := r.collection.FindOne(ctx, bson.M{"trackCode": trackCode}).Decode(&ticket); err != nil {
+	if err := r.collection.FindOne(ctx, bson.M{"trackCode": code}).Decode(&ticket); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errx.Respond(errx.ErrTicketNotFound, err)
 		}
