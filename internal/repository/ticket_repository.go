@@ -2,12 +2,12 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/model"
+	"ticket-api/internal/services/storage"
 	"ticket-api/internal/util"
 
 	"github.com/google/uuid"
@@ -19,31 +19,55 @@ import (
 // TicketRepository handles ticket-related MongoDB operations.
 type TicketRepository struct {
 	collection *mongo.Collection
+	storage    *storage.StorageService
 }
 
 // NewTicketRepository initializes a TicketRepository with the "tickets" collection.
 // Returns an empty repository if ENABLE_MONGO is 0.
-func NewTicketRepository(db *mongo.Database) *TicketRepository {
+func NewTicketRepository(db *mongo.Database, storage *storage.StorageService) *TicketRepository {
 	if !config.Get().Mongo.Enable {
 		return &TicketRepository{}
 	}
 	return &TicketRepository{
 		collection: db.Collection(config.Get().Mongo.TicketCollectionName),
+		storage:    storage,
 	}
 }
 
 // CreateTicket inserts a new ticket into MongoDB and returns the ticket ID.
 func (r *TicketRepository) CreateTicket(ctx context.Context, ticketDTO *dto.TicketCreateRequest) (*dto.TicketCreateResponse, *errx.APIError) {
+	// Parse attachment object names
+	attachments, err := util.ParseObjectNames(ticketDTO.Attachments)
+	if err != nil {
+		return nil, errx.Respond(errx.ErrBadRequest, err)
+	}
+	ticketDTO.Attachments = attachments
+
+	// Convert DTO to model
 	ticket, err := ticketDTO.ToModel(ctx, r.collection)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrInvalidInput, err)
 	}
 
+	// Move temp attachments to ticket folder if first chat has attachments
+	if len(ticket.Chat) > 0 && len(ticket.Chat[0].Attachments) > 0 {
+		movedAttachments, apiErr := r.storage.MoveTempsFileToTickets(ctx, ticket.ID, attachments)
+		if apiErr != nil {
+			return nil, apiErr
+		}
+		ticket.Chat[0].Attachments = movedAttachments
+		ticket.AttachmentCount = len(movedAttachments)
+	}
+
+	// Insert ticket into MongoDB
 	if _, err := r.collection.InsertOne(ctx, ticket); err != nil {
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
 
-	return &dto.TicketCreateResponse{ID: ticket.ID, TrackCode: ticket.TrackCode}, nil
+	return &dto.TicketCreateResponse{
+		ID:        ticket.ID,
+		TrackCode: ticket.TrackCode,
+	}, nil
 }
 
 // GetTicketByID retrieves a single ticket by ID and converts it to TicketRaw.
@@ -64,6 +88,29 @@ func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.T
 	}
 
 	return dto.ToTicketResponse(&ticket), nil
+}
+
+func (r *TicketRepository) GetTicketAttachmentCount(ctx context.Context, id string) (int, *errx.APIError) {
+	// Validate UUID
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return 0, errx.Respond(errx.ErrBadRequest, err)
+	}
+
+	var result struct {
+		AttachmentCount int `bson:"attachmentCount"`
+	}
+
+	// Use projection to fetch only attachmentCount
+	opts := options.FindOne().SetProjection(bson.M{"attachmentCount": 1})
+	if err := r.collection.FindOne(ctx, bson.M{"_id": uid}, opts).Decode(&result); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return 0, errx.Respond(errx.ErrTicketNotFound, err)
+		}
+		return 0, errx.Respond(errx.ErrInternalServerError, err)
+	}
+
+	return result.AttachmentCount, nil
 }
 
 func (r *TicketRepository) GetTicketByTrackCode(ctx context.Context, trackCode string) (*dto.TicketResponse, *errx.APIError) {
