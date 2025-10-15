@@ -17,6 +17,8 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -27,6 +29,7 @@ type application struct {
 	mongo    *mongo.Database
 	sql      *sql.DB
 	redis    *redis.Client
+	minio    *minio.Client
 	services *services.AppServices
 	repos    *repository.AppRepositories
 	handlers *handler.AppHandlers
@@ -53,8 +56,15 @@ func main() {
 	dbRedis, err := ConnectRedis()
 	fatalIfErr(err)
 
-	services := services.NewAppService()
-	repos := repository.NewRepositories(dbSQL, dbMongo)
+	// MinIO
+	var minioClient *minio.Client = nil
+	if config.Get().Minio.Enable {
+		minioClient, err = ConnectMinio()
+		fatalIfErr(err)
+	}
+
+	services := services.NewAppService(dbRedis, minioClient)
+	repos := repository.NewRepositories(dbSQL, dbMongo, services)
 	handlers := handler.NewAppHandlers(repos, services)
 
 	app := &application{
@@ -62,6 +72,7 @@ func main() {
 		sql:      dbSQL,
 		mongo:    dbMongo,
 		redis:    dbRedis,
+		minio:    minioClient,
 		services: services,
 		repos:    repos,
 		handlers: handlers,
@@ -124,4 +135,29 @@ func ConnectRedis() (*redis.Client, error) {
 
 	log.Println("✅ Connected to Redis:", addr, "DB:", redisCfg.DB)
 	return rdb, nil
+}
+
+// ConnectMinio connects to MinIO and returns the client.
+func ConnectMinio() (*minio.Client, error) {
+	minioCfg := config.Get().Minio
+	accessKey := env.GetEnvString("ACCESS_KEY_MINIO", "")
+	secretKey := env.GetEnvString("SECRET_KEY_MINIO", "")
+
+	endpoint := minioCfg.Host + ":" + strconv.Itoa(minioCfg.Port)
+	client, err := minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+		Secure: minioCfg.UseSSL,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = client.ListBuckets(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println("✅ Connected to MinIO:", endpoint)
+	return client, nil
 }
