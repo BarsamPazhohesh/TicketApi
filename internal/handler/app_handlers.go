@@ -16,17 +16,19 @@ type AppHandlers struct {
 	Auth       *AuthHandler
 	Captcha    *CaptchaHandler
 	Department *DepartmentHandler
+	File       *FileHandler
 }
 
 func NewAppHandlers(repos *repository.AppRepositories, services *services.AppServices) *AppHandlers {
 	return &AppHandlers{
 		Version:    NewVersionHandler(repos.Version),
 		Ticket:     NewTicketHandler(repos.Ticket, repos.TicketTypes, repos.TicketPriorities, repos.TicketStatus, repos.Users, repos.Departments),
-		Chat:       NewChatHandler(repos.Ticket),
+		Chat:       NewChatHandler(repos.Ticket, repos.ChatRepository),
 		User:       NewUserHandler(repos.Users),
 		Auth:       NewAuthHandler(repos.Users, services.Token),
 		Captcha:    NewCaptchaHandler(services.Captcha, services.Token),
 		Department: NewDepartmentHandler(repos.Departments),
+		File:       NewFileHandler(services.FileStorage),
 	}
 }
 
