@@ -327,6 +327,12 @@ definitions:
     - 15
     - 16
     - 17
+    - 18
+    - 19
+    - 20
+    - 21
+    - 22
+    - 23
     type: integer
     x-enum-varnames:
     - ErrInternalServerError
@@ -347,6 +353,12 @@ definitions:
     - ErrTooManyRequest
     - ErrApiKeyNotFound
     - ErrServiceUnavailable
+    - ErrFileNotFound
+    - ErrLinkExpired
+    - ErrUnsupportedFileExtension
+    - ErrMaxFileSizeExceeded
+    - ErrMaxTicketFilesExceeded
+    - ErrRequestBodyTooLarge
 info:
   contact: {}
   title: Ticket API
@@ -610,6 +622,74 @@ paths:
       summary: Get all active departments
       tags:
       - Department
+  /files/DownloadTicketFile/{objectName}/:
+    get:
+      description: Generates a temporary presigned URL for the given file and redirects
+        the client to that URL to start the download.
+      parameters:
+      - description: File object name (UUID + extension)
+        in: path
+        name: objectName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirects to presigned MinIO download URL
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "404":
+          description: File not found
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Download a ticket file
+      tags:
+      - TicketFile
+  /files/UploadTicketFile/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file to the temporary storage for a ticket. File must
+        be multipart/form-data with field name `file`.
+      parameters:
+      - description: Ticket file to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns uploaded file ID
+          schema:
+            $ref: '#/definitions/ticket-api_internal_dto.IDResponse-string'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "413":
+          description: File too large
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "415":
+          description: Unsupported file extension
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ticket-api_internal_errx.APIError'
+      summary: Upload a ticket file
+      tags:
+      - TicketFile
   /tickets/:id/CreateChat/:
     post:
       consumes:
@@ -699,7 +779,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ticket-api_internal_errx.APIError'
-      summary: Get all active ticket statuses
+      summary: POST CloseTicket By ID
       tags:
       - Ticket
   /tickets/GetAllActiveTicketTypes/:
