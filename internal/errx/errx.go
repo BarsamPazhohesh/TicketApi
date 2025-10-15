@@ -37,6 +37,12 @@ const (
 	ErrTooManyRequest
 	ErrApiKeyNotFound
 	ErrServiceUnavailable
+	ErrFileNotFound
+	ErrLinkExpired
+	ErrUnsupportedFileExtension
+	ErrMaxFileSizeExceeded
+	ErrMaxTicketFilesExceeded
+	ErrRequestBodyTooLarge
 )
 
 //
@@ -98,24 +104,30 @@ var debugMode = func() bool {
 func NewRegistry(db *sql.DB) *Registry {
 	r := &Registry{
 		defs: map[ErrorCode]ErrorDef{
-			ErrInternalServerError:  {"خطای داخلی سرور", http.StatusInternalServerError},
-			ErrTicketNotFound:       {"تیکت پیدا نشد", http.StatusNotFound},
-			ErrUnauthorized:         {"دسترسی غیرمجاز", http.StatusUnauthorized},
-			ErrInvalidInput:         {"داده ورودی نامعتبر است", http.StatusBadRequest},
-			ErrDuplicate:            {"رکورد تکراری است", http.StatusConflict},
-			ErrBadRequest:           {"درخواست نامعتبر", http.StatusBadRequest},
-			ErrUserNotFound:         {"کاربر پیدا نشد", http.StatusNotFound},
-			ErrTicketTypeNotFound:   {"نوع تیکت پیدا نشد.", http.StatusNotFound},
-			ErrDepartmentNotFound:   {"دپارتمان مورد نظر پیدا نشد.", http.StatusNotFound},
-			ErrUserDuplicate:        {"کاربر با این مشخصات قبلاً ثبت شده است", http.StatusConflict},
-			ErrInvalidCredentials:   {"نام کاربری یا رمز عبور اشتباه است", http.StatusUnauthorized},
-			ErrWeakJWTSecret:        {"کلید JWT بسیار کوتاه یا ناامن است", http.StatusInternalServerError},
-			ErrIncorrectCaptcha:     {"کد امنیتی نادرست است", http.StatusUnauthorized},
-			ErrExpiredCaptcha:       {"کد امنیتی منقضی شده است", http.StatusUnauthorized},
-			ErrTicketStatusNotFound: {"وضعیت تیکت یافت نشد", http.StatusNotFound},
-			ErrTooManyRequest:       {"تعداد درخواست‌ها بیش از حد مجاز است", http.StatusTooManyRequests},
-			ErrApiKeyNotFound:       {"API KEY نامعتبر است", http.StatusUnauthorized},
-			ErrServiceUnavailable:   {"سرویس در دسترس نیست", http.StatusServiceUnavailable},
+			ErrInternalServerError:      {"خطای داخلی سرور", http.StatusInternalServerError},
+			ErrTicketNotFound:           {"تیکت پیدا نشد", http.StatusNotFound},
+			ErrUnauthorized:             {"دسترسی غیرمجاز", http.StatusUnauthorized},
+			ErrInvalidInput:             {"داده ورودی نامعتبر است", http.StatusBadRequest},
+			ErrDuplicate:                {"رکورد تکراری است", http.StatusConflict},
+			ErrBadRequest:               {"درخواست نامعتبر", http.StatusBadRequest},
+			ErrUserNotFound:             {"کاربر پیدا نشد", http.StatusNotFound},
+			ErrTicketTypeNotFound:       {"نوع تیکت پیدا نشد.", http.StatusNotFound},
+			ErrDepartmentNotFound:       {"دپارتمان مورد نظر پیدا نشد.", http.StatusNotFound},
+			ErrUserDuplicate:            {"کاربر با این مشخصات قبلاً ثبت شده است", http.StatusConflict},
+			ErrInvalidCredentials:       {"نام کاربری یا رمز عبور اشتباه است", http.StatusUnauthorized},
+			ErrWeakJWTSecret:            {"کلید JWT بسیار کوتاه یا ناامن است", http.StatusInternalServerError},
+			ErrIncorrectCaptcha:         {"کد امنیتی نادرست است", http.StatusUnauthorized},
+			ErrExpiredCaptcha:           {"کد امنیتی منقضی شده است", http.StatusUnauthorized},
+			ErrTicketStatusNotFound:     {"وضعیت تیکت یافت نشد", http.StatusNotFound},
+			ErrTooManyRequest:           {"تعداد درخواست‌ها بیش از حد مجاز است", http.StatusTooManyRequests},
+			ErrApiKeyNotFound:           {"API KEY نامعتبر است", http.StatusUnauthorized},
+			ErrServiceUnavailable:       {"سرویس در دسترس نیست", http.StatusServiceUnavailable},
+			ErrMaxTicketFilesExceeded:   {"تعداد فایل‌های ضمیمه بیش از حد مجاز است", http.StatusBadRequest},
+			ErrFileNotFound:             {"فایل پیدا نشد", http.StatusNotFound},
+			ErrLinkExpired:              {"لینک دانلود منقضی شده است", http.StatusGone},
+			ErrUnsupportedFileExtension: {"فرمت فایل پشتیبانی نمی‌شود", http.StatusBadRequest},
+			ErrMaxFileSizeExceeded:      {"حجم فایل از حد مجاز بیشتر است", http.StatusRequestEntityTooLarge},
+			ErrRequestBodyTooLarge:      {"حجم بدنه درخواست بیش از حد مجاز است", http.StatusRequestEntityTooLarge},
 		},
 		db: db,
 	}
