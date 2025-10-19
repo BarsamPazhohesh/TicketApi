@@ -247,3 +247,7 @@ func (dt *TicketStatusDTO) ToModel() *ticket_statuses.TicketStatus {
 		Deleted:     0,
 	}
 }
+
+type TicketDownloadLink struct {
+	Url string `json:"url"`
+}
