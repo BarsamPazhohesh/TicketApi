@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/url"
-	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/errx"
 	"time"
@@ -98,8 +97,12 @@ func (m *StorageService) GetPresignedURL(ctx context.Context, objectName string,
 	return urlObj.String(), nil
 }
 
-func (m *StorageService) GetPresignedTicketFileURL(ctx context.Context, filename string) (string, *errx.APIError) {
-	objectName := fmt.Sprintf("%s%s", TmpPath, filename)
+func (m *StorageService) GetPresignedTicketFileURL(ctx context.Context, ticketID string, filename string) (string, *errx.APIError) {
+	uid, err := uuid.Parse(ticketID)
+	if err != nil {
+		return "", errx.Respond(errx.ErrBadRequest, err)
+	}
+	objectName := fmt.Sprintf("%s%s/%s", TicketPath, uid, filename)
 	return m.GetPresignedURL(ctx, objectName, 15*time.Minute)
 }
 
@@ -130,44 +133,35 @@ func (m *StorageService) MoveTempsFileToTickets(ctx context.Context, ticketID st
 	bucket := config.Get().Minio.Bucket
 	successful := []string{}
 
-	if m == nil {
-		log.Println("m is NIL!!!")
-	}
-	if m.Client == nil {
-		log.Println("m.Client is NIL!!!")
-	}
+	for _, name := range objectNames {
+		tmpName := fmt.Sprintf("%s%s", TmpPath, name)
 
-	for _, obj := range objectNames {
-		// Check if the object exists
-		objectName := fmt.Sprintf("%s%s", TmpPath, obj)
-		_, err := m.Client.StatObject(ctx, bucket, objectName, minio.StatObjectOptions{})
+		// Check if object exists in the temporary path
+		_, err := m.Client.StatObject(ctx, bucket, tmpName, minio.StatObjectOptions{})
 		if err != nil {
 			errResp := minio.ToErrorResponse(err)
+
 			if errResp.Code == "NoSuchKey" {
+				// Object not in tmp, check ticket path
+				ticketName := fmt.Sprintf("%s%s/%s", TicketPath, uid, name)
+				_, ticketErr := m.Client.StatObject(ctx, bucket, ticketName, minio.StatObjectOptions{})
+				if ticketErr == nil {
+					successful = append(successful, name)
+					continue
+				}
+
+				// Object not found anywhere
 				return successful, errx.Respond(errx.ErrFileNotFound, err)
 			}
+
+			// Other internal MinIO error
 			return successful, errx.Respond(errx.ErrInternalServerError, err)
 		}
 
-		// Determine destination path
-		destKey := obj
-
-		// check file already in ticket path
-		if strings.HasPrefix(obj, fmt.Sprintf("%s%s", TicketPath, uid)) {
-			successful = append(successful, destKey)
-			continue
-		}
-
-		// check file in tmp
-		if !strings.HasPrefix(obj, TmpPath) {
-			continue
-		}
-
-		filename := strings.TrimPrefix(obj, TmpPath)
-		destKey = fmt.Sprintf("%s%s/%s", TicketPath, uid, filename)
+		destKey := fmt.Sprintf("%s%s/%s", TicketPath, uid, name)
 
 		// Copy object to ticket folder
-		src := minio.CopySrcOptions{Bucket: bucket, Object: obj}
+		src := minio.CopySrcOptions{Bucket: bucket, Object: tmpName}
 		dst := minio.CopyDestOptions{Bucket: bucket, Object: destKey}
 
 		_, err = m.Client.CopyObject(ctx, dst, src)
@@ -176,12 +170,12 @@ func (m *StorageService) MoveTempsFileToTickets(ctx context.Context, ticketID st
 		}
 
 		// Delete the temp object (best-effort)
-		err = m.Client.RemoveObject(ctx, bucket, obj, minio.RemoveObjectOptions{})
+		err = m.Client.RemoveObject(ctx, bucket, tmpName, minio.RemoveObjectOptions{})
 		if err != nil {
-			fmt.Printf("⚠️ failed to delete temp file %s: %v\n", obj, err)
+			fmt.Printf("⚠️ failed to delete temp file %s: %v\n", name, err)
 		}
 
-		successful = append(successful, destKey)
+		successful = append(successful, name)
 	}
 
 	return successful, nil
