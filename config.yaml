@@ -136,7 +136,7 @@ ticket:
   max_counting_item: 10000
 
   # maximum count file can user upload per ticket
-  max_ticket_upload_file: 3
+  max_ticket_upload_file: 5
 
   # maximum size kb ticket upload file
   max_ticket_upload_file_size: 1024 # 1MB
