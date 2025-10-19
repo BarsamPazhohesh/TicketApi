@@ -82,8 +82,8 @@ type captcha struct {
 }
 
 type files struct {
-	UploadTicketFile   _APIRoute
-	DownloadTicketFile _APIRoute
+	UploadTicketFile          _APIRoute
+	GetDownloadLinkTicketFile _APIRoute
 }
 type _APIEndpoints struct {
 	Versions    versions
@@ -128,8 +128,8 @@ var APIRoutes = _APIEndpoints{
 		GetUsersByIDs:     _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.User.prefix, "GetUsersByIDs/"), method: string(PostMethod), Status: true},
 	},
 	Files: files{
-		UploadTicketFile:   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "UploadTicketFile/"), method: string(PostMethod), Status: true},
-		DownloadTicketFile: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "DownloadTicketFile/:objectName"), method: string(GetMethod), Status: true},
+		UploadTicketFile:          _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "UploadTicketFile/"), method: string(PostMethod), Status: true},
+		GetDownloadLinkTicketFile: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "GetDownloadLinkTicketFile/:objectName"), method: string(PostMethod), Status: true},
 	},
 }
 
@@ -161,7 +161,7 @@ func IsRouteEnabled(path, method string) bool {
 		APIRoutes.Users.GetUserByUsername,
 		APIRoutes.Users.GetUserByID,
 		APIRoutes.Users.GetUsersByIDs,
-		APIRoutes.Files.DownloadTicketFile,
+		APIRoutes.Files.GetDownloadLinkTicketFile,
 		APIRoutes.Files.UploadTicketFile,
 	}
 	for _, r := range allRoutes {
