@@ -85,7 +85,7 @@ func (app *application) routes() http.Handler {
 		fileGroup.Use(middleware.RateLimitMiddleware(app.redis, 10))
 		{
 			fileGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, app.handlers.File.UploadTicketFileHandler)
-			fileGroup.GET(routes.APIRoutes.Files.DownloadTicketFile.Path, app.handlers.File.DownloadTicketFileHandler)
+			fileGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, app.handlers.File.GetDownloadLinkTicketFileHandler)
 		}
 
 		_APIKeyGroup := v1.Group("")
