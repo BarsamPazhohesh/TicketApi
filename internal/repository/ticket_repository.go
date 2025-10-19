@@ -80,7 +80,7 @@ func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.T
 	}
 
 	var ticket model.Ticket
-	if err := r.collection.FindOne(ctx, bson.M{"_id": uid}).Decode(&ticket); err != nil {
+	if err := r.collection.FindOne(ctx, bson.M{"_id": uid.String()}).Decode(&ticket); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errx.Respond(errx.ErrTicketNotFound, err)
 		}
@@ -103,7 +103,7 @@ func (r *TicketRepository) GetTicketAttachmentCount(ctx context.Context, id stri
 
 	// Use projection to fetch only attachmentCount
 	opts := options.FindOne().SetProjection(bson.M{"attachmentCount": 1})
-	if err := r.collection.FindOne(ctx, bson.M{"_id": uid}, opts).Decode(&result); err != nil {
+	if err := r.collection.FindOne(ctx, bson.M{"_id": uid.String()}, opts).Decode(&result); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return 0, errx.Respond(errx.ErrTicketNotFound, err)
 		}
@@ -259,7 +259,7 @@ func (r *TicketRepository) SetTicketStatus(ctx context.Context, id string, statu
 		return nil, errx.Respond(errx.ErrBadRequest, err)
 	}
 
-	filter := bson.M{"_id": uid}
+	filter := bson.M{"_id": uid.String()}
 
 	update := bson.D{
 		{Key: "$set", Value: bson.M{
