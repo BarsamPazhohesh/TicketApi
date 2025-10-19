@@ -405,8 +405,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/files/DownloadTicketFile/{objectName}/": {
-            "get": {
+        "/files/GetDownloadLinkTicketFile/{objectName}/": {
+            "post": {
                 "description": "Generates a temporary presigned URL for the given file and redirects the client to that URL to start the download.",
                 "produces": [
                     "application/json"
@@ -422,11 +422,20 @@ const docTemplate = `{
                         "name": "objectName",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "ticket ID for file location",
+                        "name": "ticketId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDRequest-string"
+                        }
                     }
                 ],
                 "responses": {
-                    "302": {
-                        "description": "Redirects to presigned MinIO download URL"
+                    "200": {
+                        "description": "Give MinIO download URL"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1089,6 +1098,14 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "ticket-api_internal_dto.IDRequest-string": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
                 }
             }
         },

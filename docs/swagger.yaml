@@ -70,6 +70,11 @@ definitions:
       id:
         type: integer
     type: object
+  ticket-api_internal_dto.IDRequest-string:
+    properties:
+      id:
+        type: string
+    type: object
   ticket-api_internal_dto.IDResponse-int64:
     properties:
       id:
@@ -622,8 +627,8 @@ paths:
       summary: Get all active departments
       tags:
       - Department
-  /files/DownloadTicketFile/{objectName}/:
-    get:
+  /files/GetDownloadLinkTicketFile/{objectName}/:
+    post:
       description: Generates a temporary presigned URL for the given file and redirects
         the client to that URL to start the download.
       parameters:
@@ -632,11 +637,17 @@ paths:
         name: objectName
         required: true
         type: string
+      - description: ticket ID for file location
+        in: body
+        name: ticketId
+        required: true
+        schema:
+          $ref: '#/definitions/ticket-api_internal_dto.IDRequest-string'
       produces:
       - application/json
       responses:
-        "302":
-          description: Redirects to presigned MinIO download URL
+        "200":
+          description: Give MinIO download URL
         "400":
           description: Bad Request
           schema:
