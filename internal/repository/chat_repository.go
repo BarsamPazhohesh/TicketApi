@@ -45,9 +45,9 @@ func (r *ChatRepository) CreateChatMessageForTicket(ctx context.Context, ticketI
 		return nil, errx.Respond(errx.ErrBadRequest, err)
 	}
 
-	attachments, err = r.storage.MoveTempsFileToTickets(ctx, ticketID, attachments)
-	if err != nil {
-		return nil, errx.Respond(errx.ErrBadRequest, err)
+	attachments, apiErr := r.storage.MoveTempsFileToTickets(ctx, uid.String(), attachments)
+	if apiErr != nil {
+		return nil, errx.Respond(errx.ErrBadRequest, apiErr)
 	}
 
 	model.Attachments = attachments
@@ -56,7 +56,7 @@ func (r *ChatRepository) CreateChatMessageForTicket(ctx context.Context, ticketI
 		"$inc":  bson.M{"attachmentCount": len(attachments)},
 	}
 
-	res, err := r.collection.UpdateOne(ctx, bson.M{"_id": uid}, update)
+	res, err := r.collection.UpdateOne(ctx, bson.M{"_id": uid.String()}, update)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
