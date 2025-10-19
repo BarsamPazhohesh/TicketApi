@@ -34,6 +34,7 @@ services:
     environment:
       MINIO_ROOT_USER: admin_minio # <-- access key (username)
       MINIO_ROOT_PASSWORD: password # <-- secret key (password)
+      MINIO_API_CORS_ALLOW_ORIGIN: "*"
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
