@@ -88,26 +88,32 @@ func (h *FileHandler) UploadTicketFileHandler(c *gin.Context) {
 // @Tags         TicketFile
 // @Produce      json
 // @Param        objectName  path  string  true  "File object name (UUID + extension)"
-// @Success      302         "Redirects to presigned MinIO download URL"
+// @Param 			 ticketId body dto.IDRequest[string] true "ticket ID for file location"
+// @Success      200         "Give MinIO download URL"
 // @Failure      400         {object}  errx.APIError
 // @Failure      404         {object}  errx.APIError  "File not found"
 // @Failure      500         {object}  errx.APIError
-// @Router       /files/DownloadTicketFile/{objectName}/ [get]
-func (h *FileHandler) DownloadTicketFileHandler(c *gin.Context) {
+// @Router       /files/GetDownloadLinkTicketFile/{objectName}/ [post]
+func (h *FileHandler) GetDownloadLinkTicketFileHandler(c *gin.Context) {
 	objectName, err := util.ParseObjectName(c.Param("objectName"))
+	var req dto.IDRequest[string]
+	if !bindJSON(c, &req) {
+		return
+	}
+
 	if err != nil {
 		apiErr := errx.Respond(errx.ErrBadRequest, err)
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
 	}
 
-	url, appErr := h.storage.GetPresignedTicketFileURL(c.Request.Context(), objectName)
+	url, appErr := h.storage.GetPresignedTicketFileURL(c.Request.Context(), req.ID, objectName)
 	if appErr != nil {
 		c.JSON(appErr.HTTPStatus, appErr)
 		return
 	}
 
-	c.Redirect(http.StatusFound, url)
+	c.JSON(http.StatusOK, &dto.TicketDownloadLink{Url: url})
 }
 
 // parseTicketFileExtension checks if the file's extension is supported.
