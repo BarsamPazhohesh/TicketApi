@@ -121,7 +121,7 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 	if err != nil {
 		// hide whether username or password is wrong
 		if err.Err.Code == errx.ErrUserNotFound {
-			err = errx.Respond(errx.ErrInvalidInput, errors.New("username or password is incorrect"))
+			err = errx.Respond(errx.ErrInvalidCredentials, errors.New("username or password is incorrect"))
 		}
 		c.JSON(err.HTTPStatus, err)
 		return
