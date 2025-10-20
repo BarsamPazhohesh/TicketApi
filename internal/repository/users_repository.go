@@ -61,8 +61,11 @@ func (repo *UsersRepository) CreateUserWithPassword(ctx context.Context, credent
 
 	// 3. Create the user
 	params := &users.CreateUserWithPasswordParams{
-		Username:     credential.Username,
-		Password:     sql.NullString{String: credential.Password},
+		Username: credential.Username,
+		Password: sql.NullString{
+			String: credential.Password,
+			Valid:  credential.Password != "",
+		},
 		DepartmentID: credential.DepartmentID,
 	}
 	userID, err := repo.queries.CreateUserWithPassword(ctx, *params)
