@@ -46,12 +46,15 @@ func (app *application) routes() http.Handler {
 		captchaGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		{
 			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SignUpWithPassword)
-			captchaGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, app.handlers.Ticket.CreateTicketHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, app.handlers.Ticket.GetTicketByTrackCodeHandler)
 			captchaGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, app.handlers.Chat.CreateChatHandler)
 			captchaGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.Auth.LoginWithNoAuth)
 		}
+
+		LoginGroup := v1.Group("")
+		LoginGroup.Use(middleware.RateLimitMiddleware(app.redis, 10))
+		LoginGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
 
 		authGroup := v1.Group("")
 		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
