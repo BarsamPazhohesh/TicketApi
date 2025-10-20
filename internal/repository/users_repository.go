@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
 	"ticket-api/internal/db/users"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
@@ -59,7 +58,6 @@ func (repo *UsersRepository) CreateUserWithPassword(ctx context.Context, credent
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
 	credential.Password = string(hashedPassword)
-	log.Println(credential.Password)
 
 	// 3. Create the user
 	params := &users.CreateUserWithPasswordParams{
