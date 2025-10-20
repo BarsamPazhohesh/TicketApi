@@ -1,5 +1,7 @@
 app:
   port: 8080 # Application HTTP port (used when starting the program)
+  max_json_request_size: 1024 # maximum json request size
+  max_upload_files_size: 8196 # maximum upload file size
 
 cors:
   allow_origins:
@@ -101,6 +103,21 @@ redis:
   port: 6379 # Redis port
   db: 0 # Redis logical database (integer 0 - 15)
 
+cache:
+  ticket_type_ttl_minutes: 1440 # TTL for ticket types cache
+  department_ttl_minutes: 1440 # TTL for department cache
+  ticket_status_ttl_minutes: 1440 # TTL for ticket status cache
+
+minio:
+  enable: true
+  host: "localhost"
+  bucket: "ticket-files"
+  port: 9000
+  use_ssl: false
+
+upload:
+  size: 1024 // size KB
+
 ticket:
   # The maximum number of items a client can request per page.
   # Any request asking for more than this will use default_paging_size.
@@ -117,6 +134,17 @@ ticket:
   # The maximum number of items that can be counted or processed in bulk.
   # Useful to prevent slow queries on large collections.
   max_counting_item: 10000
+
+  # maximum count file can user upload per ticket
+  max_ticket_upload_file: 5
+
+  # maximum size kb ticket upload file
+  max_ticket_upload_file_size: 1024 # 1MB
+
+  acceptable_files_for_upload:
+    - .jpg
+    - .jpeg
+    - .png
 
 api_key:
   size: 32 # API Key size in bytes

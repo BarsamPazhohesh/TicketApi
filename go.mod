@@ -9,6 +9,7 @@ require (
 	github.com/go-redis/redis_rate/v10 v10.0.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/redis/go-redis/v9 v9.14.0
+	github.com/rogpeppe/go-internal v1.12.0
 )
 
 require (

@@ -397,6 +397,115 @@
                 }
             }
         },
+        "/files/GetDownloadLinkTicketFile/{objectName}/": {
+            "post": {
+                "description": "Generates a temporary presigned URL for the given file and redirects the client to that URL to start the download.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "TicketFile"
+                ],
+                "summary": "Download a ticket file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File object name (UUID + extension)",
+                        "name": "objectName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "ticket ID for file location",
+                        "name": "ticketId",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDRequest-string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Give MinIO download URL"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/files/UploadTicketFile/": {
+            "post": {
+                "description": "Upload a file to the temporary storage for a ticket. File must be multipart/form-data with field name `file`.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "TicketFile"
+                ],
+                "summary": "Upload a ticket file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Ticket file to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns uploaded file ID",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponse-string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "413": {
+                        "description": "File too large",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "415": {
+                        "description": "Unsupported file extension",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/tickets/:id/CreateChat/": {
             "post": {
                 "description": "Adds a new chat message to an existing ticket",
@@ -520,7 +629,7 @@
                 "tags": [
                     "Ticket"
                 ],
-                "summary": "Get all active ticket statuses",
+                "summary": "POST CloseTicket By ID",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -984,6 +1093,14 @@
                 }
             }
         },
+        "ticket-api_internal_dto.IDRequest-string": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
         "ticket-api_internal_dto.IDResponse-int64": {
             "type": "object",
             "properties": {
@@ -1357,7 +1474,13 @@
                 14,
                 15,
                 16,
-                17
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1377,7 +1500,13 @@
                 "ErrTicketStatusNotFound",
                 "ErrTooManyRequest",
                 "ErrApiKeyNotFound",
-                "ErrServiceUnavailable"
+                "ErrServiceUnavailable",
+                "ErrFileNotFound",
+                "ErrLinkExpired",
+                "ErrUnsupportedFileExtension",
+                "ErrMaxFileSizeExceeded",
+                "ErrMaxTicketFilesExceeded",
+                "ErrRequestBodyTooLarge"
             ]
         }
     }

@@ -19,6 +19,7 @@ import (
 
 func (app *application) routes() http.Handler {
 	g := gin.Default()
+	g.MaxMultipartMemory = config.Get().App.MaxUploadFilesSize << 10
 
 	// Validation
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -42,6 +43,7 @@ func (app *application) routes() http.Handler {
 		captchaGroup := v1.Group("")
 		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
 		captchaGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
+		captchaGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		{
 			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SignUpWithPassword)
 			captchaGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
@@ -54,8 +56,8 @@ func (app *application) routes() http.Handler {
 		authGroup := v1.Group("")
 		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
 		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
+		authGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		{
-			//TODO : these handler should be in auth
 			authGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
 			authGroup.POST(routes.APIRoutes.Users.GetUsersByIDs.Path, app.handlers.User.GetUsersByIDs)
 			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, app.handlers.User.GetUserByID)
@@ -65,6 +67,7 @@ func (app *application) routes() http.Handler {
 
 		publicGroup := v1.Group("")
 		publicGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
+		publicGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		{
 			publicGroup.GET(routes.APIRoutes.Versions.GetCurrentVersion.Path, app.handlers.Version.GetCurrentVersionHandler)
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, app.handlers.Captcha.GenerateCaptchaHandler)
@@ -75,9 +78,18 @@ func (app *application) routes() http.Handler {
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, app.handlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, app.handlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, app.handlers.Department.GetAllActiveDepartmentsHandler)
+
+		}
+
+		fileGroup := v1.Group("")
+		fileGroup.Use(middleware.RateLimitMiddleware(app.redis, 10))
+		{
+			fileGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, app.handlers.File.UploadTicketFileHandler)
+			fileGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, app.handlers.File.GetDownloadLinkTicketFileHandler)
 		}
 
 		_APIKeyGroup := v1.Group("")
+		_APIKeyGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		_APIKeyGroup.Use(middleware.ApiKeyGuardMiddleware(app.services.Token, app.repos.APIKeys))
 		{
 			_APIKeyGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, app.handlers.Auth.GetSingleUseToken)

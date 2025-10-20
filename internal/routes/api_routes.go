@@ -16,6 +16,7 @@ type _APIPrefixes struct {
 	Captcha    _Prefix
 	User       _Prefix
 	Department _Prefix
+	Files      _Prefix
 }
 
 var _APIRoutesPrefixes = _APIPrefixes{
@@ -24,6 +25,7 @@ var _APIRoutesPrefixes = _APIPrefixes{
 	Captcha:    _Prefix{prefix: "captcha/"},
 	User:       _Prefix{prefix: "users/"},
 	Department: _Prefix{prefix: "departments/"},
+	Files:      _Prefix{prefix: "files/"},
 }
 
 type HTTPMethod string
@@ -79,9 +81,14 @@ type captcha struct {
 	VerifyCaptcha _APIRoute
 }
 
+type files struct {
+	UploadTicketFile          _APIRoute
+	GetDownloadLinkTicketFile _APIRoute
+}
 type _APIEndpoints struct {
 	Versions    versions
 	Tickets     tickets
+	Files       files
 	Auth        auth
 	Captcha     captcha
 	Users       users
@@ -120,6 +127,10 @@ var APIRoutes = _APIEndpoints{
 		GetUserByID:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.User.prefix, "GetUserByID/"), method: string(PostMethod), Status: true},
 		GetUsersByIDs:     _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.User.prefix, "GetUsersByIDs/"), method: string(PostMethod), Status: true},
 	},
+	Files: files{
+		UploadTicketFile:          _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "UploadTicketFile/"), method: string(PostMethod), Status: true},
+		GetDownloadLinkTicketFile: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "GetDownloadLinkTicketFile/:objectName"), method: string(PostMethod), Status: true},
+	},
 }
 
 func mergeStrings(string ...string) string {
@@ -150,6 +161,8 @@ func IsRouteEnabled(path, method string) bool {
 		APIRoutes.Users.GetUserByUsername,
 		APIRoutes.Users.GetUserByID,
 		APIRoutes.Users.GetUsersByIDs,
+		APIRoutes.Files.GetDownloadLinkTicketFile,
+		APIRoutes.Files.UploadTicketFile,
 	}
 	for _, r := range allRoutes {
 		if r.Path == path && r.method == method {

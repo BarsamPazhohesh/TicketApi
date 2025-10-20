@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math/big"
 	"regexp"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -53,14 +54,23 @@ func GenerateUniqueTrackCode(ctx context.Context, coll *mongo.Collection) (strin
 	return "", errors.New("failed to generate unique track code code after max attempts")
 }
 
-// ValidateTrackCode checks if a track code is valid:
-// - correct length
-// - contains only allowed characters (A-Z, 0-9)
-func ValidateTrackCode(code string) bool {
+// ParsTrackCode validates and returns a cleaned track code.
+// It ensures the code has the correct length and allowed characters (A-Z, 0-9).
+func ParsTrackCode(code string) (string, error) {
+	code = strings.ToUpper(code)
+
 	if len(code) != ticketLength {
-		return false
+		return "", errors.New("trackCode length is invalid")
 	}
 
-	match, _ := regexp.MatchString("^[A-Z0-9]+$", code)
-	return match
+	match, err := regexp.MatchString("^[A-Z0-9]+$", code)
+	if err != nil {
+		return "", err
+	}
+
+	if !match {
+		return "", errors.New("trackCode contains invalid characters")
+	}
+
+	return code, nil
 }

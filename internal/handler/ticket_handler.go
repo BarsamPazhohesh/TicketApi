@@ -2,7 +2,9 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/repository"
@@ -62,6 +64,17 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 		appErr := errx.Respond(errx.ErrBadRequest, err)
 		c.JSON(appErr.HTTPStatus, appErr)
 		return
+	}
+
+	// Check attachment limit
+	if len(ticketDTO.Attachments) > 0 {
+		total := len(ticketDTO.Attachments)
+		if total > config.Get().TicketConfig.MaxTicketUploadFile {
+			apiErr := errx.Respond(errx.ErrMaxTicketFilesExceeded, errors.New(""))
+			apiErr.Err.Message += fmt.Sprintf(" حداکثر فایل مجاز برای هر تیکت: %d", config.Get().TicketConfig.MaxTicketUploadFile)
+			c.JSON(apiErr.HTTPStatus, apiErr)
+			return
+		}
 	}
 
 	// check user exists

@@ -12,7 +12,9 @@ import (
 
 type Config struct {
 	App struct {
-		Port int `yaml:"port"` // Application HTTP port
+		Port               int   `yaml:"port"`                  // Application HTTP port
+		MaxJsonRequestSize int64 `yaml:"max_json_request_size"` // Max Json Size Can User Send via api Request body KB
+		MaxUploadFilesSize int64 `yaml:"max_upload_files_size"` // Max files Size Can User Send via api KB
 	} `yaml:"app"`
 
 	CORSConfig struct {
@@ -51,6 +53,12 @@ type Config struct {
 		ExpiredTimeToken int `yaml:"expired_time_token"` // One-time JWT token TTL (minutes)
 	} `yaml:"one_time_token"`
 
+	Cache struct {
+		TicketTypeTTL   int64 `yaml:"ticket_type_ttl_minutes"`
+		DepartmentTTL   int64 `yaml:"department_ttl_minutes"`
+		TicketStatusTTL int64 `yaml:"ticket_status_ttl_minutes"`
+	} `yaml:"cache"`
+
 	Auth struct {
 		ExpiredTimeToken int    `yaml:"expired_time_token"` // Auth JWT token TTL (minutes)
 		CookieName       string `yaml:"cookie_name"`        // Cookie name for auth JWT token
@@ -69,11 +77,22 @@ type Config struct {
 		DB     int    `yaml:"db"`     // Redis logical database (integer 0 - 15)
 	} `yaml:"redis"`
 
+	Minio struct {
+		Enable bool   `yaml:"enable"`
+		Host   string `yaml:"host"`
+		Port   int    `yaml:"port"`
+		Bucket string `yaml:"bucket"`
+		UseSSL bool   `yaml:"use_ssl"`
+	} `yaml:"minio"`
+
 	TicketConfig struct {
-		MaxPagingSize     int   `yaml:"max_paging_size"`
-		MinPagingSize     int   `yaml:"min_paging_size"`
-		DefaultPagingSize int   `yaml:"default_paging_size"`
-		MaxCountingItem   int64 `yaml:"max_counting_item"`
+		MaxPagingSize            int      `yaml:"max_paging_size"`
+		MinPagingSize            int      `yaml:"min_paging_size"`
+		DefaultPagingSize        int      `yaml:"default_paging_size"`
+		MaxCountingItem          int64    `yaml:"max_counting_item"`
+		MaxTicketUploadFile      int      `yaml:"max_ticket_upload_file"`
+		MaxTicketUploadFileSize  int64    `yaml:"max_ticket_upload_file_size"`
+		AcceptableFilesForUpload []string `yaml:"acceptable_files_for_upload"`
 	} `yaml:"ticket"`
 }
 

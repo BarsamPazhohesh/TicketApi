@@ -12,6 +12,7 @@ import (
 	"ticket-api/internal/db/ticket_types"
 	"ticket-api/internal/db/users"
 	"ticket-api/internal/db/version"
+	"ticket-api/internal/services"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -31,14 +32,14 @@ type AppRepositories struct {
 	APIKeys          *APIKeysRepository
 }
 
-func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
+func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database, services *services.AppServices) *AppRepositories {
 	return &AppRepositories{
-		Ticket:           NewTicketRepository(mongodb),
-		ChatRepository:   NewChatRepository(mongodb),
+		Ticket:           NewTicketRepository(mongodb, services.FileStorage),
+		ChatRepository:   NewChatRepository(mongodb, services.FileStorage),
 		Version:          NewVersionRepository(version.New(sqldb)),
 		Roles:            NewRolesRepository(roles.New(sqldb)),
-		Departments:      NewDepartmentsRepository(departments.New(sqldb)),
-		TicketTypes:      NewTicketTypesRepository(ticket_types.New(sqldb)),
+		Departments:      NewDepartmentsRepository(departments.New(sqldb), services.Cache),
+		TicketTypes:      NewTicketTypesRepository(ticket_types.New(sqldb), services.Cache),
 		TicketPriorities: NewTicketPrioritiesRepository(ticket_priorities.New(sqldb)),
 		APIRoutes:        NewAPIRoutesRepository(api_routes.New(sqldb)),
 		APIKeys:          NewAPIKeysRepository(api_keys.New(sqldb)),
@@ -47,6 +48,6 @@ func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database) *AppRepositories {
 			api_keys.New((sqldb)),
 			api_routes.New(sqldb)),
 		Users:        NewUsersRepository(users.New(sqldb)),
-		TicketStatus: NewTicketStatusesRepository(ticket_statuses.New(sqldb)),
+		TicketStatus: NewTicketStatusesRepository(ticket_statuses.New(sqldb), services.Cache),
 	}
 }
