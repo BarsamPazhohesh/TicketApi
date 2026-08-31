@@ -10,11 +10,18 @@ Audit database changes across SQLite (`sqlc` + `golang-migrate`) and MongoDB:
 1. SQLite & sqlc:
    - Check schema (`db/**/schema.sql`) and queries (`db/**/queries.sql`) match `sqlc.yaml` configurations.
    - Ensure query names and parameters are type-safe and idiomatic for Go.
-   - Verify proper column constraints, foreign keys, and indexes on join/filter keys (e.g. `user_id`, `department_id`, `ticket_type_id`).
+   - Verify proper column constraints, foreign keys (`ON DELETE CASCADE`), and indexes on join/filter keys.
+   - Standard Table Schema Conventions:
+     - `id INTEGER PRIMARY KEY AUTOINCREMENT`
+     - `status INT2 NOT NULL DEFAULT 1`
+     - `created_at TEXT NOT NULL DEFAULT (datetime('now'))`
+     - `updated_at TEXT NOT NULL DEFAULT (datetime('now'))`
+     - `deleted_at TEXT DEFAULT NULL` (soft delete check: `deleted_at IS NULL` for active, `deleted_at IS NOT NULL` for deleted)
 
 2. Migrations (`cmd/migrate/migrations`):
    - Ensure migration scripts (`.up.sql` and `.down.sql`) are deterministic, reversible, and safe.
-   - Check default values and column nullability.
+   - Migrations and seeds MUST be idempotent (`CREATE TABLE IF NOT EXISTS`, `INSERT OR IGNORE`) and non-destructive to existing user/ticket data.
+   - Check default values, column nullability, and timestamp standards.
 
 3. MongoDB (`internal/model` & `internal/repository`):
    - Review BSON annotations, IDs (`primitive.ObjectID`), and index coverage on collections (`tickets`, `chat_messages`).
