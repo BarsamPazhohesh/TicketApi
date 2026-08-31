@@ -1039,6 +1039,9 @@ const docTemplate = `{
         },
         "dto.ChatMessageCreateRequest": {
             "type": "object",
+            "required": [
+                "message"
+            ],
             "properties": {
                 "attachments": {
                     "type": "array",
@@ -1048,9 +1051,6 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
-                },
-                "senderId": {
-                    "type": "integer"
                 }
             }
         },
@@ -1074,6 +1074,9 @@ const docTemplate = `{
                 },
                 "senderId": {
                     "type": "integer"
+                },
+                "senderType": {
+                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -1209,10 +1212,12 @@ const docTemplate = `{
         "dto.TicketByTrackCodeRequestDTO": {
             "type": "object",
             "required": [
-                "trackCode",
-                "username"
+                "trackCode"
             ],
             "properties": {
+                "phoneNumber": {
+                    "type": "string"
+                },
                 "trackCode": {
                     "type": "string"
                 },
@@ -1227,8 +1232,7 @@ const docTemplate = `{
                 "body",
                 "departmentId",
                 "ticketTypeId",
-                "title",
-                "userId"
+                "title"
             ],
             "properties": {
                 "attachments": {
@@ -1242,6 +1246,9 @@ const docTemplate = `{
                 },
                 "departmentId": {
                     "type": "integer"
+                },
+                "phoneNumber": {
+                    "type": "string"
                 },
                 "ticketTypeId": {
                     "type": "integer"
@@ -1339,6 +1346,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "phoneNumber": {
                     "type": "string"
                 },
                 "ticketStatusId": {

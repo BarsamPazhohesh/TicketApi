@@ -29,8 +29,8 @@ definitions:
         type: array
       message:
         type: string
-      senderId:
-        type: integer
+    required:
+    - message
     type: object
   dto.ChatMessageDTO:
     properties:
@@ -46,6 +46,8 @@ definitions:
         type: string
       senderId:
         type: integer
+      senderType:
+        type: string
       updatedAt:
         type: string
     type: object
@@ -133,13 +135,14 @@ definitions:
     type: object
   dto.TicketByTrackCodeRequestDTO:
     properties:
+      phoneNumber:
+        type: string
       trackCode:
         type: string
       username:
         type: string
     required:
     - trackCode
-    - username
     type: object
   dto.TicketCreateRequest:
     properties:
@@ -151,6 +154,8 @@ definitions:
         type: string
       departmentId:
         type: integer
+      phoneNumber:
+        type: string
       ticketTypeId:
         type: integer
       title:
@@ -162,7 +167,6 @@ definitions:
     - departmentId
     - ticketTypeId
     - title
-    - userId
     type: object
   dto.TicketCreateResponse:
     properties:
@@ -222,6 +226,8 @@ definitions:
       departmentId:
         type: integer
       id:
+        type: string
+      phoneNumber:
         type: string
       ticketStatusId:
         type: integer

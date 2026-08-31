@@ -1031,6 +1031,9 @@
         },
         "dto.ChatMessageCreateRequest": {
             "type": "object",
+            "required": [
+                "message"
+            ],
             "properties": {
                 "attachments": {
                     "type": "array",
@@ -1040,9 +1043,6 @@
                 },
                 "message": {
                     "type": "string"
-                },
-                "senderId": {
-                    "type": "integer"
                 }
             }
         },
@@ -1066,6 +1066,9 @@
                 },
                 "senderId": {
                     "type": "integer"
+                },
+                "senderType": {
+                    "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -1201,10 +1204,12 @@
         "dto.TicketByTrackCodeRequestDTO": {
             "type": "object",
             "required": [
-                "trackCode",
-                "username"
+                "trackCode"
             ],
             "properties": {
+                "phoneNumber": {
+                    "type": "string"
+                },
                 "trackCode": {
                     "type": "string"
                 },
@@ -1219,8 +1224,7 @@
                 "body",
                 "departmentId",
                 "ticketTypeId",
-                "title",
-                "userId"
+                "title"
             ],
             "properties": {
                 "attachments": {
@@ -1234,6 +1238,9 @@
                 },
                 "departmentId": {
                     "type": "integer"
+                },
+                "phoneNumber": {
+                    "type": "string"
                 },
                 "ticketTypeId": {
                     "type": "integer"
@@ -1331,6 +1338,9 @@
                     "type": "integer"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "phoneNumber": {
                     "type": "string"
                 },
                 "ticketStatusId": {
