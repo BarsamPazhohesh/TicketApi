@@ -2,19 +2,17 @@
 // versions:
 //   sqlc v1.30.0
 
-package api_routes
+package permissions
 
 import (
 	"database/sql"
 )
 
-type ApiRoute struct {
+type Permission struct {
 	ID          int64
-	Route       string
-	Method      string
+	Name        string
 	Description sql.NullString
 	Status      int64
-	Deleted     int64
 	CreatedAt   string
 	UpdatedAt   string
 	DeletedAt   sql.NullString

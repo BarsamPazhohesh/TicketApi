@@ -49,7 +49,11 @@ sql:
         package: "departments"
         out: "internal/db/departments"
 
-  - schema: "db/roles_relations/schema.sql"
+  - schema:
+      - "db/roles/schema.sql"
+      - "db/api_routes/schema.sql"
+      - "db/permissions/schema.sql"
+      - "db/roles_relations/schema.sql"
     queries: "db/roles_relations/queries.sql"
     engine: "sqlite"
     gen:
@@ -72,3 +76,11 @@ sql:
       go:
         package: "api_keys"
         out: "internal/db/api_keys"
+
+  - schema: "db/permissions/schema.sql"
+    queries: "db/permissions/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "permissions"
+        out: "internal/db/permissions"

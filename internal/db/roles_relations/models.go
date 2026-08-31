@@ -4,11 +4,39 @@
 
 package roles_relations
 
+import (
+	"database/sql"
+)
+
 type ApiKeysRolesRelation struct {
-	ApiKeyID int64
-	RoleID   int64
-	Status   int64
-	Deleted  int64
+	ApiKeyID  int64
+	RoleID    int64
+	Status    int64
+	Deleted   int64
+	CreatedAt string
+	UpdatedAt string
+	DeletedAt sql.NullString
+}
+
+type ApiRoute struct {
+	ID          int64
+	Route       string
+	Method      string
+	Description sql.NullString
+	Status      int64
+	Deleted     int64
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
+}
+
+type ApiRoutesPermissionsRelation struct {
+	ApiRouteID   int64
+	PermissionID int64
+	Status       int64
+	CreatedAt    string
+	UpdatedAt    string
+	DeletedAt    sql.NullString
 }
 
 type ApiRoutesRolesRelation struct {
@@ -16,6 +44,38 @@ type ApiRoutesRolesRelation struct {
 	RoleID     int64
 	Status     int64
 	Deleted    int64
+	CreatedAt  string
+	UpdatedAt  string
+	DeletedAt  sql.NullString
+}
+
+type Permission struct {
+	ID          int64
+	Name        string
+	Description sql.NullString
+	Status      int64
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
+}
+
+type Role struct {
+	ID        int64
+	Title     string
+	Status    int64
+	Deleted   int64
+	CreatedAt string
+	UpdatedAt string
+	DeletedAt sql.NullString
+}
+
+type RolesPermissionsRelation struct {
+	RoleID       int64
+	PermissionID int64
+	Status       int64
+	CreatedAt    string
+	UpdatedAt    string
+	DeletedAt    sql.NullString
 }
 
 type TicketTypesRolesRelation struct {
@@ -23,11 +83,17 @@ type TicketTypesRolesRelation struct {
 	RoleID       int64
 	Status       int64
 	Deleted      int64
+	CreatedAt    string
+	UpdatedAt    string
+	DeletedAt    sql.NullString
 }
 
 type UsersRolesRelation struct {
-	UserID  int64
-	RoleID  int64
-	Status  int64
-	Deleted int64
+	UserID    int64
+	RoleID    int64
+	Status    int64
+	Deleted   int64
+	CreatedAt string
+	UpdatedAt string
+	DeletedAt sql.NullString
 }
