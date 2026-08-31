@@ -72,7 +72,7 @@ captcha:
   length: 6 # Number of characters in the captcha
   timeout_minutes: 5 # Captcha lifetime (in-memory cache TTL, minutes)
   expired_time_token: 15 # Captcha JWT token TTL (minutes)
-  cookie_name: "captcha_token" # Cookie name for storing captcha JWT token
+  cookie_name: "irmto_ticket_captcha_token" # Cookie name for storing captcha JWT token
   cleanup_interval: 10 # Cleanup interval for expired captchas (minutes)
   max_cashed_captcha: 100000 # Max number of captchas stored in cache
   image_width: 240 # Captcha image width in pixels
@@ -87,10 +87,11 @@ one_time_token:
   cleanup_interval: 10 # Cleanup interval for expired one-time tokens (minutes)
   max_cashed_tokens: 100000 # Max number of one-time tokens stored in cache
   expired_time_token: 3 # One-time JWT token TTL (minutes)
+  name: "irmto_ticket_single_use_token" # Token identifier / parameter name
 
 auth:
   expired_time_token: 60 # Auth JWT token TTL (minutes)
-  cookie_name: "auth_token" # Cookie name for auth JWT token
+  cookie_name: "irmto_ticket_auth_token" # Cookie name for auth JWT token
 
 mongo:
   enable: true # Enable MongoDB integration
@@ -114,6 +115,7 @@ minio:
   bucket: "ticket-files"
   port: 9000
   use_ssl: false
+  public_url: "" # e.g. "https://irmto.ir/file-storage" or empty to use default minio url
 
 upload:
   size: 1024 // size KB
