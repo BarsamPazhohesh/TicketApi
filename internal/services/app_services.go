@@ -20,7 +20,7 @@ type AppServices struct {
 func NewAppService(redis *redis.Client, minio *minio.Client) *AppServices {
 	return &AppServices{
 		Captcha:     captcha.NewCaptchaService(),
-		Token:       token.NewTokenService(),
+		Token:       token.NewTokenService(redis),
 		Cache:       cache.NewCacheService(redis),
 		FileStorage: storage.NewStorageService(minio),
 	}

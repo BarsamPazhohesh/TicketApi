@@ -43,6 +43,8 @@ const (
 	ErrMaxFileSizeExceeded
 	ErrMaxTicketFilesExceeded
 	ErrRequestBodyTooLarge
+	ErrForbidden
+	ErrNotFound
 )
 
 //
@@ -128,6 +130,8 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrUnsupportedFileExtension: {"فرمت فایل پشتیبانی نمی‌شود", http.StatusBadRequest},
 			ErrMaxFileSizeExceeded:      {"حجم فایل از حد مجاز بیشتر است", http.StatusRequestEntityTooLarge},
 			ErrRequestBodyTooLarge:      {"حجم بدنه درخواست بیش از حد مجاز است", http.StatusRequestEntityTooLarge},
+			ErrForbidden:                {"شما دسترسی لازم برای این عملیات را ندارید", http.StatusForbidden},
+			ErrNotFound:                 {"مسیر یا منبع مورد نظر یافت نشد", http.StatusNotFound},
 		},
 		db: db,
 	}
