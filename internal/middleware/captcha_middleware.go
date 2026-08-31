@@ -21,7 +21,7 @@ func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 		authToken, errCookie := authService.Get(c)
 		if errCookie == nil {
 			// Validate auth token
-			_, err := tokenService.ParseAuthToken(authToken)
+			_, err := tokenService.ParseAuthToken(c.Request.Context(), authToken)
 			if err == nil {
 				// Auth token is valid, skip captcha
 				c.Next()

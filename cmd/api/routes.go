@@ -36,8 +36,6 @@ func (app *application) routes() http.Handler {
 		MaxAge:           time.Duration(cfgCORS.MaxAgeHours) * time.Hour,
 	}))
 
-	g.Use(middleware.RouteStatusChecker())
-
 	v1 := g.Group("/api/v1")
 	{
 		captchaGroup := v1.Group("")
@@ -58,6 +56,7 @@ func (app *application) routes() http.Handler {
 
 		authGroup := v1.Group("")
 		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
+		authGroup.Use(middleware.DynamicRBACGuardMiddleware(app.security))
 		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
 		authGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		{
@@ -80,7 +79,6 @@ func (app *application) routes() http.Handler {
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, app.handlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, app.handlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, app.handlers.Department.GetAllActiveDepartmentsHandler)
-
 		}
 
 		fileGroup := v1.Group("")

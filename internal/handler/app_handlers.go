@@ -23,7 +23,7 @@ func NewAppHandlers(repos *repository.AppRepositories, services *services.AppSer
 		Ticket:     NewTicketHandler(repos.Ticket, repos.TicketTypes, repos.TicketPriorities, repos.TicketStatus, repos.Users, repos.Departments),
 		Chat:       NewChatHandler(repos.Ticket, repos.ChatRepository),
 		User:       NewUserHandler(repos.Users),
-		Auth:       NewAuthHandler(repos.Users, services.Token),
+		Auth:       NewAuthHandler(repos.Users, repos.RolesRelations, services.Token),
 		Captcha:    NewCaptchaHandler(services.Captcha, services.Token),
 		Department: NewDepartmentHandler(repos.Departments),
 		File:       NewFileHandler(services.FileStorage),

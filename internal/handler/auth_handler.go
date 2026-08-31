@@ -16,13 +16,22 @@ import (
 )
 
 type AuthHandler struct {
-	Repo         *repository.UsersRepository
-	TokenService *token.TokenService
+	Repo                 *repository.UsersRepository
+	RolesRelationsRepo   *repository.RolesRelationsRepository
+	TokenService         *token.TokenService
 }
 
 // NewAuthHandler constructor
-func NewAuthHandler(repo *repository.UsersRepository, tokenService *token.TokenService) *AuthHandler {
-	return &AuthHandler{Repo: repo, TokenService: tokenService}
+func NewAuthHandler(
+	repo *repository.UsersRepository,
+	rolesRelationsRepo *repository.RolesRelationsRepository,
+	tokenService *token.TokenService,
+) *AuthHandler {
+	return &AuthHandler{
+		Repo:               repo,
+		RolesRelationsRepo: rolesRelationsRepo,
+		TokenService:       tokenService,
+	}
 }
 
 // LoginWithNoAuth handles POST /auth/LoginWithNoAuth/
@@ -133,19 +142,22 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 		return
 	}
 
-	// 3. Generate JWT token
-	token, jwtErr := h.TokenService.NewAuthToken(
+	// 3. Load user roles
+	roleIDs, _ := h.RolesRelationsRepo.GetUserRoleIDs(c.Request.Context(), user.ID)
+
+	// 4. Generate JWT token
+	authToken, jwtErr := h.TokenService.NewAuthToken(
 		token.AuthClaims{
 			UserID:   user.ID,
 			Username: user.Username,
-			RoleIDs:  nil,
+			RoleIDs:  roleIDs,
 		})
 	if jwtErr != nil {
 		c.JSON(jwtErr.HTTPStatus, jwtErr)
 		return
 	}
 	cookieService := cookie.NewAuthCookieService()
-	cookieService.Set(c, token)
+	cookieService.Set(c, authToken)
 	c.JSON(http.StatusOK, nil)
 }
 
@@ -177,14 +189,14 @@ func (h *AuthHandler) GetSingleUseToken(c *gin.Context) {
 	}
 
 	// Generate one-time token
-	token, apiErr := h.TokenService.NewOneTimeToken(req.Username)
+	tokenStr, apiErr := h.TokenService.NewOneTimeToken(req.Username)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
 	}
 
 	c.JSON(http.StatusOK, &dto.SingleUseTokenResponseDTO{
-		Token: token,
+		Token: tokenStr,
 	})
 }
 
@@ -222,11 +234,13 @@ func (h *AuthHandler) LoginWithOneTimeToken(c *gin.Context) {
 		return
 	}
 
+	roleIDs, _ := h.RolesRelationsRepo.GetUserRoleIDs(c.Request.Context(), user.ID)
+
 	// Generate normal auth token
 	authToken, jwtErr := h.TokenService.NewAuthToken(token.AuthClaims{
 		UserID:   user.ID,
 		Username: user.Username,
-		RoleIDs:  nil,
+		RoleIDs:  roleIDs,
 	})
 	if jwtErr != nil {
 		c.JSON(jwtErr.HTTPStatus, jwtErr)

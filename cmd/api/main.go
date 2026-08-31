@@ -12,6 +12,7 @@ import (
 	"ticket-api/internal/errx"
 	"ticket-api/internal/handler"
 	"ticket-api/internal/repository"
+	"ticket-api/internal/security"
 	"ticket-api/internal/services"
 	"time"
 
@@ -33,6 +34,7 @@ type application struct {
 	services *services.AppServices
 	repos    *repository.AppRepositories
 	handlers *handler.AppHandlers
+	security *security.SecurityRegistry
 }
 
 // @title Ticket API
@@ -67,6 +69,12 @@ func main() {
 	repos := repository.NewRepositories(dbSQL, dbMongo, services)
 	handlers := handler.NewAppHandlers(repos, services)
 
+	// In-memory security registry initialization & load
+	securityRegistry := security.NewSecurityRegistry(repos.RolesRelations)
+	if err := securityRegistry.Reload(context.Background()); err != nil {
+		log.Printf("⚠️ Warning: failed to load initial security registry: %v", err)
+	}
+
 	app := &application{
 		port:     config.Get().App.Port,
 		sql:      dbSQL,
@@ -76,6 +84,7 @@ func main() {
 		services: services,
 		repos:    repos,
 		handlers: handlers,
+		security: securityRegistry,
 	}
 
 	if err := app.serve(); err != nil {
