@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/errx"
 	"time"
@@ -92,6 +93,19 @@ func (m *StorageService) GetPresignedURL(ctx context.Context, objectName string,
 			return "", errx.Respond(errx.ErrFileNotFound, err)
 		}
 		return "", errx.Respond(errx.ErrServiceUnavailable, err)
+	}
+
+	publicURL := config.Get().Minio.PublicURL
+	if publicURL != "" {
+		parsedPub, err := url.Parse(publicURL)
+		if err == nil {
+			urlObj.Scheme = parsedPub.Scheme
+			urlObj.Host = parsedPub.Host
+			pubPath := strings.TrimSuffix(parsedPub.Path, "/")
+			if pubPath != "" {
+				urlObj.Path = pubPath + urlObj.Path
+			}
+		}
 	}
 
 	return urlObj.String(), nil
