@@ -25,8 +25,8 @@ func (q *Queries) AddTicketStatus(ctx context.Context, arg AddTicketStatusParams
 }
 
 const getActiveTicketStatusById = `-- name: GetActiveTicketStatusById :one
-SELECT id, title, description, status, deleted FROM ticket_statuses
-WHERE deleted = 0
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM ticket_statuses
+WHERE deleted_at IS NULL
 AND status != 0
 AND id = ?
 `
@@ -38,15 +38,17 @@ func (q *Queries) GetActiveTicketStatusById(ctx context.Context, id int64) (Tick
 		&i.ID,
 		&i.Title,
 		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 		&i.Status,
-		&i.Deleted,
 	)
 	return i, err
 }
 
 const getAllActiveTicketStatuses = `-- name: GetAllActiveTicketStatuses :many
-SELECT id, title, description, status, deleted FROM ticket_statuses
-WHERE deleted = 0
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM ticket_statuses
+WHERE deleted_at IS NULL
 AND status != 0
 `
 
@@ -63,8 +65,10 @@ func (q *Queries) GetAllActiveTicketStatuses(ctx context.Context) ([]TicketStatu
 			&i.ID,
 			&i.Title,
 			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 			&i.Status,
-			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}

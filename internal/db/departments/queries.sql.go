@@ -29,7 +29,7 @@ func (q *Queries) AddDepartment(ctx context.Context, arg AddDepartmentParams) (i
 const checkDepartmentByID = `-- name: CheckDepartmentByID :one
 SELECT COUNT(id) AS exist_of_id
 FROM departments
-WHERE deleted = 0
+WHERE deleted_at IS NULL
 AND status != 0
 AND id = ?
 `
@@ -42,8 +42,8 @@ func (q *Queries) CheckDepartmentByID(ctx context.Context, id int64) (int64, err
 }
 
 const getAllActiveDepartments = `-- name: GetAllActiveDepartments :many
-SELECT id, title, description, status, deleted FROM departments
-WHERE deleted = 0
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM departments
+WHERE deleted_at IS NULL
 AND status != 0
 `
 
@@ -60,8 +60,10 @@ func (q *Queries) GetAllActiveDepartments(ctx context.Context) ([]Department, er
 			&i.ID,
 			&i.Title,
 			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 			&i.Status,
-			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}
@@ -77,8 +79,8 @@ func (q *Queries) GetAllActiveDepartments(ctx context.Context) ([]Department, er
 }
 
 const getAllDepartments = `-- name: GetAllDepartments :many
-SELECT id, title, description, status, deleted FROM departments
-WHERE deleted = 0
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM departments
+WHERE deleted_at IS NULL
 `
 
 func (q *Queries) GetAllDepartments(ctx context.Context) ([]Department, error) {
@@ -94,8 +96,10 @@ func (q *Queries) GetAllDepartments(ctx context.Context) ([]Department, error) {
 			&i.ID,
 			&i.Title,
 			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 			&i.Status,
-			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}
@@ -111,23 +115,25 @@ func (q *Queries) GetAllDepartments(ctx context.Context) ([]Department, error) {
 }
 
 const getDepartmentByID = `-- name: GetDepartmentByID :one
-SELECT id, title, description, status, deleted FROM departments WHERE deleted = ? AND status = ?
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM departments WHERE id = ? AND deleted_at IS NULL AND status = ?
 `
 
 type GetDepartmentByIDParams struct {
-	Deleted int64
-	Status  int64
+	ID     int64
+	Status int64
 }
 
 func (q *Queries) GetDepartmentByID(ctx context.Context, arg GetDepartmentByIDParams) (Department, error) {
-	row := q.db.QueryRowContext(ctx, getDepartmentByID, arg.Deleted, arg.Status)
+	row := q.db.QueryRowContext(ctx, getDepartmentByID, arg.ID, arg.Status)
 	var i Department
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
 		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 		&i.Status,
-		&i.Deleted,
 	)
 	return i, err
 }

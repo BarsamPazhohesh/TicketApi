@@ -25,7 +25,7 @@ func (q *Queries) AddTicketPriority(ctx context.Context, arg AddTicketPriorityPa
 }
 
 const getTicketPriorityByID = `-- name: GetTicketPriorityByID :one
-SELECT user_id, ticket_type_id, priority, status, deleted FROM ticket_priorities 
+SELECT user_id, ticket_type_id, priority, created_at, updated_at, deleted_at, status FROM ticket_priorities 
 WHERE deleted = 0
 AND status != 0
 AND user_id = ?
@@ -44,8 +44,10 @@ func (q *Queries) GetTicketPriorityByID(ctx context.Context, arg GetTicketPriori
 		&i.UserID,
 		&i.TicketTypeID,
 		&i.Priority,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
 		&i.Status,
-		&i.Deleted,
 	)
 	return i, err
 }

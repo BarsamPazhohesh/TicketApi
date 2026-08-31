@@ -29,7 +29,7 @@ func (q *Queries) AddTicketType(ctx context.Context, arg AddTicketTypeParams) (i
 const checkTicketTypeByID = `-- name: CheckTicketTypeByID :one
 SELECT COUNT(id) AS exist_of_id
 FROM ticket_types
-WHERE deleted = 0
+WHERE deleted_at IS NULL
 AND status != 0
 AND id = ?
 `
@@ -42,8 +42,8 @@ func (q *Queries) CheckTicketTypeByID(ctx context.Context, id int64) (int64, err
 }
 
 const getAllActiveTicketTypes = `-- name: GetAllActiveTicketTypes :many
-SELECT id, title, description, status, deleted FROM ticket_types
-WHERE deleted = 0
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM ticket_types
+WHERE deleted_at IS NULL
 AND status != 0
 `
 
@@ -60,8 +60,10 @@ func (q *Queries) GetAllActiveTicketTypes(ctx context.Context) ([]TicketType, er
 			&i.ID,
 			&i.Title,
 			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 			&i.Status,
-			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}
@@ -77,8 +79,8 @@ func (q *Queries) GetAllActiveTicketTypes(ctx context.Context) ([]TicketType, er
 }
 
 const getAllTicketTypes = `-- name: GetAllTicketTypes :many
-SELECT id, title, description, status, deleted FROM ticket_types
-WHERE deleted = 0
+SELECT id, title, description, created_at, updated_at, deleted_at, status FROM ticket_types
+WHERE deleted_at IS NULL
 `
 
 func (q *Queries) GetAllTicketTypes(ctx context.Context) ([]TicketType, error) {
@@ -94,8 +96,10 @@ func (q *Queries) GetAllTicketTypes(ctx context.Context) ([]TicketType, error) {
 			&i.ID,
 			&i.Title,
 			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
 			&i.Status,
-			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}

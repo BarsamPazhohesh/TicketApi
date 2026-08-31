@@ -4,10 +4,16 @@
 
 package ticket_priorities
 
+import (
+	"database/sql"
+)
+
 type TicketPriority struct {
 	UserID       int64
 	TicketTypeID int64
 	Priority     int64
+	CreatedAt    string
+	UpdatedAt    string
+	DeletedAt    sql.NullString
 	Status       int64
-	Deleted      int64
 }

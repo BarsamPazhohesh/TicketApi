@@ -12,6 +12,8 @@ type TicketStatus struct {
 	ID          int64
 	Title       string
 	Description sql.NullString
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
 	Status      int64
-	Deleted     int64
 }

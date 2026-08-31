@@ -13,7 +13,7 @@ import (
 
 const checkUserByID = `-- name: CheckUserByID :one
 SELECT count(id) exist_of_id FROM users
-WHERE deleted = 0
+WHERE deleted_at IS NULL
 AND status != 0
 AND id = ?
 `
@@ -59,9 +59,9 @@ func (q *Queries) CreateUserWithPassword(ctx context.Context, arg CreateUserWith
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, password, department_id, created_at, updated_at, status, deleted FROM users
-WHERE id = ? 
-AND deleted = 0 
+SELECT id, username, password, department_id, created_at, updated_at, deleted_at, status FROM users
+WHERE id = ?
+AND deleted_at IS NULL
 AND status != 0
 `
 
@@ -75,15 +75,15 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 		&i.DepartmentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 		&i.Status,
-		&i.Deleted,
 	)
 	return i, err
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, password, department_id, created_at, updated_at, status, deleted FROM users
-WHERE deleted = 0
+SELECT id, username, password, department_id, created_at, updated_at, deleted_at, status FROM users
+WHERE deleted_at IS NULL
 AND status != 0
 AND username = ?
 `
@@ -98,16 +98,16 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 		&i.DepartmentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 		&i.Status,
-		&i.Deleted,
 	)
 	return i, err
 }
 
 const getUsersByIDs = `-- name: GetUsersByIDs :many
-SELECT id, username, password, department_id, created_at, updated_at, status, deleted FROM users
+SELECT id, username, password, department_id, created_at, updated_at, deleted_at, status FROM users
 WHERE id IN (/*SLICE:ids*/?)
-AND deleted = 0 
+AND deleted_at IS NULL
 AND status != 0
 `
 
@@ -137,8 +137,8 @@ func (q *Queries) GetUsersByIDs(ctx context.Context, ids []int64) ([]User, error
 			&i.DepartmentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
 			&i.Status,
-			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}

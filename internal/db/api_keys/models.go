@@ -12,6 +12,8 @@ type ApiKey struct {
 	ID          int64
 	Key         string
 	Description sql.NullString
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
 	Status      int64
-	Deleted     int64
 }
