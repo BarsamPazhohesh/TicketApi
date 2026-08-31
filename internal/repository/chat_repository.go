@@ -6,8 +6,7 @@ import (
 	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
-	"ticket-api/internal/services/storage"
-	"ticket-api/internal/util"
+	"ticket-api/internal/model"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -16,59 +15,48 @@ import (
 
 type ChatRepository struct {
 	collection *mongo.Collection
-	storage    *storage.StorageService
 }
 
 // NewChatRepository creates a new ChatRepository
-func NewChatRepository(db *mongo.Database, storage *storage.StorageService) *ChatRepository {
-	if !config.Get().Mongo.Enable {
+func NewChatRepository(db *mongo.Database) *ChatRepository {
+	if !config.Get().Mongo.Enable || db == nil {
 		return &ChatRepository{}
 	}
 	return &ChatRepository{
 		collection: db.Collection(config.Get().Mongo.TicketCollectionName),
-		storage:    storage,
 	}
 }
 
-// CreateChatMessageForTicket adds a chat message to an existing ticket
-func (r *ChatRepository) CreateChatMessageForTicket(ctx context.Context, ticketID string, message *dto.ChatMessageCreateRequest) (*dto.ChatMessageDTO, *errx.APIError) {
+// AppendChatMessage adds a chat message model directly to an existing ticket
+func (r *ChatRepository) AppendChatMessage(ctx context.Context, ticketID string, message model.ChatMessage) (*dto.ChatMessageDTO, *errx.APIError) {
+	if r.collection == nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, nil)
+	}
 
-	// Validate UUID
 	uid, err := uuid.Parse(ticketID)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrBadRequest, err)
 	}
 
-	model := message.ToModel()
-	attachments, err := util.ParseObjectNames(model.Attachments)
-	if err != nil {
-		return nil, errx.Respond(errx.ErrBadRequest, err)
-	}
-
-	attachments, apiErr := r.storage.MoveTempsFileToTickets(ctx, uid.String(), attachments)
-	if apiErr != nil {
-		return nil, errx.Respond(errx.ErrBadRequest, apiErr)
-	}
-
-	model.Attachments = attachments
 	update := bson.M{
-		"$push": bson.M{"chat": model},
-		"$inc":  bson.M{"attachmentCount": len(attachments)},
+		"$push": bson.M{"chat": message},
+		"$inc":  bson.M{"attachmentCount": len(message.Attachments)},
 	}
 
-	res, err := r.collection.UpdateOne(ctx, bson.M{"_id": uid.String()}, update)
-	if err != nil {
-		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	res, updateErr := r.collection.UpdateOne(ctx, bson.M{"_id": uid.String()}, update)
+	if updateErr != nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, updateErr)
 	}
 	if res.MatchedCount == 0 {
 		return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("ticket not found"))
 	}
+
 	return &dto.ChatMessageDTO{
-		ID:          model.ID,
-		SenderID:    model.SenderID,
-		Message:     model.Message,
-		Attachments: model.Attachments,
-		CreatedAt:   model.CreatedAt,
-		UpdatedAt:   model.UpdatedAt,
+		ID:          message.ID,
+		SenderID:    message.SenderID,
+		Message:     message.Message,
+		Attachments: message.Attachments,
+		CreatedAt:   message.CreatedAt,
+		UpdatedAt:   message.UpdatedAt,
 	}, nil
 }

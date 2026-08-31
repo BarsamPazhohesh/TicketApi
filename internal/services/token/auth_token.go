@@ -74,8 +74,14 @@ func (s *TokenService) ParseAuthToken(ctx context.Context, tokenString string) (
 		return nil, errx.Respond(errx.ErrUnauthorized, errors.New("invalid or expired token"))
 	}
 
-	if claims.ID != "" && s.IsTokenRevoked(ctx, claims.ID) {
-		return nil, errx.Respond(errx.ErrUnauthorized, errors.New("token has been revoked"))
+	if claims.ID != "" {
+		revoked, revErr := s.IsTokenRevoked(ctx, claims.ID)
+		if revErr != nil {
+			return nil, errx.Respond(errx.ErrServiceUnavailable, revErr)
+		}
+		if revoked {
+			return nil, errx.Respond(errx.ErrUnauthorized, errors.New("token has been revoked"))
+		}
 	}
 
 	return claims, nil

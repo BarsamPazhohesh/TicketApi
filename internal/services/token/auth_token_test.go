@@ -94,7 +94,11 @@ func TestAuthToken_Revocation(t *testing.T) {
 	if errRevoke != nil {
 		t.Errorf("expected nil error on nil redis revoke, got %v", errRevoke)
 	}
-	if tokenService.IsTokenRevoked(ctx, parsed.ID) {
+	isRevoked, errCheck := tokenService.IsTokenRevoked(ctx, parsed.ID)
+	if errCheck != nil {
+		t.Errorf("unexpected error on nil redis check: %v", errCheck)
+	}
+	if isRevoked {
 		t.Error("expected false for IsTokenRevoked with nil redis")
 	}
 }

@@ -37,15 +37,15 @@ func (s *TokenService) RevokeToken(ctx context.Context, jti string, duration tim
 	return s.redis.Set(ctx, key, "revoked", duration).Err()
 }
 
-// IsTokenRevoked checks if a token JTI is in the revocation blocklist
-func (s *TokenService) IsTokenRevoked(ctx context.Context, jti string) bool {
+// IsTokenRevoked checks if a token JTI is in the revocation blocklist. Fail closed on error.
+func (s *TokenService) IsTokenRevoked(ctx context.Context, jti string) (bool, error) {
 	if s.redis == nil || jti == "" {
-		return false
+		return false, nil
 	}
 	key := fmt.Sprintf("revoked:token:%s", jti)
 	exists, err := s.redis.Exists(ctx, key).Result()
 	if err != nil {
-		return false
+		return true, fmt.Errorf("failed to verify token revocation with redis: %w", err)
 	}
-	return exists > 0
+	return exists > 0, nil
 }

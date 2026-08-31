@@ -3,8 +3,6 @@ package dto
 import (
 	"database/sql"
 	"ticket-api/internal/db/departments"
-	"ticket-api/internal/model"
-	//"ticket-api/internal/db/departments"
 )
 
 type DepartmentDTO struct {
@@ -26,11 +24,10 @@ func (dt *DepartmentDTO) ToModel() *departments.Department {
 		Title:       dt.Title,
 		Description: nullDesc,
 		Status:      1,
-		Deleted:     0,
 	}
 }
 
-func ToDepartmentDTO(m model.Department) *DepartmentDTO {
+func ToDepartmentDTO(m departments.Department) *DepartmentDTO {
 	var description *string
 	if m.Description.Valid {
 		description = &m.Description.String

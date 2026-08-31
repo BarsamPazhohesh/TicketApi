@@ -1,36 +1,20 @@
-// Package handler
 package handler
 
 import (
-	"errors"
-	"net/http"
-	"ticket-api/internal/db/users"
 	"ticket-api/internal/dto"
-	"ticket-api/internal/errx"
-	"ticket-api/internal/repository"
-	"ticket-api/internal/security"
-	"ticket-api/internal/services/cookie"
-	"ticket-api/internal/services/token"
+	"ticket-api/internal/services/auth"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
-	Repo                 *repository.UsersRepository
-	RolesRelationsRepo   *repository.RolesRelationsRepository
-	TokenService         *token.TokenService
+	AuthService *auth.AuthService
 }
 
 // NewAuthHandler constructor
-func NewAuthHandler(
-	repo *repository.UsersRepository,
-	rolesRelationsRepo *repository.RolesRelationsRepository,
-	tokenService *token.TokenService,
-) *AuthHandler {
+func NewAuthHandler(authService *auth.AuthService) *AuthHandler {
 	return &AuthHandler{
-		Repo:               repo,
-		RolesRelationsRepo: rolesRelationsRepo,
-		TokenService:       tokenService,
+		AuthService: authService,
 	}
 }
 
@@ -41,40 +25,24 @@ func NewAuthHandler(
 // @Accept json
 // @Produce json
 // @Param login body dto.LoginWitNoAuthDTO true "Login data"
-// @Success 200 {object} dto.IDResponse[int64] "User found and ID returned"
-// @Success 201 {object} dto.IDResponse[int64] "New user created and ID returned"
-// @Failure 400 {object} errx.Error
-// @Failure 500 {object} errx.Error
+// @Success 200 {object} dto.IDResponseInt64 "User found and ID returned"
+// @Success 201 {object} dto.IDResponseInt64 "New user created and ID returned"
+// @Failure 400 {object} errx.APIError
+// @Failure 500 {object} errx.APIError
 // @Router /auth/LoginWithNoAuth/ [post]
 func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
-	var loginWithNoAuthDTO dto.LoginWitNoAuthDTO
-
-	if err := c.ShouldBindJSON(&loginWithNoAuthDTO); err != nil {
-		err := errx.Respond(errx.ErrBadRequest, err)
-		c.JSON(err.HTTPStatus, err)
+	var req dto.LoginWitNoAuthDTO
+	if !bindJSON(c, &req) {
 		return
 	}
 
-	user, err := h.Repo.GetUserByUsername(c.Request.Context(), loginWithNoAuthDTO.Username)
-	// no user found
-	if err != nil {
-		param := users.CreateUserParams{
-			Username:     loginWithNoAuthDTO.Username,
-			DepartmentID: loginWithNoAuthDTO.DepartmentID,
-		}
-
-		userID, err := h.Repo.AddUser(c.Request.Context(), param)
-		if err != nil {
-			c.JSON(err.HTTPStatus, err)
-			return
-		}
-
-		c.JSON(http.StatusCreated, userID)
+	res, status, apiErr := h.AuthService.LoginWithNoAuth(c.Request.Context(), req)
+	if apiErr != nil {
+		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
 	}
 
-	// user found
-	c.JSON(http.StatusOK, dto.IDResponse[int64]{ID: user.ID})
+	c.JSON(status, res)
 }
 
 // SignUpWithPassword godoc
@@ -84,30 +52,28 @@ func (h *AuthHandler) LoginWithNoAuth(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        payload  body      dto.SignUpWithPasswordDTO  true  "Signup credentials"
-// @Success      201      {object}  dto.IDResponse[int64]
+// @Success      201      {object}  dto.IDResponseInt64
 // @Failure      400      {object}  errx.APIError
 // @Failure      500      {object}  errx.APIError
 // @Router       /auth/SignUp/ [post]
 func (h *AuthHandler) SignUpWithPassword(c *gin.Context) {
-	var credential dto.SignUpWithPasswordDTO
-	if err := c.ShouldBindJSON(&credential); err != nil {
-		appErr := errx.Respond(errx.ErrBadRequest, err)
-		c.JSON(appErr.HTTPStatus, appErr)
-		return
-	}
-	// create user
-	user, err := h.Repo.CreateUserWithPassword(c.Request.Context(), credential)
-	if err != nil {
-		c.JSON(err.HTTPStatus, err)
+	var req dto.SignUpWithPasswordDTO
+	if !bindJSON(c, &req) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, &dto.IDResponse[int64]{ID: user.ID})
+	res, apiErr := h.AuthService.SignUpWithPassword(c.Request.Context(), req)
+	if apiErr != nil {
+		c.JSON(apiErr.HTTPStatus, apiErr)
+		return
+	}
+
+	c.JSON(201, res)
 }
 
 // LoginWithPassword godoc
 // @Summary      Login with username and password
-// @Description  Authenticate user and return JWT token
+// @Description  Authenticate user and set secure auth cookie
 // @Tags         auth
 // @Accept       json
 // @Produce      json
@@ -118,47 +84,17 @@ func (h *AuthHandler) SignUpWithPassword(c *gin.Context) {
 // @Failure      500      {object}  errx.APIError
 // @Router       /auth/Login/ [post]
 func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
-	var credential dto.LoginWithPasswordDTO
-	if err := c.ShouldBindJSON(&credential); err != nil {
-		appErr := errx.Respond(errx.ErrBadRequest, err)
-		c.JSON(appErr.HTTPStatus, appErr)
+	var req dto.LoginWithPasswordDTO
+	if !bindJSON(c, &req) {
 		return
 	}
 
-	// 1. Get user
-	user, err := h.Repo.GetUserByUsername(c.Request.Context(), credential.Username)
-	if err != nil {
-		// hide whether username or password is wrong
-		if err.Err.Code == errx.ErrUserNotFound {
-			err = errx.Respond(errx.ErrInvalidCredentials, errors.New("username or password is incorrect"))
-		}
-		c.JSON(err.HTTPStatus, err)
+	if apiErr := h.AuthService.LoginWithPassword(c, req); apiErr != nil {
+		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
 	}
 
-	// 2. Compare hashed password
-	if passErr := security.CompareHashPassword(user.Password, credential.Password); passErr != nil {
-		c.JSON(passErr.HTTPStatus, passErr)
-		return
-	}
-
-	// 3. Load user roles
-	roleIDs, _ := h.RolesRelationsRepo.GetUserRoleIDs(c.Request.Context(), user.ID)
-
-	// 4. Generate JWT token
-	authToken, jwtErr := h.TokenService.NewAuthToken(
-		token.AuthClaims{
-			UserID:   user.ID,
-			Username: user.Username,
-			RoleIDs:  roleIDs,
-		})
-	if jwtErr != nil {
-		c.JSON(jwtErr.HTTPStatus, jwtErr)
-		return
-	}
-	cookieService := cookie.NewAuthCookieService()
-	cookieService.Set(c, authToken)
-	c.JSON(http.StatusOK, nil)
+	c.JSON(200, nil)
 }
 
 // GetSingleUseToken godoc
@@ -167,7 +103,6 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param 			 x-api-key header string true "API Key"
 // @Param        payload  body      dto.GenerateSingleUseTokenDTO true  "Username"
 // @Success      200      {object}  dto.SingleUseTokenResponseDTO
 // @Failure      400      {object}  errx.APIError
@@ -175,29 +110,17 @@ func (h *AuthHandler) LoginWithPassword(c *gin.Context) {
 // @Router       /auth/GetSingleUseToken/ [post]
 func (h *AuthHandler) GetSingleUseToken(c *gin.Context) {
 	var req dto.GenerateSingleUseTokenDTO
-	if err := c.ShouldBindJSON(&req); err != nil {
-		appErr := errx.Respond(errx.ErrBadRequest, err)
-		c.JSON(appErr.HTTPStatus, appErr)
+	if !bindJSON(c, &req) {
 		return
 	}
 
-	// Optional: verify user exists
-	_, err := h.Repo.GetUserByUsername(c.Request.Context(), req.Username)
-	if err != nil {
-		c.JSON(err.HTTPStatus, err)
-		return
-	}
-
-	// Generate one-time token
-	tokenStr, apiErr := h.TokenService.NewOneTimeToken(req.Username)
+	res, apiErr := h.AuthService.GenerateSingleUseToken(c.Request.Context(), req)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, &dto.SingleUseTokenResponseDTO{
-		Token: tokenStr,
-	})
+	c.JSON(200, res)
 }
 
 // LoginWithOneTimeToken godoc
@@ -215,40 +138,14 @@ func (h *AuthHandler) GetSingleUseToken(c *gin.Context) {
 func (h *AuthHandler) LoginWithOneTimeToken(c *gin.Context) {
 	tokenStr := c.Query("token")
 	if tokenStr == "" {
-		appErr := errx.Respond(errx.ErrBadRequest, nil)
-		c.JSON(appErr.HTTPStatus, appErr)
+		c.JSON(400, gin.H{"error": "token is required"})
 		return
 	}
 
-	// Validate one-time token
-	claims, apiErr := h.TokenService.ParseOneTimeToken(tokenStr)
-	if apiErr != nil {
+	if apiErr := h.AuthService.LoginWithOneTimeToken(c, tokenStr); apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
 	}
 
-	// Optional: verify user exists
-	user, err := h.Repo.GetUserByUsername(c.Request.Context(), claims.Username)
-	if err != nil {
-		c.JSON(err.HTTPStatus, err)
-		return
-	}
-
-	roleIDs, _ := h.RolesRelationsRepo.GetUserRoleIDs(c.Request.Context(), user.ID)
-
-	// Generate normal auth token
-	authToken, jwtErr := h.TokenService.NewAuthToken(token.AuthClaims{
-		UserID:   user.ID,
-		Username: user.Username,
-		RoleIDs:  roleIDs,
-	})
-	if jwtErr != nil {
-		c.JSON(jwtErr.HTTPStatus, jwtErr)
-		return
-	}
-
-	cookieService := cookie.NewAuthCookieService()
-	cookieService.Set(c, authToken)
-
-	c.JSON(http.StatusOK, nil)
+	c.JSON(200, nil)
 }

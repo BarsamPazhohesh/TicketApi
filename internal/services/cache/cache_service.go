@@ -21,6 +21,9 @@ func NewCacheService(redis *redis.Client) *CacheService {
 
 // Set any struct as JSON
 func (c *CacheService) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	if c == nil || c.redis == nil {
+		return nil
+	}
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -30,6 +33,9 @@ func (c *CacheService) Set(ctx context.Context, key string, value interface{}, t
 
 // Get JSON into a struct
 func (c *CacheService) Get(ctx context.Context, key string, dest interface{}) (bool, error) {
+	if c == nil || c.redis == nil {
+		return false, nil
+	}
 	val, err := c.redis.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return false, nil // not found
@@ -46,5 +52,8 @@ func (c *CacheService) Get(ctx context.Context, key string, dest interface{}) (b
 
 // Delete key (for invalidation)
 func (c *CacheService) Delete(ctx context.Context, key string) error {
+	if c == nil || c.redis == nil {
+		return nil
+	}
 	return c.redis.Del(ctx, key).Err()
 }

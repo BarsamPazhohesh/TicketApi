@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"ticket-api/internal/db/ticket_statuses"
+	"ticket-api/internal/db/ticket_types"
 	"ticket-api/internal/model"
 	"ticket-api/internal/util"
 	"time"
@@ -18,7 +19,7 @@ import (
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
 	UserID         int64    `json:"userId" binding:"required"`
-	TicketTypeID   int64    `json:"ticketTypeID" binding:"required"`
+	TicketTypeID   int64    `json:"ticketTypeId" binding:"required"`
 	DepartmentID   int64    `json:"departmentId" binding:"required"`
 	TicketStatusID int64    `json:"-"`
 	Title          string   `json:"title" binding:"required"`
@@ -76,6 +77,14 @@ type TicketResponse struct {
 	Chat           []ChatMessageDTO `json:"chat" bson:"chat"`
 }
 
+type TicketPagingResponse struct {
+	Items      []TicketResponse `json:"items"`
+	Total      int64            `json:"total"`
+	Page       int              `json:"page"`
+	PageSize   int              `json:"page_size"`
+	TotalPages int              `json:"total_pages"`
+}
+
 // ToModel converts TicketRaw into model.Ticket
 func (r *TicketResponse) ToModel() *model.Ticket {
 	chat := make([]model.ChatMessage, len(r.Chat))
@@ -107,7 +116,7 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 // TicketFullResponse DTO (for API)
 type TicketFullResponse struct {
 	ID             string           `json:"id"`
-	TrackCode      string           `json:"trackId"`
+	TrackCode      string           `json:"trackCode"`
 	UserID         int64            `json:"userId"`
 	Username       string           `json:"username"`
 	TicketTypeID   int64            `json:"ticketTypeId"`
@@ -182,7 +191,7 @@ type TicketTypeDto struct {
 	Description *string `json:"description,omitempty"`
 }
 
-func ToTicketTypeDTO(m *model.TicketType) *TicketTypeDto {
+func ToTicketTypeDTO(m *ticket_types.TicketType) *TicketTypeDto {
 	var description *string
 	if m.Description.Valid {
 		description = &m.Description.String
@@ -195,7 +204,7 @@ func ToTicketTypeDTO(m *model.TicketType) *TicketTypeDto {
 	}
 }
 
-func (dt *TicketTypeDto) ToModel() *model.TicketType {
+func (dt *TicketTypeDto) ToModel() *ticket_types.TicketType {
 	nullDesc := sql.NullString{}
 	if dt.Description != nil {
 		nullDesc = sql.NullString{String: *dt.Description, Valid: true}
@@ -203,12 +212,11 @@ func (dt *TicketTypeDto) ToModel() *model.TicketType {
 		nullDesc = sql.NullString{String: "", Valid: false}
 	}
 
-	return &model.TicketType{
+	return &ticket_types.TicketType{
 		ID:          dt.ID,
 		Title:       dt.Title,
 		Description: nullDesc,
 		Status:      1,
-		Deleted:     0,
 	}
 }
 
@@ -244,7 +252,6 @@ func (dt *TicketStatusDTO) ToModel() *ticket_statuses.TicketStatus {
 		Title:       dt.Title,
 		Description: nullDesc,
 		Status:      1,
-		Deleted:     0,
 	}
 }
 
