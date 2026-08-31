@@ -65,6 +65,8 @@ func (app *application) routes() http.Handler {
 			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, app.handlers.User.GetUserByID)
 			authGroup.POST(routes.APIRoutes.Users.GetUserByUsername.Path, app.handlers.User.GetUserByUsername)
 			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, app.handlers.Ticket.GetTicketByIDHandler)
+			authGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, app.handlers.File.UploadTicketFileHandler)
+			authGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, app.handlers.File.GetDownloadLinkTicketFileHandler)
 		}
 
 		publicGroup := v1.Group("")
@@ -79,13 +81,6 @@ func (app *application) routes() http.Handler {
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, app.handlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, app.handlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, app.handlers.Department.GetAllActiveDepartmentsHandler)
-		}
-
-		fileGroup := v1.Group("")
-		fileGroup.Use(middleware.RateLimitMiddleware(app.redis, 10))
-		{
-			fileGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, app.handlers.File.UploadTicketFileHandler)
-			fileGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, app.handlers.File.GetDownloadLinkTicketFileHandler)
 		}
 
 		_APIKeyGroup := v1.Group("")

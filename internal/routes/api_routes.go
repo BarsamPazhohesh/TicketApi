@@ -93,7 +93,7 @@ type _APIEndpoints struct {
 var APIRoutes = _APIEndpoints{
 	Tickets: tickets{
 		CreateTicket:               _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "CreateTicket/"), method: string(PostMethod), Status: true},
-		GetTicketByID:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByID/"), method: string(GetMethod), Status: true},
+		GetTicketByID:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByID/"), method: string(PostMethod), Status: true},
 		CreateChat:                 _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/CreateChat/"), method: string(PostMethod), Status: true},
 		GetTicketByTrackCode:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByTrackCode/"), method: string(PostMethod), Status: true},
 		GetTicketsList:             _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketsList/"), method: string(PostMethod), Status: true},
@@ -101,7 +101,7 @@ var APIRoutes = _APIEndpoints{
 		GetAllActiveTicketStatuses: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetAllActiveTicketStatuses/"), method: string(GetMethod), Status: true},
 	},
 	Auth: auth{
-		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(GetMethod), Status: true},
+		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(PostMethod), Status: true},
 		SignUp:                  _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "SignUp/"), method: string(PostMethod), Status: true},
 		Login:                   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "Login/"), method: string(PostMethod), Status: true},
 		GetSingleUseToken:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "GetSingleUseToken/"), method: string(PostMethod), Status: false},
