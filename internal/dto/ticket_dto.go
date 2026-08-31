@@ -18,7 +18,8 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	UserID         int64    `json:"userId" binding:"required"`
+	UserID         int64    `json:"userId,omitempty"`
+	PhoneNumber    string   `json:"phoneNumber,omitempty" binding:"omitempty,phoneNumber"`
 	TicketTypeID   int64    `json:"ticketTypeId" binding:"required"`
 	DepartmentID   int64    `json:"departmentId" binding:"required"`
 	TicketStatusID int64    `json:"-"`
@@ -38,6 +39,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 	firstMessage := model.ChatMessage{
 		ID:          util.GenerateUUID(),
 		SenderID:    dto.UserID,
+		SenderType:  "user",
 		Message:     dto.Body,
 		Attachments: dto.Attachments,
 		CreatedAt:   now,
@@ -48,6 +50,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 		ID:              util.GenerateUUID(),
 		TrackCode:       trackCode,
 		UserID:          dto.UserID,
+		PhoneNumber:     dto.PhoneNumber,
 		TicketTypeID:    dto.TicketTypeID,
 		DepartmentID:    dto.DepartmentID,
 		TicketStatusID:  dto.TicketStatusID,
@@ -68,6 +71,7 @@ type TicketResponse struct {
 	ID             string           `json:"id" bson:"_id"`
 	TrackCode      string           `json:"trackCode" bson:"trackCode"`
 	UserID         int64            `json:"userId" bson:"userId"`
+	PhoneNumber    string           `json:"phoneNumber,omitempty" bson:"phoneNumber,omitempty"`
 	TicketTypeID   int64            `json:"ticketTypeId" bson:"typeId"`
 	DepartmentID   int64            `json:"departmentId" bson:"departmentId"`
 	Title          string           `json:"title" bson:"title"`
@@ -92,6 +96,7 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 		chat[i] = model.ChatMessage{
 			ID:          msg.ID,
 			SenderID:    msg.SenderID,
+			SenderType:  msg.SenderType,
 			Message:     msg.Message,
 			Attachments: msg.Attachments,
 			CreatedAt:   msg.CreatedAt,
@@ -103,6 +108,7 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 		ID:             r.ID,
 		TrackCode:      r.TrackCode,
 		UserID:         r.UserID,
+		PhoneNumber:    r.PhoneNumber,
 		TicketTypeID:   r.TicketTypeID,
 		TicketStatusID: r.TicketStatusID,
 		DepartmentID:   r.DepartmentID,
@@ -118,6 +124,7 @@ type TicketFullResponse struct {
 	ID             string           `json:"id"`
 	TrackCode      string           `json:"trackCode"`
 	UserID         int64            `json:"userId"`
+	PhoneNumber    string           `json:"phoneNumber,omitempty"`
 	Username       string           `json:"username"`
 	TicketTypeID   int64            `json:"ticketTypeId"`
 	TicketType     string           `json:"ticketType"`
@@ -137,6 +144,7 @@ func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 		chatDTOs[i] = ChatMessageDTO{
 			ID:          msg.ID,
 			SenderID:    msg.SenderID,
+			SenderType:  msg.SenderType,
 			Message:     msg.Message,
 			Attachments: msg.Attachments,
 			CreatedAt:   msg.CreatedAt,
@@ -148,6 +156,7 @@ func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 		ID:             ticket.ID,
 		TrackCode:      ticket.TrackCode,
 		UserID:         ticket.UserID,
+		PhoneNumber:    ticket.PhoneNumber,
 		TicketTypeID:   ticket.TicketTypeID,
 		DepartmentID:   ticket.DepartmentID,
 		Title:          ticket.Title,
@@ -168,8 +177,9 @@ type TicketCreateResponse struct {
 }
 
 type TicketByTrackCodeRequestDTO struct {
-	TrackCode string `json:"trackCode" binding:"required"`
-	Username  string `json:"username" binding:"required"`
+	TrackCode   string  `json:"trackCode" binding:"required"`
+	Username    *string `json:"username,omitempty"`
+	PhoneNumber *string `json:"phoneNumber,omitempty" binding:"omitempty,phoneNumber"`
 }
 
 type TicketQueryParams struct {

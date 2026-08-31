@@ -170,7 +170,11 @@ func TestTicketService_GetTicketByTrackCode_InvalidFormat(t *testing.T) {
 	svc := ticket.NewTicketService(nil, nil, ticketTypeRepo, ticketPriorityRepo, ticketStatusRepo, userRepo, departmentRepo, nil)
 	ctx := context.Background()
 
-	_, apiErr := svc.GetTicketByTrackCode(ctx, "invalid-track-code", "john")
+	username := "john"
+	_, apiErr := svc.GetTicketByTrackCode(ctx, dto.TicketByTrackCodeRequestDTO{
+		TrackCode: "invalid-track-code",
+		Username:  &username,
+	})
 	if apiErr == nil {
 		t.Fatalf("expected error on invalid track code format")
 	}

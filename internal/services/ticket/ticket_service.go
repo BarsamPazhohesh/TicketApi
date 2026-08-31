@@ -59,19 +59,21 @@ func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, r
 		}
 	}
 
-	// 2. Set authenticated user ID (prevent spoofing if currentUserID > 0)
+	// 2. Set authenticated user ID or allow guest (0)
 	targetUserID := req.UserID
 	if currentUserID > 0 {
 		targetUserID = currentUserID
 	}
 
-	// 3. Check user exists
-	isUserExist, apiErr := s.userRepo.IsUserExist(ctx, targetUserID)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-	if !isUserExist {
-		return nil, errx.Respond(errx.ErrUserNotFound, errors.New("user not found"))
+	// 3. Check user exists only if registered user
+	if targetUserID > 0 {
+		isUserExist, apiErr := s.userRepo.IsUserExist(ctx, targetUserID)
+		if apiErr != nil {
+			return nil, apiErr
+		}
+		if !isUserExist {
+			return nil, errx.Respond(errx.ErrUserNotFound, errors.New("user not found"))
+		}
 	}
 
 	// 4. Check ticket type exists
@@ -124,6 +126,7 @@ func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, r
 	firstMessage := model.ChatMessage{
 		ID:          util.GenerateUUID(),
 		SenderID:    targetUserID,
+		SenderType:  "user",
 		Message:     req.Body,
 		Attachments: movedAttachments,
 		CreatedAt:   now,
@@ -134,6 +137,7 @@ func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, r
 		ID:              ticketID,
 		TrackCode:       trackCode,
 		UserID:          targetUserID,
+		PhoneNumber:     req.PhoneNumber,
 		TicketTypeID:    req.TicketTypeID,
 		DepartmentID:    req.DepartmentID,
 		TicketStatusID:  openStatus.ID,
@@ -155,7 +159,7 @@ func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, r
 }
 
 // CreateChatMessage adds a message to ticket and moves attachments
-func (s *TicketService) CreateChatMessage(ctx context.Context, ticketID string, senderID int64, req dto.ChatMessageCreateRequest) (*dto.ChatMessageDTO, *errx.APIError) {
+func (s *TicketService) CreateChatMessage(ctx context.Context, ticketID string, senderID int64, senderType string, req dto.ChatMessageCreateRequest) (*dto.ChatMessageDTO, *errx.APIError) {
 	if len(req.Attachments) > 0 {
 		currentCount, apiErr := s.ticketRepo.GetTicketAttachmentCount(ctx, ticketID)
 		if apiErr != nil {
@@ -183,10 +187,19 @@ func (s *TicketService) CreateChatMessage(ctx context.Context, ticketID string, 
 		movedAttachments = moved
 	}
 
+	if senderType == "" {
+		if senderID > 0 {
+			senderType = "user"
+		} else {
+			senderType = "user"
+		}
+	}
+
 	now := time.Now()
 	msgModel := model.ChatMessage{
 		ID:          util.GenerateUUID(),
 		SenderID:    senderID,
+		SenderType:  senderType,
 		Message:     req.Message,
 		Attachments: movedAttachments,
 		CreatedAt:   now,
@@ -219,31 +232,42 @@ func (s *TicketService) GetTicketByID(ctx context.Context, ticketID string, curr
 	return ticket, nil
 }
 
-// GetTicketByTrackCode fetches ticket verifying username ownership
-func (s *TicketService) GetTicketByTrackCode(ctx context.Context, trackCode, username string) (*dto.TicketResponse, *errx.APIError) {
-	_, parseErr := util.ParsTrackCode(trackCode)
+// GetTicketByTrackCode fetches ticket verifying username or phone ownership
+func (s *TicketService) GetTicketByTrackCode(ctx context.Context, req dto.TicketByTrackCodeRequestDTO) (*dto.TicketResponse, *errx.APIError) {
+	_, parseErr := util.ParsTrackCode(req.TrackCode)
 	if parseErr != nil {
 		return nil, errx.Respond(errx.ErrBadRequest, parseErr)
 	}
 
-	user, apiErr := s.userRepo.GetUserByUsername(ctx, username)
+	ticket, apiErr := s.ticketRepo.GetTicketByTrackCode(ctx, req.TrackCode)
 	if apiErr != nil {
-		if apiErr.Err.Code == errx.ErrUserNotFound {
-			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("username not found"))
+		return nil, apiErr
+	}
+
+	// Auth user verification by username
+	if req.Username != nil && *req.Username != "" {
+		user, uErr := s.userRepo.GetUserByUsername(ctx, *req.Username)
+		if uErr != nil {
+			if uErr.Err.Code == errx.ErrUserNotFound {
+				return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("username not found"))
+			}
+			return nil, uErr
 		}
-		return nil, apiErr
+		if ticket.UserID != user.ID {
+			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("this username did not create this ticket"))
+		}
+		return ticket, nil
 	}
 
-	ticket, apiErr := s.ticketRepo.GetTicketByTrackCode(ctx, trackCode)
-	if apiErr != nil {
-		return nil, apiErr
+	// Guest verification by phone number
+	if req.PhoneNumber != nil && *req.PhoneNumber != "" {
+		if ticket.UserID != 0 || ticket.PhoneNumber != *req.PhoneNumber {
+			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("phone number does not match this ticket"))
+		}
+		return ticket, nil
 	}
 
-	if ticket.UserID != user.ID {
-		return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("this username did not create this ticket"))
-	}
-
-	return ticket, nil
+	return nil, errx.Respond(errx.ErrBadRequest, errors.New("username or phoneNumber is required"))
 }
 
 func (s *TicketService) GetTicketsList(ctx context.Context, params dto.TicketQueryParams) (*dto.TicketPagingResponse, *errx.APIError) {

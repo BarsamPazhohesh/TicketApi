@@ -54,6 +54,7 @@ func (r *ChatRepository) AppendChatMessage(ctx context.Context, ticketID string,
 	return &dto.ChatMessageDTO{
 		ID:          message.ID,
 		SenderID:    message.SenderID,
+		SenderType:  message.SenderType,
 		Message:     message.Message,
 		Attachments: message.Attachments,
 		CreatedAt:   message.CreatedAt,

@@ -43,14 +43,21 @@ func (h *ChatHandler) CreateChatHandler(c *gin.Context) {
 		return
 	}
 
-	var senderID int64 = req.SenderID
+	var senderID int64 = 0
+	var senderType = "user"
 	if val, exists := c.Get("user"); exists {
 		if claims, ok := val.(*token.AuthClaims); ok {
 			senderID = claims.UserID
+			for _, r := range claims.RoleIDs {
+				if r == 1 || r == 2 {
+					senderType = "agent"
+					break
+				}
+			}
 		}
 	}
 
-	createdChat, apiErr := h.ticketService.CreateChatMessage(c.Request.Context(), ticketID, senderID, req)
+	createdChat, apiErr := h.ticketService.CreateChatMessage(c.Request.Context(), ticketID, senderID, senderType, req)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return

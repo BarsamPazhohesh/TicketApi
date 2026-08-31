@@ -75,7 +75,7 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 		return
 	}
 
-	ticketDTO, apiErr := h.ticketService.GetTicketByTrackCode(c.Request.Context(), req.TrackCode, req.Username)
+	ticketDTO, apiErr := h.ticketService.GetTicketByTrackCode(c.Request.Context(), req)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
