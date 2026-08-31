@@ -29,11 +29,11 @@ func NewCookieService(name string, maxAge int) *CookieService {
 }
 
 func NewAuthCookieService() *CookieService {
-	return NewCookieService(config.Get().Auth.CookieName, config.Get().Captcha.ExpiredTimeToken*60)
+	return NewCookieService(config.Get().Auth.CookieName, config.Get().Auth.ExpiredTimeToken*60)
 }
 
 func NewCaptchaCookieService() *CookieService {
-	return NewCookieService(config.Get().Captcha.CookieName, config.Get().Auth.ExpiredTimeToken*60)
+	return NewCookieService(config.Get().Captcha.CookieName, config.Get().Captcha.ExpiredTimeToken*60)
 }
 
 // Set sets a cookie
