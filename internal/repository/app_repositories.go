@@ -11,7 +11,6 @@ import (
 	"ticket-api/internal/db/ticket_statuses"
 	"ticket-api/internal/db/ticket_types"
 	"ticket-api/internal/db/users"
-	"ticket-api/internal/db/version"
 	"ticket-api/internal/services"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -20,7 +19,6 @@ import (
 type AppRepositories struct {
 	Ticket           *TicketRepository
 	ChatRepository   *ChatRepository
-	Version          *VersionRepository
 	Roles            *RolesRepository
 	Departments      *DepartmentsRepository
 	TicketTypes      *TicketTypesRepository
@@ -36,7 +34,6 @@ func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database, services *services.
 	return &AppRepositories{
 		Ticket:           NewTicketRepository(mongodb, services.FileStorage),
 		ChatRepository:   NewChatRepository(mongodb, services.FileStorage),
-		Version:          NewVersionRepository(version.New(sqldb)),
 		Roles:            NewRolesRepository(roles.New(sqldb)),
 		Departments:      NewDepartmentsRepository(departments.New(sqldb), services.Cache),
 		TicketTypes:      NewTicketTypesRepository(ticket_types.New(sqldb), services.Cache),

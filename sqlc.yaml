@@ -1,14 +1,6 @@
 version: "2"
 
 sql:
-  - schema: "db/version/schema.sql"
-    queries: "db/version/queries.sql"
-    engine: "sqlite"
-    gen:
-      go:
-        package: "version"
-        out: "internal/db/version"
-
   - schema: "db/roles/schema.sql"
     queries: "db/roles/queries.sql"
     engine: "sqlite"

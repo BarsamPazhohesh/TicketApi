@@ -72,7 +72,6 @@ func (app *application) routes() http.Handler {
 		publicGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
 		publicGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 		{
-			publicGroup.GET(routes.APIRoutes.Versions.GetCurrentVersion.Path, app.handlers.Version.GetCurrentVersionHandler)
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, app.handlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, app.handlers.Captcha.VerifyCaptchaHandler)
 

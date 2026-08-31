@@ -10,7 +10,6 @@ type _Prefix struct {
 }
 
 type _APIPrefixes struct {
-	Versions   _Prefix
 	Tickets    _Prefix
 	Auth       _Prefix
 	Captcha    _Prefix
@@ -42,10 +41,6 @@ type _APIRoute struct {
 	method      string
 	description string
 	Status      bool
-}
-
-type versions struct {
-	GetCurrentVersion _APIRoute
 }
 
 type tickets struct {
@@ -85,8 +80,8 @@ type files struct {
 	UploadTicketFile          _APIRoute
 	GetDownloadLinkTicketFile _APIRoute
 }
+
 type _APIEndpoints struct {
-	Versions    versions
 	Tickets     tickets
 	Files       files
 	Auth        auth
@@ -96,9 +91,6 @@ type _APIEndpoints struct {
 }
 
 var APIRoutes = _APIEndpoints{
-	Versions: versions{
-		GetCurrentVersion: _APIRoute{Path: "", method: string(GetMethod)},
-	},
 	Tickets: tickets{
 		CreateTicket:               _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "CreateTicket/"), method: string(PostMethod), Status: true},
 		GetTicketByID:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByID/"), method: string(GetMethod), Status: true},
