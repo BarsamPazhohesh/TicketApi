@@ -161,8 +161,14 @@ func ConnectRedis() (*redis.Client, error) {
 // ConnectMinio initializes the MinIO client and ensures the default bucket exists.
 func ConnectMinio() (*minio.Client, error) {
 	endpoint := env.GetEnvString("MINIO_ENDPOINT", "localhost:9000")
-	accessKey := os.Getenv("MINIO_ROOT_USER")
-	secretKey := os.Getenv("MINIO_ROOT_PASSWORD")
+	accessKey := os.Getenv("ACCESS_KEY_MINIO")
+	if accessKey == "" {
+		accessKey = os.Getenv("MINIO_ROOT_USER")
+	}
+	secretKey := os.Getenv("SECRET_KEY_MINIO")
+	if secretKey == "" {
+		secretKey = os.Getenv("MINIO_ROOT_PASSWORD")
+	}
 	useSSL := config.Get().Minio.UseSSL
 	bucketName := config.Get().Minio.Bucket
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/url"
 	"strings"
 	"ticket-api/internal/config"
@@ -24,26 +23,11 @@ const (
 	TicketPath = "tickets/files/"
 )
 
-// NewStorageService creates a new MinIO client and ensures the bucket exists
+// NewStorageService creates a new storage service instance
 func NewStorageService(minioClient *minio.Client) *StorageService {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	bucket := config.Get().Minio.Bucket
-	exists, err := minioClient.BucketExists(ctx, bucket)
-	if err != nil {
-		log.Fatal(err)
+	if minioClient == nil {
+		return &StorageService{Client: nil}
 	}
-
-	if !exists {
-		if err := minioClient.MakeBucket(ctx, bucket, minio.MakeBucketOptions{}); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("✅ Bucket %s created successfully", bucket)
-	} else {
-		log.Printf("✅ Bucket %s already exists", bucket)
-	}
-
 	return &StorageService{Client: minioClient}
 }
 
