@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"ticket-api/internal/dto"
+	_ "ticket-api/internal/errx"
 	"ticket-api/internal/services/ticket"
 	"ticket-api/internal/services/token"
 

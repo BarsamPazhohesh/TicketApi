@@ -2,6 +2,7 @@ package handler
 
 import (
 	"ticket-api/internal/dto"
+	_ "ticket-api/internal/errx"
 	"ticket-api/internal/services/auth"
 
 	"github.com/gin-gonic/gin"
