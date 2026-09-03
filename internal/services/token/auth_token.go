@@ -15,6 +15,7 @@ import (
 type AuthClaims struct {
 	UserID      int64    `json:"user_id"`
 	Username    string   `json:"username"`
+	PhoneNumber string   `json:"phone_number,omitempty"`
 	RoleIDs     []int64  `json:"role_ids"`
 	Permissions []string `json:"permissions,omitempty"`
 
@@ -35,6 +36,7 @@ func (s *TokenService) NewAuthToken(credential AuthClaims) (string, *errx.APIErr
 	claims := AuthClaims{
 		UserID:      credential.UserID,
 		Username:    credential.Username,
+		PhoneNumber: credential.PhoneNumber,
 		RoleIDs:     credential.RoleIDs,
 		Permissions: credential.Permissions,
 		RegisteredClaims: jwt.RegisteredClaims{

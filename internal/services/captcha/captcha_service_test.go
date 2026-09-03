@@ -26,7 +26,8 @@ func TestCaptchaService_GenerateAndVerify(t *testing.T) {
 
 	// 3. Captcha Token generation and parsing
 	ip := "127.0.0.1"
-	tokenStr, apiErr := app.Services.Token.NewCaptchaToken(ip)
+	phone := "09123456789"
+	tokenStr, apiErr := app.Services.Token.NewCaptchaToken(ip, phone)
 	if apiErr != nil || tokenStr == "" {
 		t.Fatalf("failed generating captcha token: %v", apiErr)
 	}
@@ -37,6 +38,9 @@ func TestCaptchaService_GenerateAndVerify(t *testing.T) {
 	}
 	if claims.IP != ip {
 		t.Fatalf("expected IP %s, got %s", ip, claims.IP)
+	}
+	if claims.PhoneNumber != phone {
+		t.Fatalf("expected PhoneNumber %s, got %s", phone, claims.PhoneNumber)
 	}
 
 	// 4. Invalid token parsing

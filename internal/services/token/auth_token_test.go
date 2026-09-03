@@ -24,6 +24,7 @@ func TestAuthToken_GenerateAndParse(t *testing.T) {
 	claims := token.AuthClaims{
 		UserID:      42,
 		Username:    "testuser",
+		PhoneNumber: "09123456789",
 		RoleIDs:     []int64{1, 2},
 		Permissions: []string{"tickets:read", "tickets:create"},
 	}
@@ -43,8 +44,8 @@ func TestAuthToken_GenerateAndParse(t *testing.T) {
 	if parsed == nil {
 		t.Fatal("expected parsed claims not nil")
 	}
-	if parsed.UserID != 42 || parsed.Username != "testuser" {
-		t.Errorf("expected UserID=42, Username='testuser', got %d, %s", parsed.UserID, parsed.Username)
+	if parsed.UserID != 42 || parsed.Username != "testuser" || parsed.PhoneNumber != "09123456789" {
+		t.Errorf("expected UserID=42, Username='testuser', PhoneNumber='09123456789', got %d, %s, %s", parsed.UserID, parsed.Username, parsed.PhoneNumber)
 	}
 	if len(parsed.RoleIDs) != 2 || parsed.RoleIDs[0] != 1 || parsed.RoleIDs[1] != 2 {
 		t.Errorf("unexpected RoleIDs: %v", parsed.RoleIDs)

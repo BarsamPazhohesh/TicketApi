@@ -64,9 +64,10 @@ func (s *AuthService) LoginWithPassword(c *gin.Context, req dto.LoginWithPasswor
 
 	authToken, jwtErr := s.tokenService.NewAuthToken(
 		token.AuthClaims{
-			UserID:   user.ID,
-			Username: user.Username,
-			RoleIDs:  roleIDs,
+			UserID:      user.ID,
+			Username:    user.Username,
+			PhoneNumber: user.Username,
+			RoleIDs:     roleIDs,
 		})
 	if jwtErr != nil {
 		return jwtErr
@@ -132,9 +133,10 @@ func (s *AuthService) LoginWithOneTimeToken(c *gin.Context, tokenString string) 
 	roleIDs, _ := s.rolesRelationsRepo.GetUserRoleIDs(ctx, user.ID)
 
 	jwtToken, genErr := s.tokenService.NewAuthToken(token.AuthClaims{
-		UserID:   user.ID,
-		Username: user.Username,
-		RoleIDs:  roleIDs,
+		UserID:      user.ID,
+		Username:    user.Username,
+		PhoneNumber: user.Username,
+		RoleIDs:     roleIDs,
 	})
 	if genErr != nil {
 		return genErr

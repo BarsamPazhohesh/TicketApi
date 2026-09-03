@@ -283,7 +283,7 @@ func GenerateTestAuthToken(t *testing.T, tokenSvc *token.TokenService, userID in
 // GenerateTestCaptchaToken generates a valid Captcha token for testing captcha-guarded endpoints
 func GenerateTestCaptchaToken(t *testing.T, tokenSvc *token.TokenService, ip string) string {
 	t.Helper()
-	tokenStr, err := tokenSvc.NewCaptchaToken(ip)
+	tokenStr, err := tokenSvc.NewCaptchaToken(ip, "09120000000")
 	if err != nil {
 		t.Fatalf("failed generating test captcha token: %v", err)
 	}

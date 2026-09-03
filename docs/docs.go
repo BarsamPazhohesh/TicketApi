@@ -1026,13 +1026,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "captcha",
-                "id"
+                "id",
+                "phoneNumber"
             ],
             "properties": {
                 "captcha": {
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "phoneNumber": {
                     "type": "string"
                 }
             }
