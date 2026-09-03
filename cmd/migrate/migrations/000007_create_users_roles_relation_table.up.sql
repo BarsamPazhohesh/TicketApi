@@ -8,4 +8,6 @@ CREATE TABLE IF NOT EXISTS users_roles_relation (
     FOREIGN KEY (role_id) REFERENCES Roles(id) ON DELETE CASCADE
 );
 
-INSERT INTO users_roles_relation (user_id, role_id) VALUES (1,1);
+-- Give SuperAdmin user (1) Admin (1) and Agent (2) roles
+INSERT INTO users_roles_relation (user_id, role_id) VALUES (1, 1), (1, 2);
+

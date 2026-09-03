@@ -5,4 +5,8 @@ CREATE TABLE IF NOT EXISTS roles (
     deleted INT2 NOT NULL DEFAULT 0
 );
 
-INSERT INTO roles(title) VALUES ('BaseRole');
+INSERT INTO roles(id, title) VALUES
+(1, 'Admin'),
+(2, 'Agent'),
+(3, 'Customer');
+
