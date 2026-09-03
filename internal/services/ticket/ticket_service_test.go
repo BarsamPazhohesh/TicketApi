@@ -108,7 +108,6 @@ func TestTicketService_ValidationLimits(t *testing.T) {
 
 	// 1. Exceeded attachments limit
 	req := dto.TicketCreateRequest{
-		UserID:       1,
 		TicketTypeID: 1,
 		DepartmentID: 1,
 		Title:        "Test Title",

@@ -60,10 +60,7 @@ func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, r
 	}
 
 	// 2. Set authenticated user ID or allow guest (0)
-	targetUserID := req.UserID
-	if currentUserID > 0 {
-		targetUserID = currentUserID
-	}
+	targetUserID := currentUserID
 
 	// 3. Check user exists only if registered user
 	if targetUserID > 0 {

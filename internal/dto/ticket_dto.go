@@ -18,7 +18,6 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	UserID         int64    `json:"userId,omitempty"`
 	PhoneNumber    string   `json:"phoneNumber,omitempty" binding:"omitempty,phoneNumber"`
 	TicketTypeID   int64    `json:"ticketTypeId" binding:"required"`
 	DepartmentID   int64    `json:"departmentId" binding:"required"`
@@ -29,7 +28,7 @@ type TicketCreateRequest struct {
 }
 
 // ToModel converts a TicketCreateRequest into a model.Ticket
-func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *mongo.Collection) (*model.Ticket, error) {
+func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *mongo.Collection, userID int64) (*model.Ticket, error) {
 	now := time.Now()
 	trackCode, err := util.GenerateUniqueTrackCode(ctx, ticketCollection)
 	if err != nil {
@@ -38,7 +37,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 
 	firstMessage := model.ChatMessage{
 		ID:          util.GenerateUUID(),
-		SenderID:    dto.UserID,
+		SenderID:    userID,
 		SenderType:  "user",
 		Message:     dto.Body,
 		Attachments: dto.Attachments,
@@ -49,7 +48,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 	return &model.Ticket{
 		ID:              util.GenerateUUID(),
 		TrackCode:       trackCode,
-		UserID:          dto.UserID,
+		UserID:          userID,
 		PhoneNumber:     dto.PhoneNumber,
 		TicketTypeID:    dto.TicketTypeID,
 		DepartmentID:    dto.DepartmentID,
