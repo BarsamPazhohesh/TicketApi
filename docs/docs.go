@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.GenerateSingleUseTokenDTO"
+                            "$ref": "#/definitions/dto.GenerateSingleUseTokenDTO"
                         }
                     }
                 ],
@@ -43,19 +43,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.SingleUseTokenResponseDTO"
+                            "$ref": "#/definitions/dto.SingleUseTokenResponseDTO"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -81,7 +81,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.LoginWithPasswordDTO"
+                            "$ref": "#/definitions/dto.LoginWithPasswordDTO"
                         }
                     }
                 ],
@@ -92,19 +92,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -130,7 +130,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.LoginWitNoAuthDTO"
+                            "$ref": "#/definitions/dto.LoginWitNoAuthDTO"
                         }
                     }
                 ],
@@ -138,25 +138,25 @@ const docTemplate = `{
                     "200": {
                         "description": "User found and ID returned",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponseInt64"
+                            "$ref": "#/definitions/dto.IDResponseInt64"
                         }
                     },
                     "201": {
                         "description": "New user created and ID returned",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponseInt64"
+                            "$ref": "#/definitions/dto.IDResponseInt64"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -191,19 +191,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -229,7 +229,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.SignUpWithPasswordDTO"
+                            "$ref": "#/definitions/dto.SignUpWithPasswordDTO"
                         }
                     }
                 ],
@@ -237,19 +237,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponseInt64"
+                            "$ref": "#/definitions/dto.IDResponseInt64"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -269,13 +269,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.CaptchaResultDTO"
+                            "$ref": "#/definitions/dto.CaptchaResultDTO"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                            "$ref": "#/definitions/errx.Error"
                         }
                     }
                 }
@@ -301,7 +301,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.CaptchaVerifyRequest"
+                            "$ref": "#/definitions/dto.CaptchaVerifyRequest"
                         }
                     }
                 ],
@@ -309,19 +309,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.CaptchaVerifyRequest"
+                            "$ref": "#/definitions/dto.CaptchaVerifyRequest"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                            "$ref": "#/definitions/errx.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                            "$ref": "#/definitions/errx.Error"
                         }
                     }
                 }
@@ -346,14 +346,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ticket-api_internal_dto.DepartmentDTO"
+                                "$ref": "#/definitions/dto.DepartmentDTO"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -383,7 +383,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDRequestString"
+                            "$ref": "#/definitions/dto.IDRequestString"
                         }
                     }
                 ],
@@ -394,19 +394,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "File not found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -438,31 +438,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Returns uploaded file ID",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDResponseString"
+                            "$ref": "#/definitions/dto.IDResponseString"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "413": {
                         "description": "File too large",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "415": {
                         "description": "Unsupported file extension",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -488,7 +488,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDRequestString"
+                            "$ref": "#/definitions/dto.IDRequestString"
                         }
                     }
                 ],
@@ -496,19 +496,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                            "$ref": "#/definitions/dto.TicketResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -534,7 +534,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketCreateRequest"
+                            "$ref": "#/definitions/dto.TicketCreateRequest"
                         }
                     }
                 ],
@@ -542,25 +542,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketCreateResponse"
+                            "$ref": "#/definitions/dto.TicketCreateResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -585,14 +585,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ticket-api_internal_dto.TicketStatusDTO"
+                                "$ref": "#/definitions/dto.TicketStatusDTO"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -617,14 +617,14 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ticket-api_internal_dto.TicketTypeDto"
+                                "$ref": "#/definitions/dto.TicketTypeDto"
                             }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -650,7 +650,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByIDRequestDTO"
+                            "$ref": "#/definitions/dto.TicketByIDRequestDTO"
                         }
                     }
                 ],
@@ -658,31 +658,31 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                            "$ref": "#/definitions/dto.TicketResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -708,7 +708,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketByTrackCodeRequestDTO"
+                            "$ref": "#/definitions/dto.TicketByTrackCodeRequestDTO"
                         }
                     }
                 ],
@@ -716,25 +716,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                            "$ref": "#/definitions/dto.TicketResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -760,7 +760,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketQueryParams"
+                            "$ref": "#/definitions/dto.TicketQueryParams"
                         }
                     }
                 ],
@@ -768,19 +768,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.TicketPagingResponse"
+                            "$ref": "#/definitions/dto.TicketPagingResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -813,7 +813,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.ChatMessageCreateRequest"
+                            "$ref": "#/definitions/dto.ChatMessageCreateRequest"
                         }
                     }
                 ],
@@ -821,25 +821,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.ChatMessageDTO"
+                            "$ref": "#/definitions/dto.ChatMessageDTO"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -865,7 +865,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.IDRequestInt64"
+                            "$ref": "#/definitions/dto.IDRequestInt64"
                         }
                     }
                 ],
@@ -873,25 +873,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.UserDTO"
+                            "$ref": "#/definitions/dto.UserDTO"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -917,7 +917,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.UsernameDTO"
+                            "$ref": "#/definitions/dto.UsernameDTO"
                         }
                     }
                 ],
@@ -925,25 +925,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.UserDTO"
+                            "$ref": "#/definitions/dto.UserDTO"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -969,7 +969,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_dto.UserIDsDTO"
+                            "$ref": "#/definitions/dto.UserIDsDTO"
                         }
                     }
                 ],
@@ -979,26 +979,26 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/ticket-api_internal_dto.UserDTO"
+                                "$ref": "#/definitions/dto.UserDTO"
                             }
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ticket-api_internal_errx.APIError"
+                            "$ref": "#/definitions/errx.APIError"
                         }
                     }
                 }
@@ -1006,7 +1006,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ticket-api_internal_dto.CaptchaResultDTO": {
+        "dto.CaptchaResultDTO": {
             "type": "object",
             "properties": {
                 "answer": {
@@ -1022,7 +1022,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.CaptchaVerifyRequest": {
+        "dto.CaptchaVerifyRequest": {
             "type": "object",
             "required": [
                 "captcha",
@@ -1037,7 +1037,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.ChatMessageCreateRequest": {
+        "dto.ChatMessageCreateRequest": {
             "type": "object",
             "required": [
                 "message"
@@ -1054,7 +1054,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.ChatMessageDTO": {
+        "dto.ChatMessageDTO": {
             "type": "object",
             "properties": {
                 "attachments": {
@@ -1083,7 +1083,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.DepartmentDTO": {
+        "dto.DepartmentDTO": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1097,7 +1097,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.GenerateSingleUseTokenDTO": {
+        "dto.GenerateSingleUseTokenDTO": {
             "type": "object",
             "required": [
                 "username"
@@ -1108,7 +1108,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.IDRequestInt64": {
+        "dto.IDRequestInt64": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1116,7 +1116,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.IDRequestString": {
+        "dto.IDRequestString": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1124,7 +1124,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.IDResponseInt64": {
+        "dto.IDResponseInt64": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1132,7 +1132,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.IDResponseString": {
+        "dto.IDResponseString": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1140,7 +1140,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.LoginWitNoAuthDTO": {
+        "dto.LoginWitNoAuthDTO": {
             "type": "object",
             "required": [
                 "departmentId",
@@ -1155,7 +1155,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.LoginWithPasswordDTO": {
+        "dto.LoginWithPasswordDTO": {
             "type": "object",
             "required": [
                 "password",
@@ -1170,7 +1170,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.SignUpWithPasswordDTO": {
+        "dto.SignUpWithPasswordDTO": {
             "type": "object",
             "required": [
                 "departmentId",
@@ -1189,7 +1189,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.SingleUseTokenResponseDTO": {
+        "dto.SingleUseTokenResponseDTO": {
             "type": "object",
             "properties": {
                 "token": {
@@ -1197,7 +1197,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketByIDRequestDTO": {
+        "dto.TicketByIDRequestDTO": {
             "type": "object",
             "required": [
                 "id"
@@ -1209,7 +1209,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketByTrackCodeRequestDTO": {
+        "dto.TicketByTrackCodeRequestDTO": {
             "type": "object",
             "required": [
                 "trackCode"
@@ -1226,7 +1226,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketCreateRequest": {
+        "dto.TicketCreateRequest": {
             "type": "object",
             "required": [
                 "body",
@@ -1255,13 +1255,10 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string"
-                },
-                "userId": {
-                    "type": "integer"
                 }
             }
         },
-        "ticket-api_internal_dto.TicketCreateResponse": {
+        "dto.TicketCreateResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -1272,13 +1269,13 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketPagingResponse": {
+        "dto.TicketPagingResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ticket-api_internal_dto.TicketResponse"
+                        "$ref": "#/definitions/dto.TicketResponse"
                     }
                 },
                 "page": {
@@ -1295,7 +1292,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketQueryParams": {
+        "dto.TicketQueryParams": {
             "type": "object",
             "properties": {
                 "departmentId": {
@@ -1330,13 +1327,13 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketResponse": {
+        "dto.TicketResponse": {
             "type": "object",
             "properties": {
                 "chat": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/ticket-api_internal_dto.ChatMessageDTO"
+                        "$ref": "#/definitions/dto.ChatMessageDTO"
                     }
                 },
                 "createdAt": {
@@ -1371,7 +1368,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketStatusDTO": {
+        "dto.TicketStatusDTO": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1385,7 +1382,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.TicketTypeDto": {
+        "dto.TicketTypeDto": {
             "type": "object",
             "properties": {
                 "description": {
@@ -1399,7 +1396,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.UserDTO": {
+        "dto.UserDTO": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -1419,7 +1416,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.UserIDsDTO": {
+        "dto.UserIDsDTO": {
             "type": "object",
             "required": [
                 "ids"
@@ -1433,7 +1430,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_dto.UsernameDTO": {
+        "dto.UsernameDTO": {
             "type": "object",
             "required": [
                 "username"
@@ -1444,19 +1441,19 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_errx.APIError": {
+        "errx.APIError": {
             "type": "object",
             "properties": {
                 "error": {
-                    "$ref": "#/definitions/ticket-api_internal_errx.Error"
+                    "$ref": "#/definitions/errx.Error"
                 }
             }
         },
-        "ticket-api_internal_errx.Error": {
+        "errx.Error": {
             "type": "object",
             "properties": {
                 "code": {
-                    "$ref": "#/definitions/ticket-api_internal_errx.ErrorCode"
+                    "$ref": "#/definitions/errx.ErrorCode"
                 },
                 "debug": {
                     "type": "string"
@@ -1469,7 +1466,7 @@ const docTemplate = `{
                 }
             }
         },
-        "ticket-api_internal_errx.ErrorCode": {
+        "errx.ErrorCode": {
             "type": "integer",
             "enum": [
                 0,
