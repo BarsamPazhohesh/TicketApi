@@ -114,9 +114,9 @@ func SeedBaseData(t *testing.T, db *sql.DB) {
 
 	seeds := []string{
 		`INSERT OR IGNORE INTO roles (id, title, status, created_at, updated_at) VALUES
-			(1, 'superadmin', 1, datetime('now'), datetime('now')),
-			(2, 'agent', 1, datetime('now'), datetime('now')),
-			(3, 'customer', 1, datetime('now'), datetime('now'));`,
+			(1, 'Admin', 1, datetime('now'), datetime('now')),
+			(2, 'Agent', 1, datetime('now'), datetime('now')),
+			(3, 'Customer', 1, datetime('now'), datetime('now'));`,
 
 		`INSERT OR IGNORE INTO departments (id, title, description, status, created_at, updated_at) VALUES
 			(1, 'Technical Support', 'Tech dept', 1, datetime('now'), datetime('now')),
@@ -135,11 +135,11 @@ func SeedBaseData(t *testing.T, db *sql.DB) {
 
 		// Seed initial routes into api_routes table so RBAC can bind
 		`INSERT OR IGNORE INTO api_routes (id, route, method, description, status, created_at, updated_at) VALUES
-			(1, '/tickets/GetTicketsList/', 'POST', 'Get tickets list', 1, datetime('now'), datetime('now')),
-			(2, '/users/GetUsersByIDs/', 'POST', 'Get users list', 1, datetime('now'), datetime('now')),
-			(3, '/users/GetUserByID/', 'POST', 'Get user by id', 1, datetime('now'), datetime('now')),
-			(4, '/users/GetUserByUsername/', 'POST', 'Get user by username', 1, datetime('now'), datetime('now')),
-			(5, '/tickets/GetTicketByID/', 'POST', 'Get ticket by ID', 1, datetime('now'), datetime('now'));`,
+			(1, 'tickets/GetTicketsList/', 'POST', 'Get tickets list', 1, datetime('now'), datetime('now')),
+			(2, 'users/GetUsersByIDs/', 'POST', 'Get users list', 1, datetime('now'), datetime('now')),
+			(3, 'users/GetUserByID/', 'POST', 'Get user by id', 1, datetime('now'), datetime('now')),
+			(4, 'users/GetUserByUsername/', 'POST', 'Get user by username', 1, datetime('now'), datetime('now')),
+			(5, 'tickets/GetTicketByID/', 'POST', 'Get ticket by ID', 1, datetime('now'), datetime('now'));`,
 
 		// Allow superadmin (role 1) and agent (role 2) on routes
 		`INSERT OR IGNORE INTO api_routes_roles_relation (api_route_id, role_id, status, created_at, updated_at) VALUES
