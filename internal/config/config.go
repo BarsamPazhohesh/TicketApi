@@ -96,6 +96,11 @@ type Config struct {
 		MaxTicketUploadFileSize  int64    `yaml:"max_ticket_upload_file_size"`
 		AcceptableFilesForUpload []string `yaml:"acceptable_files_for_upload"`
 	} `yaml:"ticket"`
+
+	OTP struct {
+		CodeTTLMinutes       int `yaml:"code_ttl_minutes"`
+		RetryIntervalMinutes int `yaml:"retry_interval_minutes"`
+	} `yaml:"otp"`
 }
 
 var (

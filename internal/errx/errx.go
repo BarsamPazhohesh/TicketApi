@@ -45,6 +45,9 @@ const (
 	ErrRequestBodyTooLarge
 	ErrForbidden
 	ErrNotFound
+	ErrOTPExpired
+	ErrOTPInvalid
+	ErrOTPSendFailed
 )
 
 //
@@ -132,6 +135,9 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrRequestBodyTooLarge:      {"حجم بدنه درخواست بیش از حد مجاز است", http.StatusRequestEntityTooLarge},
 			ErrForbidden:                {"شما دسترسی لازم برای این عملیات را ندارید", http.StatusForbidden},
 			ErrNotFound:                 {"مسیر یا منبع مورد نظر یافت نشد", http.StatusNotFound},
+			ErrOTPExpired:               {"کد تایید منقضی شده است", http.StatusBadRequest},
+			ErrOTPInvalid:               {"کد تایید نامعتبر است", http.StatusBadRequest},
+			ErrOTPSendFailed:            {"ارسال پیامک با خطا مواجه شد", http.StatusInternalServerError},
 		},
 		db: db,
 	}
