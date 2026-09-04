@@ -14,6 +14,8 @@ import (
 	"ticket-api/internal/db/departments"
 	"ticket-api/internal/db/roles"
 	"ticket-api/internal/db/roles_relations"
+	"ticket-api/internal/db/sms_type_messages_relation"
+	"ticket-api/internal/db/sms_warehouse"
 	"ticket-api/internal/db/ticket_priorities"
 	"ticket-api/internal/db/ticket_statuses"
 	"ticket-api/internal/db/ticket_types"
@@ -108,7 +110,7 @@ func SetupTestSQLDB(t *testing.T) *sql.DB {
 	return db
 }
 
-// SeedBaseData inserts standard roles, departments, ticket types, statuses, and routes
+// SeedBaseData inserts standard roles, departments, ticket types, statuses, routes, and SMS templates
 func SeedBaseData(t *testing.T, db *sql.DB) {
 	t.Helper()
 
@@ -148,6 +150,16 @@ func SeedBaseData(t *testing.T, db *sql.DB) {
 			(3, 1, 1, datetime('now'), datetime('now')), (3, 2, 1, datetime('now'), datetime('now')),
 			(4, 1, 1, datetime('now'), datetime('now')), (4, 2, 1, datetime('now'), datetime('now')),
 			(5, 1, 1, datetime('now'), datetime('now')), (5, 2, 1, datetime('now'), datetime('now'));`,
+
+		// Seed SMS types, messages, and relations for OTP templates
+		`INSERT OR IGNORE INTO sms_types (id, title, description, created_at, updated_at) VALUES
+			(1, 'otp', 'کد تایید یکبار مصرف', datetime('now'), datetime('now'));`,
+
+		`INSERT OR IGNORE INTO sms_messages (id, title, body, description, created_at, updated_at) VALUES
+			(1, 'قالب پیش‌فرض کد تایید', 'کد تایید شما: %s', 'قالب پیامک OTP', datetime('now'), datetime('now'));`,
+
+		`INSERT OR IGNORE INTO sms_type_messages_relation (id, sms_type_id, sms_message_id, created_at, updated_at) VALUES
+			(1, 1, 1, datetime('now'), datetime('now'));`,
 	}
 
 	for _, s := range seeds {
@@ -184,6 +196,7 @@ func SetupTestApp(t *testing.T, mongoDB *mongo.Database) *TestAppBundle {
 	apiKeyRepo := repository.NewAPIKeysRepository(api_keys.New(db))
 	apiRouteRepo := repository.NewAPIRoutesRepository(api_routes.New(db))
 	rolesRelRepo := repository.NewRolesRelationRepository(roles_relations.New(db), api_keys.New(db), api_routes.New(db))
+	smsWarehouseRepo := repository.NewSMSWarehouseRepository(sms_warehouse.New(db))
 
 	ticketRepo := repository.NewTicketRepository(mongoDB)
 	chatRepo := repository.NewChatRepository(mongoDB)
@@ -200,6 +213,8 @@ func SetupTestApp(t *testing.T, mongoDB *mongo.Database) *TestAppBundle {
 		RolesRelations:   rolesRelRepo,
 		Users:            userRepo,
 		TicketStatus:     statusRepo,
+		SMSWarehouse:     smsWarehouseRepo,
+		SMSTypeMessages:  sms_type_messages_relation.New(db),
 	}
 
 	appServices := services.NewAppService(nil, nil, repos)
@@ -248,6 +263,8 @@ func SetupTestApp(t *testing.T, mongoDB *mongo.Database) *TestAppBundle {
 		{
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, appHandlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, appHandlers.Captcha.VerifyCaptchaHandler)
+			publicGroup.POST(routes.APIRoutes.OTP.SendOTP.Path, appHandlers.OTP.SendOTP)
+			publicGroup.POST(routes.APIRoutes.OTP.VerifyOTP.Path, appHandlers.OTP.VerifyOTP)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, appHandlers.Auth.LoginWithOneTimeToken)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, appHandlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, appHandlers.Ticket.GetAllActiveTicketStatusesHandler)
@@ -267,25 +284,26 @@ func SetupTestApp(t *testing.T, mongoDB *mongo.Database) *TestAppBundle {
 }
 
 // GenerateTestAuthToken returns a signed JWT for testing authenticated requests
-func GenerateTestAuthToken(t *testing.T, tokenSvc *token.TokenService, userID int64, username string, roleIDs []int64) string {
+func GenerateTestAuthToken(t *testing.T, tokenService *token.TokenService, userID int64, username string, roleIDs []int64) string {
 	t.Helper()
-	tokenStr, err := tokenSvc.NewAuthToken(token.AuthClaims{
-		UserID:   userID,
-		Username: username,
-		RoleIDs:  roleIDs,
+	token, apiErr := tokenService.NewAuthToken(token.AuthClaims{
+		UserID:      userID,
+		Username:    username,
+		PhoneNumber: "09121234567",
+		RoleIDs:     roleIDs,
 	})
-	if err != nil {
-		t.Fatalf("failed generating test auth token: %v", err)
+	if apiErr != nil {
+		t.Fatalf("failed to generate auth token: %v", apiErr)
 	}
-	return tokenStr
+	return token
 }
 
-// GenerateTestCaptchaToken generates a valid Captcha token for testing captcha-guarded endpoints
-func GenerateTestCaptchaToken(t *testing.T, tokenSvc *token.TokenService, ip string) string {
+// GenerateTestCaptchaToken returns a signed JWT for captcha tests
+func GenerateTestCaptchaToken(t *testing.T, tokenService *token.TokenService, ip string) string {
 	t.Helper()
-	tokenStr, err := tokenSvc.NewCaptchaToken(ip, "09120000000")
-	if err != nil {
-		t.Fatalf("failed generating test captcha token: %v", err)
+	token, apiErr := tokenService.NewCaptchaToken(ip, "09121234567")
+	if apiErr != nil {
+		t.Fatalf("failed to generate captcha token: %v", apiErr)
 	}
-	return tokenStr
+	return token
 }
