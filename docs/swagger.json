@@ -460,6 +460,98 @@
                 }
             }
         },
+        "/otp/send": {
+            "post": {
+                "description": "Generates a verification code, caches in Redis, logs to SMS warehouse, and sends SMS via provider asynchronously",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Send OTP verification code",
+                "parameters": [
+                    {
+                        "description": "Phone number",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendOTPDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendOTPResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/otp/verify": {
+            "post": {
+                "description": "Validates provided OTP code against cached code in Redis",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OTP"
+                ],
+                "summary": "Verify OTP code",
+                "parameters": [
+                    {
+                        "description": "Phone number and OTP code",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyOTPDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OTP is valid",
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyOTPResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/errx.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/errx.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/tickets/CloseTicket/": {
             "post": {
                 "description": "Closes ticket by setting status to close",
@@ -1166,6 +1258,25 @@
                 }
             }
         },
+        "dto.SendOTPDTO": {
+            "type": "object",
+            "required": [
+                "phoneNumber"
+            ],
+            "properties": {
+                "phoneNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SendOTPResponseDTO": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SignUpWithPasswordDTO": {
             "type": "object",
             "required": [
@@ -1437,6 +1548,32 @@
                 }
             }
         },
+        "dto.VerifyOTPDTO": {
+            "type": "object",
+            "required": [
+                "code",
+                "phoneNumber"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "phoneNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VerifyOTPResponseDTO": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
         "errx.APIError": {
             "type": "object",
             "properties": {
@@ -1490,7 +1627,10 @@
                 22,
                 23,
                 24,
-                25
+                25,
+                26,
+                27,
+                28
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1518,7 +1658,10 @@
                 "ErrMaxTicketFilesExceeded",
                 "ErrRequestBodyTooLarge",
                 "ErrForbidden",
-                "ErrNotFound"
+                "ErrNotFound",
+                "ErrOTPExpired",
+                "ErrOTPInvalid",
+                "ErrOTPSendFailed"
             ]
         }
     }

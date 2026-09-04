@@ -110,6 +110,18 @@ definitions:
     - password
     - username
     type: object
+  dto.SendOTPDTO:
+    properties:
+      phoneNumber:
+        type: string
+    required:
+    - phoneNumber
+    type: object
+  dto.SendOTPResponseDTO:
+    properties:
+      message:
+        type: string
+    type: object
   dto.SignUpWithPasswordDTO:
     properties:
       departmentId:
@@ -290,6 +302,23 @@ definitions:
     required:
     - username
     type: object
+  dto.VerifyOTPDTO:
+    properties:
+      code:
+        type: string
+      phoneNumber:
+        type: string
+    required:
+    - code
+    - phoneNumber
+    type: object
+  dto.VerifyOTPResponseDTO:
+    properties:
+      message:
+        type: string
+      valid:
+        type: boolean
+    type: object
   errx.APIError:
     properties:
       error:
@@ -334,6 +363,9 @@ definitions:
     - 23
     - 24
     - 25
+    - 26
+    - 27
+    - 28
     type: integer
     x-enum-varnames:
     - ErrInternalServerError
@@ -362,6 +394,9 @@ definitions:
     - ErrRequestBodyTooLarge
     - ErrForbidden
     - ErrNotFound
+    - ErrOTPExpired
+    - ErrOTPInvalid
+    - ErrOTPSendFailed
 info:
   contact: {}
   title: Ticket API
@@ -668,6 +703,67 @@ paths:
       summary: Upload a ticket file
       tags:
       - TicketFile
+  /otp/send:
+    post:
+      consumes:
+      - application/json
+      description: Generates a verification code, caches in Redis, logs to SMS warehouse,
+        and sends SMS via provider asynchronously
+      parameters:
+      - description: Phone number
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendOTPDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification code sent
+          schema:
+            $ref: '#/definitions/dto.SendOTPResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errx.APIError'
+      summary: Send OTP verification code
+      tags:
+      - OTP
+  /otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Validates provided OTP code against cached code in Redis
+      parameters:
+      - description: Phone number and OTP code
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyOTPDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP is valid
+          schema:
+            $ref: '#/definitions/dto.VerifyOTPResponseDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errx.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errx.APIError'
+      summary: Verify OTP code
+      tags:
+      - OTP
   /tickets/{id}/CreateChat/:
     post:
       consumes:
