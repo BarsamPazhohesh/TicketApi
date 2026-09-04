@@ -84,3 +84,40 @@ sql:
       go:
         package: "permissions"
         out: "internal/db/permissions"
+
+  - schema: "db/sms_warehouse/schema.sql"
+    queries: "db/sms_warehouse/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "sms_warehouse"
+        out: "internal/db/sms_warehouse"
+
+  - schema: "db/sms_types/schema.sql"
+    queries: "db/sms_types/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "sms_types"
+        out: "internal/db/sms_types"
+
+  - schema: "db/sms_messages/schema.sql"
+    queries: "db/sms_messages/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "sms_messages"
+        out: "internal/db/sms_messages"
+
+  - schema:
+      - "db/sms_types/schema.sql"
+      - "db/sms_messages/schema.sql"
+      - "db/sms_type_messages_relation/schema.sql"
+    queries: "db/sms_type_messages_relation/queries.sql"
+    engine: "sqlite"
+    gen:
+      go:
+        package: "sms_type_messages_relation"
+        out: "internal/db/sms_type_messages_relation"
+
+
