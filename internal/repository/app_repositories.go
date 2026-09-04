@@ -7,6 +7,8 @@ import (
 	"ticket-api/internal/db/departments"
 	"ticket-api/internal/db/roles"
 	"ticket-api/internal/db/roles_relations"
+	"ticket-api/internal/db/sms_type_messages_relation"
+	"ticket-api/internal/db/sms_warehouse"
 	"ticket-api/internal/db/ticket_priorities"
 	"ticket-api/internal/db/ticket_statuses"
 	"ticket-api/internal/db/ticket_types"
@@ -29,6 +31,8 @@ type AppRepositories struct {
 	Users            *UsersRepository
 	TicketStatus     *TicketStatusesRepository
 	APIKeys          *APIKeysRepository
+	SMSWarehouse     *SMSWarehouseRepository
+	SMSTypeMessages  *sms_type_messages_relation.Queries
 }
 
 func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database, redis *redis.Client) *AppRepositories {
@@ -47,7 +51,9 @@ func NewRepositories(sqldb *sql.DB, mongodb *mongo.Database, redis *redis.Client
 			roles_relations.New(sqldb),
 			api_keys.New(sqldb),
 			api_routes.New(sqldb)),
-		Users:        NewUsersRepository(users.New(sqldb)),
-		TicketStatus: NewTicketStatusesRepository(ticket_statuses.New(sqldb), cacheSvc),
+		Users:           NewUsersRepository(users.New(sqldb)),
+		TicketStatus:    NewTicketStatusesRepository(ticket_statuses.New(sqldb), cacheSvc),
+		SMSWarehouse:    NewSMSWarehouseRepository(sms_warehouse.New(sqldb)),
+		SMSTypeMessages: sms_type_messages_relation.New(sqldb),
 	}
 }

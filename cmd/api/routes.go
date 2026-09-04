@@ -23,7 +23,7 @@ func (app *application) routes() http.Handler {
 
 	// Validation
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
+		_ = v.RegisterValidation("phoneNumber", util.ValidatePhoneNumber)
 	}
 
 	cfgCORS := config.Get().CORSConfig
@@ -75,6 +75,9 @@ func (app *application) routes() http.Handler {
 		{
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, app.handlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, app.handlers.Captcha.VerifyCaptchaHandler)
+
+			publicGroup.POST(routes.APIRoutes.OTP.SendOTP.Path, app.handlers.OTP.SendOTP)
+			publicGroup.POST(routes.APIRoutes.OTP.VerifyOTP.Path, app.handlers.OTP.VerifyOTP)
 
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, app.handlers.Auth.LoginWithOneTimeToken)
 

@@ -16,6 +16,7 @@ type _APIPrefixes struct {
 	User       _Prefix
 	Department _Prefix
 	Files      _Prefix
+	OTP        _Prefix
 }
 
 var _APIRoutesPrefixes = _APIPrefixes{
@@ -25,6 +26,7 @@ var _APIRoutesPrefixes = _APIPrefixes{
 	User:       _Prefix{prefix: "users/"},
 	Department: _Prefix{prefix: "departments/"},
 	Files:      _Prefix{prefix: "files/"},
+	OTP:        _Prefix{prefix: "otp/"},
 }
 
 type HTTPMethod string
@@ -81,6 +83,11 @@ type files struct {
 	GetDownloadLinkTicketFile _APIRoute
 }
 
+type otp struct {
+	SendOTP   _APIRoute
+	VerifyOTP _APIRoute
+}
+
 type _APIEndpoints struct {
 	Tickets     tickets
 	Files       files
@@ -88,6 +95,7 @@ type _APIEndpoints struct {
 	Captcha     captcha
 	Users       users
 	Departments departments
+	OTP         otp
 }
 
 var APIRoutes = _APIEndpoints{
@@ -123,6 +131,10 @@ var APIRoutes = _APIEndpoints{
 		UploadTicketFile:          _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "UploadTicketFile/"), method: string(PostMethod), Status: true},
 		GetDownloadLinkTicketFile: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "GetDownloadLinkTicketFile/:objectName"), method: string(PostMethod), Status: true},
 	},
+	OTP: otp{
+		SendOTP:   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.OTP.prefix, "send/"), method: string(PostMethod), Status: true},
+		VerifyOTP: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.OTP.prefix, "verify/"), method: string(PostMethod), Status: true},
+	},
 }
 
 func mergeStrings(string ...string) string {
@@ -155,6 +167,8 @@ func IsRouteEnabled(path, method string) bool {
 		APIRoutes.Users.GetUsersByIDs,
 		APIRoutes.Files.GetDownloadLinkTicketFile,
 		APIRoutes.Files.UploadTicketFile,
+		APIRoutes.OTP.SendOTP,
+		APIRoutes.OTP.VerifyOTP,
 	}
 	for _, r := range allRoutes {
 		if r.Path == path && r.method == method {

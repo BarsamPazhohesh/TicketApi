@@ -5,6 +5,8 @@ import (
 	"ticket-api/internal/services/auth"
 	"ticket-api/internal/services/cache"
 	"ticket-api/internal/services/captcha"
+	"ticket-api/internal/services/otp"
+	"ticket-api/internal/services/smsloader"
 	"ticket-api/internal/services/storage"
 	"ticket-api/internal/services/ticket"
 	"ticket-api/internal/services/token"
@@ -22,6 +24,8 @@ type AppServices struct {
 	Auth        *auth.AuthService
 	Ticket      *ticket.TicketService
 	User        *user.UserService
+	OTP         *otp.OTPService
+	SMSLoader   *smsloader.SMSLoaderService
 }
 
 func NewAppService(redis *redis.Client, minio *minio.Client, repos *repository.AppRepositories) *AppServices {
@@ -29,6 +33,8 @@ func NewAppService(redis *redis.Client, minio *minio.Client, repos *repository.A
 	tokenSvc := token.NewTokenService(redis)
 	cacheSvc := cache.NewCacheService(redis)
 	storageSvc := storage.NewStorageService(minio)
+	smsLoaderSvc := smsloader.NewSMSLoaderService(repos.SMSTypeMessages)
+	otpSvc := otp.NewOTPService(repos.SMSWarehouse, cacheSvc, smsLoaderSvc)
 
 	authSvc := auth.NewAuthService(repos.Users, repos.RolesRelations, tokenSvc)
 	ticketSvc := ticket.NewTicketService(
@@ -51,5 +57,7 @@ func NewAppService(redis *redis.Client, minio *minio.Client, repos *repository.A
 		Auth:        authSvc,
 		Ticket:      ticketSvc,
 		User:        userSvc,
+		OTP:         otpSvc,
+		SMSLoader:   smsLoaderSvc,
 	}
 }
