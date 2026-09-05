@@ -1,14 +1,16 @@
 package otp
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/big"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/env"
@@ -163,27 +165,22 @@ func (s *OTPService) VerifyOTP(ctx context.Context, phone, code string) (*dto.Ve
 	}, nil
 }
 
-// sendSMSViaHTTP sends the SMS payload to the configured OTP endpoint with required keys:
-// userName, passWord, smsText, reciverNumber, senderNumber
+// sendSMSViaHTTP sends the SMS payload to the configured OTP endpoint via form-urlencoded POST
+// with required keys: userName, passWord, smsText, reciverNumber, senderNumber
 func (s *OTPService) sendSMSViaHTTP(ctx context.Context, reciverNumber, smsText string) error {
-	payload := map[string]string{
-		"userName":      s.smsConfig.Username,
-		"passWord":      s.smsConfig.Password,
-		"smsText":       smsText,
-		"reciverNumber": reciverNumber,
-		"senderNumber":  s.smsConfig.SenderNumber,
+	form := url.Values{
+		"userName":      {s.smsConfig.Username},
+		"passWord":      {s.smsConfig.Password},
+		"senderNumber":  {s.smsConfig.SenderNumber},
+		"reciverNumber": {reciverNumber},
+		"smsText":       {smsText},
 	}
 
-	jsonData, err := json.Marshal(payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.smsConfig.URL, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.smsConfig.URL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
@@ -192,7 +189,26 @@ func (s *OTPService) sendSMSViaHTTP(ctx context.Context, reciverNumber, smsText 
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("sms api returned status code %d", resp.StatusCode)
+		return fmt.Errorf("sms gateway http error: %d", resp.StatusCode)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	fields := strings.Fields(string(bodyBytes))
+	if len(fields) == 0 {
+		return fmt.Errorf("empty response from sms gateway")
+	}
+
+	resultCode, err := strconv.ParseInt(fields[0], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid response format from sms gateway: %s", fields[0])
+	}
+
+	if resultCode <= 0 {
+		return fmt.Errorf("sms gateway rejected send, code: %d", resultCode)
 	}
 
 	return nil

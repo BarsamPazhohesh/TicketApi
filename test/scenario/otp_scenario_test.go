@@ -26,16 +26,15 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 
 	smsServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		smsGatewayCalled = true
-		var payload map[string]string
-		_ = json.NewDecoder(r.Body).Decode(&payload)
-		receivedUserName = payload["userName"]
-		receivedPassWord = payload["passWord"]
-		receivedSender = payload["senderNumber"]
-		receivedReceptor = payload["reciverNumber"]
-		receivedMessage = payload["smsText"]
+		_ = r.ParseForm()
+		receivedUserName = r.FormValue("userName")
+		receivedPassWord = r.FormValue("passWord")
+		receivedSender = r.FormValue("senderNumber")
+		receivedReceptor = r.FormValue("reciverNumber")
+		receivedMessage = r.FormValue("smsText")
 
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status": "success", "messageid": 12345}`))
+		_, _ = w.Write([]byte("3257258978\n<html>success</html>"))
 	}))
 	defer smsServer.Close()
 

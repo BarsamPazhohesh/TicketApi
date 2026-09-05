@@ -26,8 +26,17 @@ func TestOTPService_Flow(t *testing.T) {
 
 	// Mock SMS Gateway server
 	smsServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if r.FormValue("userName") == "" || r.FormValue("passWord") == "" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("-2\n<html>error</html>"))
+			return
+		}
 		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{"status": "success"}`))
+		_, _ = w.Write([]byte("3257258978\n<html>success</html>"))
 	}))
 	defer smsServer.Close()
 
