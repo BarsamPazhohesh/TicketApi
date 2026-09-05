@@ -8,3 +8,6 @@ CREATE TABLE IF NOT EXISTS sms_type_messages_relation (
     FOREIGN KEY (sms_type_id) REFERENCES sms_types(id) ON DELETE CASCADE,
     FOREIGN KEY (sms_message_id) REFERENCES sms_messages(id) ON DELETE CASCADE
 );
+
+INSERT OR IGNORE INTO sms_type_messages_relation (id, sms_type_id, sms_message_id) VALUES
+    (1, 1, 1);
