@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"ticket-api/internal/config"
 	"ticket-api/internal/middleware"
 	"ticket-api/internal/testutil"
 
@@ -187,6 +188,8 @@ func TestGuestCannotAccessProtectedEndpoints(t *testing.T) {
 		{http.MethodPost, "/api/v1/tickets/GetTicketsList/"},
 		{http.MethodPost, "/api/v1/users/GetUserByID/"},
 		{http.MethodPost, "/api/v1/tickets/GetTicketByID/"},
+		{http.MethodPost, "/api/v1/auth/SignUp/"},
+		{http.MethodPost, "/api/v1/auth/LoginWithNoAuth/"},
 	}
 
 	for _, route := range protectedRoutes {
@@ -198,6 +201,28 @@ func TestGuestCannotAccessProtectedEndpoints(t *testing.T) {
 				t.Errorf("expected 401, got %d", w.Code)
 			}
 		})
+	}
+}
+
+// TestGuestCanAccessCustomerFileEndpoints verifies that guest with Level 2 phone token
+// can reach the customer group endpoints like ticket file uploads and download links.
+func TestGuestCanAccessCustomerFileEndpoints(t *testing.T) {
+	app := testutil.SetupTestApp(t, nil)
+	guestPhoneToken := testutil.GenerateTestCaptchaTokenWithPhone(t, app.Services.Token, "127.0.0.1", "09121234567")
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/files/GetDownloadLinkTicketFile/test-object-name", bytes.NewBufferString(`{"id": "00000000-0000-0000-0000-000000000000"}`))
+	req.RemoteAddr = "127.0.0.1:12345"
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{
+		Name:  config.Get().Captcha.CookieName,
+		Value: guestPhoneToken,
+	})
+	w := httptest.NewRecorder()
+	app.Engine.ServeHTTP(w, req)
+
+	// Since it's valid Level 2 token, it passes middleware (won't be 401 Unauthorized).
+	if w.Code == http.StatusUnauthorized {
+		t.Errorf("expected Level 2 token to pass customer group middleware, got 401 Unauthorized")
 	}
 }
 

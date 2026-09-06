@@ -15,8 +15,8 @@ func TestAuthHandler_Endpoints(t *testing.T) {
 	app := testutil.SetupTestApp(t, nil)
 	defer app.DB.Close()
 
-	// 1. SignUp with Password (requires captcha cookie)
-	t.Run("POST /api/v1/auth/SignUp/ without captcha cookie -> 401", func(t *testing.T) {
+	// 1. SignUp with Password (requires admin/agent auth cookie)
+	t.Run("POST /api/v1/auth/SignUp/ without auth cookie -> 401", func(t *testing.T) {
 		body, _ := json.Marshal(dto.SignUpWithPasswordDTO{
 			Username:     "09121113344",
 			Password:     "password123",
@@ -33,8 +33,8 @@ func TestAuthHandler_Endpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/auth/SignUp/ with valid captcha cookie -> 200/201", func(t *testing.T) {
-		captchaToken := testutil.GenerateTestCaptchaToken(t, app.Services.Token, "")
+	t.Run("POST /api/v1/auth/SignUp/ with valid admin auth cookie -> 200/201", func(t *testing.T) {
+		adminToken := testutil.GenerateTestAuthToken(t, app.Services.Token, 1, "admin", []int64{1})
 
 		body, _ := json.Marshal(dto.SignUpWithPasswordDTO{
 			Username:     "09121113344",
@@ -45,8 +45,8 @@ func TestAuthHandler_Endpoints(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/SignUp/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(&http.Cookie{
-			Name:  config.Get().Captcha.CookieName,
-			Value: captchaToken,
+			Name:  config.Get().Auth.CookieName,
+			Value: adminToken,
 		})
 		w := httptest.NewRecorder()
 
@@ -85,9 +85,25 @@ func TestAuthHandler_Endpoints(t *testing.T) {
 		}
 	})
 
-	// 3. Login with No Auth (Guest/Auto-register)
-	t.Run("POST /api/v1/auth/LoginWithNoAuth/ -> 200/201", func(t *testing.T) {
-		captchaToken := testutil.GenerateTestCaptchaToken(t, app.Services.Token, "")
+	// 3. Login with No Auth (Admin/Agent provisioning)
+	t.Run("POST /api/v1/auth/LoginWithNoAuth/ without auth cookie -> 401", func(t *testing.T) {
+		body, _ := json.Marshal(dto.LoginWitNoAuthDTO{
+			Username:     "09125556677",
+			DepartmentID: 1,
+		})
+
+		req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/LoginWithNoAuth/", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+
+		app.Engine.ServeHTTP(w, req)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("expected 401 on unauthenticated LoginWithNoAuth, got %d", w.Code)
+		}
+	})
+
+	t.Run("POST /api/v1/auth/LoginWithNoAuth/ with admin auth cookie -> 200/201", func(t *testing.T) {
+		adminToken := testutil.GenerateTestAuthToken(t, app.Services.Token, 1, "admin", []int64{1})
 
 		body, _ := json.Marshal(dto.LoginWitNoAuthDTO{
 			Username:     "09125556677",
@@ -97,8 +113,8 @@ func TestAuthHandler_Endpoints(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/auth/LoginWithNoAuth/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(&http.Cookie{
-			Name:  config.Get().Captcha.CookieName,
-			Value: captchaToken,
+			Name:  config.Get().Auth.CookieName,
+			Value: adminToken,
 		})
 		w := httptest.NewRecorder()
 

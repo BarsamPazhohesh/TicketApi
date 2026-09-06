@@ -141,7 +141,9 @@ func SeedBaseData(t *testing.T, db *sql.DB) {
 			(2, 'users/GetUsersByIDs/', 'POST', 'Get users list', 1, datetime('now'), datetime('now')),
 			(3, 'users/GetUserByID/', 'POST', 'Get user by id', 1, datetime('now'), datetime('now')),
 			(4, 'users/GetUserByUsername/', 'POST', 'Get user by username', 1, datetime('now'), datetime('now')),
-			(5, 'tickets/GetTicketByID/', 'POST', 'Get ticket by ID', 1, datetime('now'), datetime('now'));`,
+			(5, 'tickets/GetTicketByID/', 'POST', 'Get ticket by ID', 1, datetime('now'), datetime('now')),
+			(6, 'auth/SignUp/', 'POST', 'Sign up user with password', 1, datetime('now'), datetime('now')),
+			(7, 'auth/LoginWithNoAuth/', 'POST', 'Login or create user with no auth', 1, datetime('now'), datetime('now'));`,
 
 		// Allow superadmin (role 1) and agent (role 2) on routes
 		`INSERT OR IGNORE INTO api_routes_roles_relation (api_route_id, role_id, status, created_at, updated_at) VALUES
@@ -149,7 +151,9 @@ func SeedBaseData(t *testing.T, db *sql.DB) {
 			(2, 1, 1, datetime('now'), datetime('now')), (2, 2, 1, datetime('now'), datetime('now')),
 			(3, 1, 1, datetime('now'), datetime('now')), (3, 2, 1, datetime('now'), datetime('now')),
 			(4, 1, 1, datetime('now'), datetime('now')), (4, 2, 1, datetime('now'), datetime('now')),
-			(5, 1, 1, datetime('now'), datetime('now')), (5, 2, 1, datetime('now'), datetime('now'));`,
+			(5, 1, 1, datetime('now'), datetime('now')), (5, 2, 1, datetime('now'), datetime('now')),
+			(6, 1, 1, datetime('now'), datetime('now')), (6, 2, 1, datetime('now'), datetime('now')),
+			(7, 1, 1, datetime('now'), datetime('now')), (7, 2, 1, datetime('now'), datetime('now'));`,
 
 		// Seed SMS types, messages, and relations for OTP templates
 		`INSERT OR IGNORE INTO sms_types (id, title, description, created_at, updated_at) VALUES
@@ -232,44 +236,59 @@ func SetupTestApp(t *testing.T, mongoDB *mongo.Database) *TestAppBundle {
 	}
 
 	v1 := g.Group("/api/v1")
+	v1.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
 	{
-		captchaGroup := v1.Group("")
-		captchaGroup.Use(middleware.CaptchaMiddleware(appServices.Token))
-		{
-			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, appHandlers.Auth.SignUpWithPassword)
-			captchaGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, appHandlers.Ticket.CreateTicketHandler)
-			captchaGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, appHandlers.Ticket.GetTicketByTrackCodeHandler)
-			captchaGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, appHandlers.Chat.CreateChatHandler)
-			captchaGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, appHandlers.Auth.LoginWithNoAuth)
-		}
-
-		loginGroup := v1.Group("")
-		loginGroup.POST(routes.APIRoutes.Auth.Login.Path, appHandlers.Auth.LoginWithPassword)
-
-		authGroup := v1.Group("")
-		authGroup.Use(middleware.AuthorizationMiddleware(appServices.Token))
-		authGroup.Use(middleware.DynamicRBACGuardMiddleware(secRegistry))
-		{
-			authGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, appHandlers.Ticket.GetTicketsListHandler)
-			authGroup.POST(routes.APIRoutes.Users.GetUsersByIDs.Path, appHandlers.User.GetUsersByIDs)
-			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, appHandlers.User.GetUserByID)
-			authGroup.POST(routes.APIRoutes.Users.GetUserByUsername.Path, appHandlers.User.GetUserByUsername)
-			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, appHandlers.Ticket.GetTicketByIDHandler)
-			authGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, appHandlers.File.UploadTicketFileHandler)
-			authGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, appHandlers.File.GetDownloadLinkTicketFileHandler)
-		}
-
+		// 1. Public Tier (Open lookups, Captcha, & Login)
 		publicGroup := v1.Group("")
 		{
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, appHandlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, appHandlers.Captcha.VerifyCaptchaHandler)
-			publicGroup.POST(routes.APIRoutes.OTP.SendOTP.Path, appHandlers.OTP.SendOTP)
-			publicGroup.POST(routes.APIRoutes.OTP.VerifyOTP.Path, appHandlers.OTP.VerifyOTP)
+			publicGroup.POST(routes.APIRoutes.Auth.Login.Path, appHandlers.Auth.LoginWithPassword)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, appHandlers.Auth.LoginWithOneTimeToken)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, appHandlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, appHandlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, appHandlers.Department.GetAllActiveDepartmentsHandler)
 			publicGroup.POST("tickets/CloseTicket/", appHandlers.Ticket.CloseTicketHandler)
+		}
+
+		// 2. Step-Up Level 1: OTP Tier (Human / Captcha Verified)
+		otpGroup := v1.Group("")
+		otpGroup.Use(middleware.CaptchaMiddleware(appServices.Token, false))
+		{
+			otpGroup.POST(routes.APIRoutes.OTP.SendOTP.Path, appHandlers.OTP.SendOTP)
+			otpGroup.POST(routes.APIRoutes.OTP.VerifyOTP.Path, appHandlers.OTP.VerifyOTP)
+		}
+
+		// 3. Step-Up Level 2: Customer & Guest Tier (Phone Verified OR Logged-in Auth Token)
+		customerGroup := v1.Group("")
+		customerGroup.Use(middleware.CaptchaMiddleware(appServices.Token, true))
+		{
+			customerGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, appHandlers.Ticket.CreateTicketHandler)
+			customerGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, appHandlers.Ticket.GetTicketByTrackCodeHandler)
+			customerGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, appHandlers.Chat.CreateChatHandler)
+			customerGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, appHandlers.File.UploadTicketFileHandler)
+			customerGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, appHandlers.File.GetDownloadLinkTicketFileHandler)
+		}
+
+		// 4. Staff & Admin RBAC Tier (Auth Token + Dynamic RBAC)
+		authGroup := v1.Group("")
+		authGroup.Use(middleware.AuthorizationMiddleware(appServices.Token))
+		authGroup.Use(middleware.DynamicRBACGuardMiddleware(secRegistry))
+		{
+			authGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, appHandlers.Ticket.GetTicketsListHandler)
+			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, appHandlers.Ticket.GetTicketByIDHandler)
+			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, appHandlers.User.GetUserByID)
+			authGroup.POST(routes.APIRoutes.Users.GetUserByUsername.Path, appHandlers.User.GetUserByUsername)
+			authGroup.POST(routes.APIRoutes.Users.GetUsersByIDs.Path, appHandlers.User.GetUsersByIDs)
+			authGroup.POST(routes.APIRoutes.Auth.SignUp.Path, appHandlers.Auth.SignUpWithPassword)
+			authGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, appHandlers.Auth.LoginWithNoAuth)
+		}
+
+		// 5. Machine-to-Machine Tier (API Key Guard)
+		apiKeyGroup := v1.Group("")
+		apiKeyGroup.Use(middleware.ApiKeyGuardMiddleware(appServices.Token, repos.APIKeys))
+		{
+			apiKeyGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, appHandlers.Auth.GetSingleUseToken)
 		}
 	}
 
@@ -300,8 +319,13 @@ func GenerateTestAuthToken(t *testing.T, tokenService *token.TokenService, userI
 
 // GenerateTestCaptchaToken returns a signed JWT for captcha tests
 func GenerateTestCaptchaToken(t *testing.T, tokenService *token.TokenService, ip string) string {
+	return GenerateTestCaptchaTokenWithPhone(t, tokenService, ip, "09121234567")
+}
+
+// GenerateTestCaptchaTokenWithPhone returns a signed JWT with specific phone number claim
+func GenerateTestCaptchaTokenWithPhone(t *testing.T, tokenService *token.TokenService, ip, phone string) string {
 	t.Helper()
-	token, apiErr := tokenService.NewCaptchaToken(ip, "09121234567")
+	token, apiErr := tokenService.NewCaptchaToken(ip, phone)
 	if apiErr != nil {
 		t.Fatalf("failed to generate captcha token: %v", apiErr)
 	}

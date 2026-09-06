@@ -36,61 +36,66 @@ func (app *application) routes() http.Handler {
 		MaxAge:           time.Duration(cfgCORS.MaxAgeHours) * time.Hour,
 	}))
 
+	cfgApp := config.Get().App
+	cfgRL := config.Get().RateLimit
+
 	v1 := g.Group("/api/v1")
+	v1.Use(middleware.LimitRequestBody(cfgApp.MaxJsonRequestSize))
 	{
-		captchaGroup := v1.Group("")
-		captchaGroup.Use(middleware.CaptchaMiddleware(app.services.Token))
-		captchaGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
-		captchaGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
-		{
-			captchaGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SignUpWithPassword)
-			captchaGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, app.handlers.Ticket.CreateTicketHandler)
-			captchaGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, app.handlers.Ticket.GetTicketByTrackCodeHandler)
-			captchaGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, app.handlers.Chat.CreateChatHandler)
-			captchaGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.Auth.LoginWithNoAuth)
-		}
-
-		LoginGroup := v1.Group("")
-		LoginGroup.Use(middleware.RateLimitMiddleware(app.redis, 10))
-		LoginGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
-
-		authGroup := v1.Group("")
-		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
-		authGroup.Use(middleware.DynamicRBACGuardMiddleware(app.security))
-		authGroup.Use(middleware.RateLimitMiddleware(app.redis, 15))
-		authGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
-		{
-			authGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
-			authGroup.POST(routes.APIRoutes.Users.GetUsersByIDs.Path, app.handlers.User.GetUsersByIDs)
-			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, app.handlers.User.GetUserByID)
-			authGroup.POST(routes.APIRoutes.Users.GetUserByUsername.Path, app.handlers.User.GetUserByUsername)
-			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, app.handlers.Ticket.GetTicketByIDHandler)
-			authGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, app.handlers.File.UploadTicketFileHandler)
-			authGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, app.handlers.File.GetDownloadLinkTicketFileHandler)
-		}
-
+		// 1. Public Tier (Open lookups, Captcha, & Login)
 		publicGroup := v1.Group("")
-		publicGroup.Use(middleware.RateLimitMiddleware(app.redis, 30))
-		publicGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
+		publicGroup.Use(middleware.RateLimitMiddleware(app.redis, cfgRL.Public))
 		{
 			publicGroup.GET(routes.APIRoutes.Captcha.GetCaptcha.Path, app.handlers.Captcha.GenerateCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, app.handlers.Captcha.VerifyCaptchaHandler)
-
-			publicGroup.POST(routes.APIRoutes.OTP.SendOTP.Path, app.handlers.OTP.SendOTP)
-			publicGroup.POST(routes.APIRoutes.OTP.VerifyOTP.Path, app.handlers.OTP.VerifyOTP)
-
+			publicGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, app.handlers.Auth.LoginWithOneTimeToken)
-
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, app.handlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, app.handlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, app.handlers.Department.GetAllActiveDepartmentsHandler)
 		}
 
-		_APIKeyGroup := v1.Group("")
-		_APIKeyGroup.Use(middleware.LimitRequestBody(config.Get().App.MaxJsonRequestSize))
-		_APIKeyGroup.Use(middleware.ApiKeyGuardMiddleware(app.services.Token, app.repos.APIKeys))
+		// 2. Step-Up Level 1: OTP Tier (Human / Captcha Verified)
+		otpGroup := v1.Group("")
+		otpGroup.Use(middleware.CaptchaMiddleware(app.services.Token, false))
+		otpGroup.Use(middleware.RateLimitMiddleware(app.redis, cfgRL.OTP))
 		{
-			_APIKeyGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, app.handlers.Auth.GetSingleUseToken)
+			otpGroup.POST(routes.APIRoutes.OTP.SendOTP.Path, app.handlers.OTP.SendOTP)
+			otpGroup.POST(routes.APIRoutes.OTP.VerifyOTP.Path, app.handlers.OTP.VerifyOTP)
+		}
+
+		// 3. Step-Up Level 2: Customer & Guest Tier (Phone Verified OR Logged-in Auth Token)
+		customerGroup := v1.Group("")
+		customerGroup.Use(middleware.CaptchaMiddleware(app.services.Token, true))
+		customerGroup.Use(middleware.RateLimitMiddleware(app.redis, cfgRL.Customer))
+		{
+			customerGroup.POST(routes.APIRoutes.Tickets.CreateTicket.Path, app.handlers.Ticket.CreateTicketHandler)
+			customerGroup.POST(routes.APIRoutes.Tickets.GetTicketByTrackCode.Path, app.handlers.Ticket.GetTicketByTrackCodeHandler)
+			customerGroup.POST(routes.APIRoutes.Tickets.CreateChat.Path, app.handlers.Chat.CreateChatHandler)
+			customerGroup.POST(routes.APIRoutes.Files.UploadTicketFile.Path, app.handlers.File.UploadTicketFileHandler)
+			customerGroup.POST(routes.APIRoutes.Files.GetDownloadLinkTicketFile.Path, app.handlers.File.GetDownloadLinkTicketFileHandler)
+		}
+
+		// 4. Staff & Admin RBAC Tier (Auth Token + Dynamic RBAC)
+		authGroup := v1.Group("")
+		authGroup.Use(middleware.AuthorizationMiddleware(app.services.Token))
+		authGroup.Use(middleware.DynamicRBACGuardMiddleware(app.security))
+		authGroup.Use(middleware.RateLimitMiddleware(app.redis, cfgRL.Auth))
+		{
+			authGroup.POST(routes.APIRoutes.Tickets.GetTicketsList.Path, app.handlers.Ticket.GetTicketsListHandler)
+			authGroup.POST(routes.APIRoutes.Tickets.GetTicketByID.Path, app.handlers.Ticket.GetTicketByIDHandler)
+			authGroup.POST(routes.APIRoutes.Users.GetUserByID.Path, app.handlers.User.GetUserByID)
+			authGroup.POST(routes.APIRoutes.Users.GetUserByUsername.Path, app.handlers.User.GetUserByUsername)
+			authGroup.POST(routes.APIRoutes.Users.GetUsersByIDs.Path, app.handlers.User.GetUsersByIDs)
+			authGroup.POST(routes.APIRoutes.Auth.SignUp.Path, app.handlers.Auth.SignUpWithPassword)
+			authGroup.POST(routes.APIRoutes.Auth.LoginWithNoAuth.Path, app.handlers.Auth.LoginWithNoAuth)
+		}
+
+		// 5. Machine-to-Machine Tier (API Key Guard)
+		apiKeyGroup := v1.Group("")
+		apiKeyGroup.Use(middleware.ApiKeyGuardMiddleware(app.services.Token, app.repos.APIKeys))
+		{
+			apiKeyGroup.POST(routes.APIRoutes.Auth.GetSingleUseToken.Path, app.handlers.Auth.GetSingleUseToken)
 		}
 	}
 
