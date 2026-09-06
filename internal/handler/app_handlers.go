@@ -28,7 +28,7 @@ func NewAppHandlers(repos *repository.AppRepositories, services *services.AppSer
 		Captcha:    NewCaptchaHandler(services.Captcha, services.Token),
 		Department: NewDepartmentHandler(repos.Departments),
 		File:       NewFileHandler(services.FileStorage),
-		OTP:        NewOTPHandler(services.OTP),
+		OTP:        NewOTPHandler(services.OTP, services.Token),
 	}
 }
 

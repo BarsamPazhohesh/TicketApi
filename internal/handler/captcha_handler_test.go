@@ -32,9 +32,8 @@ func TestCaptchaHandler_Endpoints(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(dto.CaptchaVerifyRequest{
-			ID:          res.ID,
-			Captcha:     res.Answer,
-			PhoneNumber: "09123456789",
+			ID:      res.ID,
+			Captcha: res.Answer,
 		})
 
 		req, _ := http.NewRequest(http.MethodPost, "/api/v1/captcha/VerifyCaptcha/", bytes.NewReader(body))

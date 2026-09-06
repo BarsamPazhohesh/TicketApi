@@ -4,18 +4,22 @@ import (
 	"net/http"
 	"ticket-api/internal/dto"
 	_ "ticket-api/internal/errx"
+	"ticket-api/internal/services/cookie"
 	"ticket-api/internal/services/otp"
+	"ticket-api/internal/services/token"
 
 	"github.com/gin-gonic/gin"
 )
 
 type OTPHandler struct {
-	OTPService *otp.OTPService
+	OTPService   *otp.OTPService
+	TokenService *token.TokenService
 }
 
-func NewOTPHandler(otpService *otp.OTPService) *OTPHandler {
+func NewOTPHandler(otpService *otp.OTPService, tokenService *token.TokenService) *OTPHandler {
 	return &OTPHandler{
-		OTPService: otpService,
+		OTPService:   otpService,
+		TokenService: tokenService,
 	}
 }
 
@@ -66,6 +70,16 @@ func (h *OTPHandler) VerifyOTP(c *gin.Context) {
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
+	}
+
+	if h.TokenService != nil {
+		tokenStr, tokenErr := h.TokenService.NewCaptchaToken(c.ClientIP(), req.PhoneNumber)
+		if tokenErr != nil {
+			c.JSON(tokenErr.HTTPStatus, tokenErr)
+			return
+		}
+		cookieService := cookie.NewCaptchaCookieService()
+		cookieService.Set(c, tokenStr)
 	}
 
 	c.JSON(http.StatusOK, res)

@@ -49,6 +49,15 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 		}
 	}
 
+	// For guest tickets, bind phone number directly to verified token claim
+	if currentUserID == 0 {
+		if guestPhone, exists := c.Get("guest_phone"); exists {
+			if phoneStr, ok := guestPhone.(string); ok && phoneStr != "" {
+				req.PhoneNumber = phoneStr
+			}
+		}
+	}
+
 	createdTicket, apiErr := h.ticketService.CreateTicket(c.Request.Context(), currentUserID, req)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
@@ -74,6 +83,12 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 	var req dto.TicketByTrackCodeRequestDTO
 	if !bindJSON(c, &req) {
 		return
+	}
+
+	if guestPhone, exists := c.Get("guest_phone"); exists {
+		if phoneStr, ok := guestPhone.(string); ok && phoneStr != "" {
+			req.PhoneNumber = &phoneStr
+		}
 	}
 
 	ticketDTO, apiErr := h.ticketService.GetTicketByTrackCode(c.Request.Context(), req)

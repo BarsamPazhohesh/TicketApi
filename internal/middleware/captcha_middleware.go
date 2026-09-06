@@ -11,7 +11,8 @@ import (
 )
 
 // CaptchaMiddleware ensures that either a valid auth token or a captcha token is present.
-func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
+// If requirePhone is true, the captcha token must contain a verified non-empty phone number.
+func CaptchaMiddleware(tokenService *token.TokenService, requirePhone bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		cookieService := cookie.NewCaptchaCookieService()
 		authService := cookie.NewAuthCookieService()
@@ -21,9 +22,10 @@ func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 		authToken, errCookie := authService.Get(c)
 		if errCookie == nil {
 			// Validate auth token
-			_, err := tokenService.ParseAuthToken(c.Request.Context(), authToken)
+			claims, err := tokenService.ParseAuthToken(c.Request.Context(), authToken)
 			if err == nil {
 				// Auth token is valid, skip captcha
+				c.Set("user", claims)
 				c.Next()
 				return
 			}
@@ -54,6 +56,17 @@ func CaptchaMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 			appErr := errx.Respond(errx.ErrUnauthorized, errors.New("user IP does not match captcha token IP"))
 			c.AbortWithStatusJSON(appErr.HTTPStatus, appErr)
 			return
+		}
+
+		// Check verified phone requirement for Level 2 actions
+		if requirePhone && parsedCaptchaToken.PhoneNumber == "" {
+			appErr := errx.Respond(errx.ErrUnauthorized, errors.New("phone verification required"))
+			c.AbortWithStatusJSON(appErr.HTTPStatus, appErr)
+			return
+		}
+
+		if parsedCaptchaToken.PhoneNumber != "" {
+			c.Set("guest_phone", parsedCaptchaToken.PhoneNumber)
 		}
 
 		c.Next()

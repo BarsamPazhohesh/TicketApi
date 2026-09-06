@@ -17,12 +17,9 @@ definitions:
         type: string
       id:
         type: string
-      phoneNumber:
-        type: string
     required:
     - captcha
     - id
-    - phoneNumber
     type: object
   dto.ChatMessageCreateRequest:
     properties:

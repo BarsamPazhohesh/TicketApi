@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/testutil"
 	"time"
@@ -48,12 +49,18 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 	defer app.DB.Close()
 
 	phone := "09121234567"
+	captchaToken := testutil.GenerateTestCaptchaTokenWithPhone(t, app.Services.Token, "", "")
+	captchaCookieName := config.Get().Captcha.CookieName
 
 	// ─── STEP 1: Client requests OTP via HTTP endpoint ───
 	t.Log("🚀 [STEP 1]: Client requests OTP")
 	sendBody, _ := json.Marshal(dto.SendOTPDTO{PhoneNumber: phone})
 	reqSend, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/send/", bytes.NewReader(sendBody))
 	reqSend.Header.Set("Content-Type", "application/json")
+	reqSend.AddCookie(&http.Cookie{
+		Name:  captchaCookieName,
+		Value: captchaToken,
+	})
 	wSend := httptest.NewRecorder()
 
 	app.Engine.ServeHTTP(wSend, reqSend)
@@ -111,6 +118,10 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 	})
 	reqWrong, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/verify/", bytes.NewReader(wrongBody))
 	reqWrong.Header.Set("Content-Type", "application/json")
+	reqWrong.AddCookie(&http.Cookie{
+		Name:  captchaCookieName,
+		Value: captchaToken,
+	})
 	wWrong := httptest.NewRecorder()
 
 	app.Engine.ServeHTTP(wWrong, reqWrong)
@@ -126,6 +137,10 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 	})
 	reqCorrect, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/verify/", bytes.NewReader(correctBody))
 	reqCorrect.Header.Set("Content-Type", "application/json")
+	reqCorrect.AddCookie(&http.Cookie{
+		Name:  captchaCookieName,
+		Value: captchaToken,
+	})
 	wCorrect := httptest.NewRecorder()
 
 	app.Engine.ServeHTTP(wCorrect, reqCorrect)
@@ -144,10 +159,31 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 		t.Fatalf("expected Persian message 'تایید با موفقیت انجام شد', got: %s", verifyResp.Message)
 	}
 
+	// Verify Level 2 elevated cookie
+	cookies := wCorrect.Result().Cookies()
+	var elevatedCaptchaToken string
+	for _, ck := range cookies {
+		if ck.Name == captchaCookieName {
+			elevatedCaptchaToken = ck.Value
+			break
+		}
+	}
+	if elevatedCaptchaToken == "" {
+		t.Fatal("expected captcha_token cookie with verified phone on verify success")
+	}
+	claims, errParse := app.Services.Token.ParseCaptchaToken(elevatedCaptchaToken)
+	if errParse != nil || claims.PhoneNumber != phone {
+		t.Fatalf("expected elevated captcha token with phone %s, got: %+v", phone, claims)
+	}
+
 	// ─── STEP 5: Replay attack check (code must be single-use) ───
 	t.Log("🔒 [STEP 5]: Reusing consumed code should fail")
 	reqReplay, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/verify/", bytes.NewReader(correctBody))
 	reqReplay.Header.Set("Content-Type", "application/json")
+	reqReplay.AddCookie(&http.Cookie{
+		Name:  captchaCookieName,
+		Value: captchaToken,
+	})
 	wReplay := httptest.NewRecorder()
 
 	app.Engine.ServeHTTP(wReplay, reqReplay)
