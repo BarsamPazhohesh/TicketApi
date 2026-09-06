@@ -151,6 +151,12 @@ ticket:
 api_key:
   size: 32 # API Key size in bytes
 
+rate_limit:
+  public: 30
+  otp: 10
+  customer: 30
+  auth: 15
+
 otp:
   code_ttl_minutes: 2 # OTP code expiration time (minutes)
   retry_interval_minutes: 5 # Retry interval for pending SMS records (minutes)

@@ -97,6 +97,13 @@ type Config struct {
 		AcceptableFilesForUpload []string `yaml:"acceptable_files_for_upload"`
 	} `yaml:"ticket"`
 
+	RateLimit struct {
+		Public   int `yaml:"public"`
+		OTP      int `yaml:"otp"`
+		Customer int `yaml:"customer"`
+		Auth     int `yaml:"auth"`
+	} `yaml:"rate_limit"`
+
 	OTP struct {
 		CodeTTLMinutes       int `yaml:"code_ttl_minutes"`
 		RetryIntervalMinutes int `yaml:"retry_interval_minutes"`
