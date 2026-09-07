@@ -101,6 +101,48 @@ func (c *CacheService) Get(ctx context.Context, key string, dest interface{}) (b
 	return true, nil
 }
 
+// Incr increments an integer counter atomically and sets TTL if newly created
+func (c *CacheService) Incr(ctx context.Context, key string, ttl time.Duration) (int64, error) {
+	if c == nil {
+		return 0, nil
+	}
+
+	if c.redis != nil {
+		val, err := c.redis.Incr(ctx, key).Result()
+		if err != nil {
+			return 0, err
+		}
+		if val == 1 && ttl > 0 {
+			_ = c.redis.Expire(ctx, key, ttl).Err()
+		}
+		return val, nil
+	}
+
+	// In-memory fallback with mutex
+	c.memoryMu.Lock()
+	defer c.memoryMu.Unlock()
+
+	var current int64
+	item, ok := c.memory[key]
+	if ok && (item.expiresAt.IsZero() || time.Now().Before(item.expiresAt)) {
+		_ = json.Unmarshal(item.data, &current)
+	}
+
+	current++
+	data, _ := json.Marshal(current)
+
+	var exp time.Time
+	if ttl > 0 {
+		exp = time.Now().Add(ttl)
+	}
+
+	c.memory[key] = memoryItem{
+		data:      data,
+		expiresAt: exp,
+	}
+	return current, nil
+}
+
 // Delete key (for invalidation)
 func (c *CacheService) Delete(ctx context.Context, key string) error {
 	if c == nil {

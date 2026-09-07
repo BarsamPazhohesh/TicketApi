@@ -51,6 +51,30 @@ definitions:
       updatedAt:
         type: string
     type: object
+  dto.CheckTokenResponseDTO:
+    properties:
+      permissions:
+        items:
+          type: string
+        type: array
+      phoneNumber:
+        type: string
+      phoneVerified:
+        type: boolean
+      roleIds:
+        items:
+          type: integer
+        type: array
+      tokenType:
+        description: '"auth" | "guest" | "captcha" | "none"'
+        type: string
+      userId:
+        type: integer
+      username:
+        type: string
+      valid:
+        type: boolean
+    type: object
   dto.DepartmentDTO:
     properties:
       description:
@@ -363,6 +387,7 @@ definitions:
     - 26
     - 27
     - 28
+    - 29
     type: integer
     x-enum-varnames:
     - ErrInternalServerError
@@ -394,11 +419,27 @@ definitions:
     - ErrOTPExpired
     - ErrOTPInvalid
     - ErrOTPSendFailed
+    - ErrOTPMaxAttemptsExceeded
 info:
   contact: {}
   title: Ticket API
   version: "1.0"
 paths:
+  /auth/CheckToken/:
+    get:
+      description: Inspects session cookies (auth_token, captcha_token) without triggering
+        401 unauthenticated errors. Returns token metadata and phone verification
+        state.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CheckTokenResponseDTO'
+      summary: Check token validation status
+      tags:
+      - auth
   /auth/GetSingleUseToken/:
     post:
       consumes:

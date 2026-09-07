@@ -110,4 +110,47 @@ func TestOTPService_Flow(t *testing.T) {
 			t.Fatalf("expected ErrOTPExpired, got code %d", apiErr.Err.Code)
 		}
 	})
+
+	t.Run("VerifyOTP max attempts lockout and reset", func(t *testing.T) {
+		testPhone := "09123334455"
+		// Seed code in cache directly
+		_ = cacheSvc.Set(ctx, "otp:"+testPhone, "123456", 2*time.Minute)
+
+		// 4 failed attempts -> ErrOTPInvalid
+		for i := 1; i <= 4; i++ {
+			_, apiErr := otpSvc.VerifyOTP(ctx, testPhone, "000000")
+			if apiErr == nil || apiErr.Err.Code != errx.ErrOTPInvalid {
+				t.Fatalf("attempt %d: expected ErrOTPInvalid, got: %v", i, apiErr)
+			}
+		}
+
+		// 5th failed attempt -> ErrOTPMaxAttemptsExceeded
+		_, apiErr5 := otpSvc.VerifyOTP(ctx, testPhone, "000000")
+		if apiErr5 == nil || apiErr5.Err.Code != errx.ErrOTPMaxAttemptsExceeded {
+			t.Fatalf("attempt 5: expected ErrOTPMaxAttemptsExceeded, got: %v", apiErr5)
+		}
+
+		// 6th attempt -> ErrOTPExpired (code purged)
+		_, apiErr6 := otpSvc.VerifyOTP(ctx, testPhone, "123456")
+		if apiErr6 == nil || apiErr6.Err.Code != errx.ErrOTPExpired {
+			t.Fatalf("attempt 6: expected ErrOTPExpired after lockout purge, got: %v", apiErr6)
+		}
+
+		// Resend OTP -> resets attempts counter and allows valid verification
+		_, sendErr := otpSvc.SendOTP(ctx, testPhone)
+		if sendErr != nil {
+			t.Fatalf("SendOTP failed: %v", sendErr)
+		}
+
+		var freshCode string
+		found, _ := cacheSvc.Get(ctx, "otp:"+testPhone, &freshCode)
+		if !found || freshCode == "" {
+			t.Fatal("expected fresh OTP code in cache")
+		}
+
+		successResp, verifyErr := otpSvc.VerifyOTP(ctx, testPhone, freshCode)
+		if verifyErr != nil || !successResp.Valid {
+			t.Fatalf("expected successful verification on reset, got: %v", verifyErr)
+		}
+	})
 }

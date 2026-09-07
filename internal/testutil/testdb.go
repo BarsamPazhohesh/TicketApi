@@ -245,6 +245,7 @@ func SetupTestApp(t *testing.T, mongoDB *mongo.Database) *TestAppBundle {
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, appHandlers.Captcha.VerifyCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Auth.Login.Path, appHandlers.Auth.LoginWithPassword)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, appHandlers.Auth.LoginWithOneTimeToken)
+			publicGroup.GET(routes.APIRoutes.Auth.CheckToken.Path, appHandlers.Auth.CheckToken)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, appHandlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, appHandlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, appHandlers.Department.GetAllActiveDepartmentsHandler)

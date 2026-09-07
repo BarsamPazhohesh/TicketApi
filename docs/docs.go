@@ -15,6 +15,26 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/CheckToken/": {
+            "get": {
+                "description": "Inspects session cookies (auth_token, captcha_token) without triggering 401 unauthenticated errors. Returns token metadata and phone verification state.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Check token validation status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CheckTokenResponseDTO"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/GetSingleUseToken/": {
             "post": {
                 "description": "Returns a one-time JWT token to authenticate on another service",
@@ -1175,6 +1195,42 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CheckTokenResponseDTO": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "phoneNumber": {
+                    "type": "string"
+                },
+                "phoneVerified": {
+                    "type": "boolean"
+                },
+                "roleIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "tokenType": {
+                    "description": "\"auth\" | \"guest\" | \"captcha\" | \"none\"",
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
         "dto.DepartmentDTO": {
             "type": "object",
             "properties": {
@@ -1634,7 +1690,8 @@ const docTemplate = `{
                 25,
                 26,
                 27,
-                28
+                28,
+                29
             ],
             "x-enum-varnames": [
                 "ErrInternalServerError",
@@ -1665,7 +1722,8 @@ const docTemplate = `{
                 "ErrNotFound",
                 "ErrOTPExpired",
                 "ErrOTPInvalid",
-                "ErrOTPSendFailed"
+                "ErrOTPSendFailed",
+                "ErrOTPMaxAttemptsExceeded"
             ]
         }
     }

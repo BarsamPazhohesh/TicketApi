@@ -193,3 +193,79 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 
 	t.Log("🎉 [SCENARIO PASSED]: Full OTP send, validation, and single-use lifecycle verified.")
 }
+
+// TestScenario_OTPMaxVerificationAttemptsLockout tests the 5-attempt lockout and OTP code eviction
+func TestScenario_OTPMaxVerificationAttemptsLockout(t *testing.T) {
+	// 1. Mock SMS Provider Gateway
+	smsServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("123456\n<html>success</html>"))
+	}))
+	defer smsServer.Close()
+
+	_ = os.Setenv("OTP_URL", smsServer.URL)
+	_ = os.Setenv("OTP_USERNAME", "test_user")
+	_ = os.Setenv("OTP_PASSWORD", "test_pass")
+	_ = os.Setenv("OTP_SENDER_NUMBER", "1000")
+
+	app := testutil.SetupTestApp(t, nil)
+	defer app.DB.Close()
+
+	phone := "09127778899"
+	captchaToken := testutil.GenerateTestCaptchaTokenWithPhone(t, app.Services.Token, "", "")
+	captchaCookieName := config.Get().Captcha.CookieName
+
+	// ─── Step 1: Send OTP ───
+	sendBody, _ := json.Marshal(dto.SendOTPDTO{PhoneNumber: phone})
+	reqSend, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/send/", bytes.NewReader(sendBody))
+	reqSend.Header.Set("Content-Type", "application/json")
+	reqSend.AddCookie(&http.Cookie{Name: captchaCookieName, Value: captchaToken})
+	wSend := httptest.NewRecorder()
+	app.Engine.ServeHTTP(wSend, reqSend)
+	if wSend.Code != http.StatusOK {
+		t.Fatalf("expected 200 on SendOTP, got %d", wSend.Code)
+	}
+
+	wrongVerifyBody, _ := json.Marshal(dto.VerifyOTPDTO{
+		PhoneNumber: phone,
+		Code:        "000000",
+	})
+
+	// ─── Step 2: Attempts 1 through 4 should fail with ErrOTPInvalid (400) ───
+	for attempt := 1; attempt <= 4; attempt++ {
+		req, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/verify/", bytes.NewReader(wrongVerifyBody))
+		req.Header.Set("Content-Type", "application/json")
+		req.AddCookie(&http.Cookie{Name: captchaCookieName, Value: captchaToken})
+		w := httptest.NewRecorder()
+		app.Engine.ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("attempt %d: expected 400 Bad Request, got %d", attempt, w.Code)
+		}
+	}
+
+	// ─── Step 3: Attempt 5 should reach lockout limit and return ErrOTPMaxAttemptsExceeded (400) ───
+	req5, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/verify/", bytes.NewReader(wrongVerifyBody))
+	req5.Header.Set("Content-Type", "application/json")
+	req5.AddCookie(&http.Cookie{Name: captchaCookieName, Value: captchaToken})
+	w5 := httptest.NewRecorder()
+	app.Engine.ServeHTTP(w5, req5)
+	if w5.Code != http.StatusBadRequest {
+		t.Fatalf("attempt 5: expected 400 Bad Request, got %d", w5.Code)
+	}
+	if !strings.Contains(w5.Body.String(), "حد مجاز خطا در وارد کردن کد یکبار مصرف به پایان رسید") {
+		t.Fatalf("attempt 5: expected Persian max attempts error message, got: %s", w5.Body.String())
+	}
+
+	// ─── Step 4: Attempt 6 should immediately return ErrOTPExpired (code was purged from cache) ───
+	req6, _ := http.NewRequest(http.MethodPost, "/api/v1/otp/verify/", bytes.NewReader(wrongVerifyBody))
+	req6.Header.Set("Content-Type", "application/json")
+	req6.AddCookie(&http.Cookie{Name: captchaCookieName, Value: captchaToken})
+	w6 := httptest.NewRecorder()
+	app.Engine.ServeHTTP(w6, req6)
+	if w6.Code != http.StatusBadRequest {
+		t.Fatalf("attempt 6: expected 400 Bad Request, got %d", w6.Code)
+	}
+	if !strings.Contains(w6.Body.String(), "کد تایید منقضی شده است") {
+		t.Fatalf("attempt 6: expected ErrOTPExpired message after code eviction, got: %s", w6.Body.String())
+	}
+}

@@ -150,3 +150,15 @@ func (h *AuthHandler) LoginWithOneTimeToken(c *gin.Context) {
 
 	c.JSON(200, nil)
 }
+
+// CheckToken godoc
+// @Summary      Check token validation status
+// @Description  Inspects session cookies (auth_token, captcha_token) without triggering 401 unauthenticated errors. Returns token metadata and phone verification state.
+// @Tags         auth
+// @Produce      json
+// @Success      200 {object} dto.CheckTokenResponseDTO
+// @Router       /auth/CheckToken/ [get]
+func (h *AuthHandler) CheckToken(c *gin.Context) {
+	res := h.AuthService.CheckToken(c)
+	c.JSON(200, res)
+}

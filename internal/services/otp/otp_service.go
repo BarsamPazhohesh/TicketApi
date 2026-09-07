@@ -3,6 +3,7 @@ package otp
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"fmt"
 	"io"
 	"log"
@@ -24,7 +25,9 @@ import (
 const (
 	defaultOTPTTLMinutes         = 2
 	defaultRetryIntervalMinutes  = 5
+	defaultMaxVerifyAttempts     = 5
 	otpCachePrefix               = "otp:"
+	otpAttemptsPrefix            = "otp:attempts:"
 )
 
 type SMSConfig struct {
@@ -103,6 +106,9 @@ func (s *OTPService) SendOTP(ctx context.Context, phone string) (*dto.SendOTPRes
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
 
+	// Reset any previous failed attempts counter for this phone
+	_ = s.cache.Delete(ctx, otpAttemptsPrefix+phone)
+
 	// Fetch message template from SMSLoader (DB-backed, in-memory cached)
 	msgTemplate := "کد تایید شما: %s"
 	if s.smsLoader != nil {
@@ -152,12 +158,33 @@ func (s *OTPService) VerifyOTP(ctx context.Context, phone, code string) (*dto.Ve
 		return nil, errx.Respond(errx.ErrOTPExpired, nil)
 	}
 
-	if cachedCode != code {
+	if subtle.ConstantTimeCompare([]byte(cachedCode), []byte(code)) != 1 {
+		attemptsKey := otpAttemptsPrefix + phone
+
+		ttlMinutes := config.Get().OTP.CodeTTLMinutes
+		if ttlMinutes <= 0 {
+			ttlMinutes = defaultOTPTTLMinutes
+		}
+		attempts, _ := s.cache.Incr(ctx, attemptsKey, time.Duration(ttlMinutes)*time.Minute)
+
+		maxAttempts := int64(config.Get().OTP.MaxVerifyAttempts)
+		if maxAttempts <= 0 {
+			maxAttempts = defaultMaxVerifyAttempts
+		}
+
+		if attempts >= maxAttempts {
+			// Lockout threshold reached: purge OTP code and attempts counter
+			_ = s.cache.Delete(ctx, cacheKey)
+			_ = s.cache.Delete(ctx, attemptsKey)
+			return nil, errx.Respond(errx.ErrOTPMaxAttemptsExceeded, nil)
+		}
+
 		return nil, errx.Respond(errx.ErrOTPInvalid, nil)
 	}
 
 	// Consume OTP upon successful verification (single-use)
 	_ = s.cache.Delete(ctx, cacheKey)
+	_ = s.cache.Delete(ctx, otpAttemptsPrefix+phone)
 
 	return &dto.VerifyOTPResponseDTO{
 		Valid:   true,

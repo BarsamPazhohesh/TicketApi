@@ -48,6 +48,7 @@ const (
 	ErrOTPExpired
 	ErrOTPInvalid
 	ErrOTPSendFailed
+	ErrOTPMaxAttemptsExceeded
 )
 
 //
@@ -138,6 +139,7 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrOTPExpired:               {"کد تایید منقضی شده است", http.StatusBadRequest},
 			ErrOTPInvalid:               {"کد تایید نامعتبر است", http.StatusBadRequest},
 			ErrOTPSendFailed:            {"ارسال پیامک با خطا مواجه شد", http.StatusInternalServerError},
+			ErrOTPMaxAttemptsExceeded:   {"حد مجاز خطا در وارد کردن کد یکبار مصرف به پایان رسید. لطفاً مجدداً درخواست دهید.", http.StatusBadRequest},
 		},
 		db: db,
 	}

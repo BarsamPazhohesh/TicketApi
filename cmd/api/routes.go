@@ -50,6 +50,7 @@ func (app *application) routes() http.Handler {
 			publicGroup.POST(routes.APIRoutes.Captcha.VerifyCaptcha.Path, app.handlers.Captcha.VerifyCaptchaHandler)
 			publicGroup.POST(routes.APIRoutes.Auth.Login.Path, app.handlers.Auth.LoginWithPassword)
 			publicGroup.GET(routes.APIRoutes.Auth.LoginWithSingleUseToken.Path, app.handlers.Auth.LoginWithOneTimeToken)
+			publicGroup.GET(routes.APIRoutes.Auth.CheckToken.Path, app.handlers.Auth.CheckToken)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketTypes.Path, app.handlers.Ticket.GetAllActiveTicketTypesHandler)
 			publicGroup.GET(routes.APIRoutes.Tickets.GetAllActiveTicketStatuses.Path, app.handlers.Ticket.GetAllActiveTicketStatusesHandler)
 			publicGroup.GET(routes.APIRoutes.Departments.GetAllActiveDepartments.Path, app.handlers.Department.GetAllActiveDepartmentsHandler)

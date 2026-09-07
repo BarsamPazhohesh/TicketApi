@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"ticket-api/internal/config"
 	"ticket-api/internal/db/users"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
@@ -145,4 +146,57 @@ func (s *AuthService) LoginWithOneTimeToken(c *gin.Context, tokenString string) 
 	c.SetSameSite(http.SameSiteLaxMode)
 	s.cookieService.Set(c, jwtToken)
 	return nil
+}
+
+// CheckToken evaluates auth_token and captcha_token cookies and returns token validation metadata
+func (s *AuthService) CheckToken(c *gin.Context) *dto.CheckTokenResponseDTO {
+	// Priority 1: Check auth_token cookie
+	authToken, errCookie := s.cookieService.Get(c)
+	if errCookie == nil && authToken != "" {
+		claims, err := s.tokenService.ParseAuthToken(c.Request.Context(), authToken)
+		if err == nil && claims != nil {
+			return &dto.CheckTokenResponseDTO{
+				Valid:         true,
+				TokenType:     "auth",
+				UserID:        &claims.UserID,
+				Username:      claims.Username,
+				PhoneNumber:   claims.PhoneNumber,
+				RoleIDs:       claims.RoleIDs,
+				Permissions:   claims.Permissions,
+				PhoneVerified: true,
+			}
+		}
+	}
+
+	// Priority 2: Check captcha_token cookie
+	captchaCookieService := cookie.NewCaptchaCookieService()
+	captchaToken, errCaptcha := captchaCookieService.Get(c)
+	if errCaptcha == nil && captchaToken != "" {
+		claims, err := s.tokenService.ParseCaptchaToken(captchaToken)
+		if err == nil && claims != nil {
+			userIP := c.ClientIP()
+			if !config.Get().Captcha.ValidateIP || claims.IP == userIP {
+				if claims.PhoneNumber != "" {
+					return &dto.CheckTokenResponseDTO{
+						Valid:         true,
+						TokenType:     "guest",
+						PhoneNumber:   claims.PhoneNumber,
+						PhoneVerified: true,
+					}
+				}
+				return &dto.CheckTokenResponseDTO{
+					Valid:         true,
+					TokenType:     "captcha",
+					PhoneVerified: false,
+				}
+			}
+		}
+	}
+
+	// Priority 3: No valid token found
+	return &dto.CheckTokenResponseDTO{
+		Valid:         false,
+		TokenType:     "none",
+		PhoneVerified: false,
+	}
 }

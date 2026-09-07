@@ -159,6 +159,17 @@ Ticket pagination limits and file upload constraints (`internal/repository/ticke
 
 ---
 
+### `otp`
+SMS OTP verification settings (`internal/services/otp/otp_service.go`).
+
+| Field | Type | Default in `config.yaml` | Effects & Scope |
+| :--- | :--- | :--- | :--- |
+| `code_ttl_minutes` | integer | `2` | TTL in minutes for generated OTP codes. |
+| `retry_interval_minutes` | integer | `5` | Periodic worker retry interval for pending/failed SMS records in `sms_warehouse`. |
+| `max_verify_attempts` | integer | `5` | Maximum failed OTP verification attempts before lockout and code eviction. |
+
+---
+
 ## 3. Environment Variables Reference
 
 Environment variables take precedence for secrets and runtime modes:

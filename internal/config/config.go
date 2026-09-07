@@ -107,6 +107,7 @@ type Config struct {
 	OTP struct {
 		CodeTTLMinutes       int `yaml:"code_ttl_minutes"`
 		RetryIntervalMinutes int `yaml:"retry_interval_minutes"`
+		MaxVerifyAttempts    int `yaml:"max_verify_attempts"`
 	} `yaml:"otp"`
 }
 

@@ -65,6 +65,7 @@ type auth struct {
 	Login                   _APIRoute
 	GetSingleUseToken       _APIRoute
 	LoginWithSingleUseToken _APIRoute
+	CheckToken              _APIRoute
 }
 
 type users struct {
@@ -114,6 +115,7 @@ var APIRoutes = _APIEndpoints{
 		Login:                   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "Login/"), method: string(PostMethod), Status: true},
 		GetSingleUseToken:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "GetSingleUseToken/"), method: string(PostMethod), Status: false},
 		LoginWithSingleUseToken: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithSingleUseToken/"), method: string(GetMethod), Status: false},
+		CheckToken:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "CheckToken/"), method: string(GetMethod), Status: true},
 	},
 	Captcha: captcha{
 		GetCaptcha:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "GetCaptcha/"), method: string(GetMethod), Status: true},
@@ -159,6 +161,7 @@ func IsRouteEnabled(path, method string) bool {
 		APIRoutes.Auth.Login,
 		APIRoutes.Auth.GetSingleUseToken,
 		APIRoutes.Auth.LoginWithSingleUseToken,
+		APIRoutes.Auth.CheckToken,
 		APIRoutes.Captcha.GetCaptcha,
 		APIRoutes.Captcha.VerifyCaptcha,
 		APIRoutes.Departments.GetAllActiveDepartments,

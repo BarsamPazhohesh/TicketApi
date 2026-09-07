@@ -123,4 +123,100 @@ func TestAuthHandler_Endpoints(t *testing.T) {
 			t.Fatalf("expected 200/201 on NoAuth login, got %d", w.Code)
 		}
 	})
+
+	// 4. GET /api/v1/auth/CheckToken/ tests
+	t.Run("GET /api/v1/auth/CheckToken/ without cookies -> valid: false, tokenType: none", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/auth/CheckToken/", nil)
+		w := httptest.NewRecorder()
+
+		app.Engine.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected 200 OK on CheckToken, got %d", w.Code)
+		}
+
+		var resp dto.CheckTokenResponseDTO
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to decode CheckToken response: %v", err)
+		}
+
+		if resp.Valid || resp.TokenType != "none" || resp.PhoneVerified {
+			t.Fatalf("expected valid: false, tokenType: none, phoneVerified: false, got: %+v", resp)
+		}
+	})
+
+	t.Run("GET /api/v1/auth/CheckToken/ with valid captcha cookie (no phone) -> tokenType: captcha", func(t *testing.T) {
+		captchaToken := testutil.GenerateTestCaptchaTokenWithPhone(t, app.Services.Token, "", "")
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/auth/CheckToken/", nil)
+		req.AddCookie(&http.Cookie{
+			Name:  config.Get().Captcha.CookieName,
+			Value: captchaToken,
+		})
+		w := httptest.NewRecorder()
+
+		app.Engine.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected 200 OK on CheckToken, got %d", w.Code)
+		}
+
+		var resp dto.CheckTokenResponseDTO
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to decode CheckToken response: %v", err)
+		}
+
+		if !resp.Valid || resp.TokenType != "captcha" || resp.PhoneVerified {
+			t.Fatalf("expected valid: true, tokenType: captcha, phoneVerified: false, got: %+v", resp)
+		}
+	})
+
+	t.Run("GET /api/v1/auth/CheckToken/ with verified phone captcha cookie -> tokenType: guest", func(t *testing.T) {
+		guestPhone := "09129998877"
+		captchaToken := testutil.GenerateTestCaptchaTokenWithPhone(t, app.Services.Token, "", guestPhone)
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/auth/CheckToken/", nil)
+		req.AddCookie(&http.Cookie{
+			Name:  config.Get().Captcha.CookieName,
+			Value: captchaToken,
+		})
+		w := httptest.NewRecorder()
+
+		app.Engine.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected 200 OK on CheckToken, got %d", w.Code)
+		}
+
+		var resp dto.CheckTokenResponseDTO
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to decode CheckToken response: %v", err)
+		}
+
+		if !resp.Valid || resp.TokenType != "guest" || !resp.PhoneVerified || resp.PhoneNumber != guestPhone {
+			t.Fatalf("expected valid: true, tokenType: guest, phoneVerified: true, phone: %s, got: %+v", guestPhone, resp)
+		}
+	})
+
+	t.Run("GET /api/v1/auth/CheckToken/ with valid auth cookie -> tokenType: auth", func(t *testing.T) {
+		authToken := testutil.GenerateTestAuthToken(t, app.Services.Token, 42, "09121234567", []int64{1, 2})
+
+		req, _ := http.NewRequest(http.MethodGet, "/api/v1/auth/CheckToken/", nil)
+		req.AddCookie(&http.Cookie{
+			Name:  config.Get().Auth.CookieName,
+			Value: authToken,
+		})
+		w := httptest.NewRecorder()
+
+		app.Engine.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected 200 OK on CheckToken, got %d", w.Code)
+		}
+
+		var resp dto.CheckTokenResponseDTO
+		if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+			t.Fatalf("failed to decode CheckToken response: %v", err)
+		}
+
+		if !resp.Valid || resp.TokenType != "auth" || !resp.PhoneVerified || resp.UserID == nil || *resp.UserID != 42 || resp.Username != "09121234567" {
+			t.Fatalf("expected valid: true, tokenType: auth, userId: 42, username: 09121234567, got: %+v", resp)
+		}
+	})
 }
