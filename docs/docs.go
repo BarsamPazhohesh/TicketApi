@@ -1382,13 +1382,7 @@ const docTemplate = `{
                 "trackCode"
             ],
             "properties": {
-                "phoneNumber": {
-                    "type": "string"
-                },
                 "trackCode": {
-                    "type": "string"
-                },
-                "username": {
                     "type": "string"
                 }
             }
@@ -1413,9 +1407,6 @@ const docTemplate = `{
                 },
                 "departmentId": {
                     "type": "integer"
-                },
-                "phoneNumber": {
-                    "type": "string"
                 },
                 "ticketTypeId": {
                     "type": "integer"

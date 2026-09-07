@@ -17,8 +17,9 @@ func NewSMSWarehouseRepository(queries *sms_warehouse.Queries) *SMSWarehouseRepo
 	}
 }
 
-func (repo *SMSWarehouseRepository) Create(ctx context.Context, phone, message string, status dto.SMSStatus) (*dto.SMSWarehouseDTO, *errx.APIError) {
+func (repo *SMSWarehouseRepository) Create(ctx context.Context, smsTypeID int64, phone, message string, status dto.SMSStatus) (*dto.SMSWarehouseDTO, *errx.APIError) {
 	record, err := repo.queries.CreateSMSWarehouseRecord(ctx, sms_warehouse.CreateSMSWarehouseRecordParams{
+		SmsTypeID:           smsTypeID,
 		ReceiverPhoneNumber: phone,
 		Message:             message,
 		Status:              int64(status),
@@ -49,7 +50,7 @@ func (repo *SMSWarehouseRepository) GetPending(ctx context.Context) ([]dto.SMSWa
 
 	result := make([]dto.SMSWarehouseDTO, 0, len(records))
 	for _, r := range records {
-		result = append(result, *dto.ToSMSWarehouseDTO(r))
+		result = append(result, *dto.FromGetPendingSMSWarehouseRecordsRow(r))
 	}
 	return result, nil
 }
@@ -59,5 +60,5 @@ func (repo *SMSWarehouseRepository) GetByID(ctx context.Context, id int64) (*dto
 	if err != nil {
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
-	return dto.ToSMSWarehouseDTO(record), nil
+	return dto.FromGetSMSWarehouseByIDRow(record), nil
 }

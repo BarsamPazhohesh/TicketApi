@@ -1374,13 +1374,7 @@
                 "trackCode"
             ],
             "properties": {
-                "phoneNumber": {
-                    "type": "string"
-                },
                 "trackCode": {
-                    "type": "string"
-                },
-                "username": {
                     "type": "string"
                 }
             }
@@ -1405,9 +1399,6 @@
                 },
                 "departmentId": {
                     "type": "integer"
-                },
-                "phoneNumber": {
-                    "type": "string"
                 },
                 "ticketTypeId": {
                     "type": "integer"

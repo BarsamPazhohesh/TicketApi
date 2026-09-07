@@ -1,10 +1,11 @@
 -- name: CreateSMSWarehouseRecord :one
 INSERT INTO sms_warehouse (
+    sms_type_id,
     receiver_phone_number,
     message,
     status
 ) VALUES (
-    ?, ?, ?
+    ?, ?, ?, ?
 ) RETURNING *;
 
 -- name: UpdateSMSWarehouseStatus :exec
@@ -14,10 +15,33 @@ SET status = ?,
 WHERE id = ? AND deleted_at IS NULL;
 
 -- name: GetPendingSMSWarehouseRecords :many
-SELECT * FROM sms_warehouse
-WHERE status = 0 AND deleted_at IS NULL
-ORDER BY id ASC;
+SELECT
+    sw.id,
+    sw.sms_type_id,
+    st.title AS sms_type_title,
+    sw.receiver_phone_number,
+    sw.message,
+    sw.status,
+    sw.created_at,
+    sw.updated_at,
+    sw.deleted_at
+FROM sms_warehouse sw
+INNER JOIN sms_types st ON st.id = sw.sms_type_id AND st.deleted_at IS NULL
+WHERE sw.status = 0 AND sw.deleted_at IS NULL
+ORDER BY sw.id ASC;
 
 -- name: GetSMSWarehouseByID :one
-SELECT * FROM sms_warehouse
-WHERE id = ? AND deleted_at IS NULL;
+SELECT
+    sw.id,
+    sw.sms_type_id,
+    st.title AS sms_type_title,
+    sw.receiver_phone_number,
+    sw.message,
+    sw.status,
+    sw.created_at,
+    sw.updated_at,
+    sw.deleted_at
+FROM sms_warehouse sw
+INNER JOIN sms_types st ON st.id = sw.sms_type_id AND st.deleted_at IS NULL
+WHERE sw.id = ? AND sw.deleted_at IS NULL;
+

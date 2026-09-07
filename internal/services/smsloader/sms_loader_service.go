@@ -11,6 +11,7 @@ import (
 type SMSLoaderService struct {
 	queries  *sms_type_messages_relation.Queries
 	messages map[string]string // sms_type.title -> sms_message.body
+	typeIDs  map[string]int64  // sms_type.title -> sms_type.id
 	mu       sync.RWMutex
 }
 
@@ -18,6 +19,7 @@ func NewSMSLoaderService(queries *sms_type_messages_relation.Queries) *SMSLoader
 	s := &SMSLoaderService{
 		queries:  queries,
 		messages: make(map[string]string),
+		typeIDs:  make(map[string]int64),
 	}
 
 	// Initial synchronous load from DB
@@ -46,16 +48,19 @@ func (s *SMSLoaderService) loadFromDB() {
 		return
 	}
 
-	temp := make(map[string]string, len(records))
+	tempMessages := make(map[string]string, len(records))
+	tempTypeIDs := make(map[string]int64, len(records))
 	for _, r := range records {
-		temp[r.SmsTypeTitle] = r.SmsMessageBody
+		tempMessages[r.SmsTypeTitle] = r.SmsMessageBody
+		tempTypeIDs[r.SmsTypeTitle] = r.SmsTypeID
 	}
 
 	s.mu.Lock()
-	s.messages = temp
+	s.messages = tempMessages
+	s.typeIDs = tempTypeIDs
 	s.mu.Unlock()
 
-	log.Printf("[SMSLoader] Loaded %d SMS message templates from DB", len(temp))
+	log.Printf("[SMSLoader] Loaded %d SMS message templates from DB", len(tempMessages))
 }
 
 // autoRefresh periodically updates the in-memory SMS templates
@@ -76,3 +81,13 @@ func (s *SMSLoaderService) GetMessageByType(typeTitle string) (string, bool) {
 	msg, ok := s.messages[typeTitle]
 	return msg, ok
 }
+
+// GetTypeIDByTitle returns the SMS type ID for a given SMS type title
+func (s *SMSLoaderService) GetTypeIDByTitle(typeTitle string) (int64, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	id, ok := s.typeIDs[typeTitle]
+	return id, ok
+}
+

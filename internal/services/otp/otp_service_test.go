@@ -84,6 +84,10 @@ func TestOTPService_Flow(t *testing.T) {
 			t.Fatalf("expected phone %s, got %s", phone, record.ReceiverPhoneNumber)
 		}
 
+		if record.SMSTypeID != 1 || record.SMSTypeTitle != "otp" {
+			t.Fatalf("expected smsTypeId 1 and smsTypeTitle 'otp', got id=%d, title=%s", record.SMSTypeID, record.SMSTypeTitle)
+		}
+
 		if record.Status != dto.SMSStatusSent {
 			t.Fatalf("expected status Sent (%d), got %d", dto.SMSStatusSent, record.Status)
 		}

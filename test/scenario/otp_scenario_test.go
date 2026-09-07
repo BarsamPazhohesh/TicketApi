@@ -98,6 +98,10 @@ func TestScenario_OTPSendAndVerifyFullLifecycle(t *testing.T) {
 		t.Fatalf("expected warehouse phone %s, got %s", phone, record.ReceiverPhoneNumber)
 	}
 
+	if record.SMSTypeID != 1 || record.SMSTypeTitle != "otp" {
+		t.Fatalf("expected warehouse smsTypeId 1 and smsTypeTitle 'otp', got id=%d, title=%s", record.SMSTypeID, record.SMSTypeTitle)
+	}
+
 	if record.Status != dto.SMSStatusSent {
 		t.Fatalf("expected warehouse status Sent (1), got %d", record.Status)
 	}

@@ -111,15 +111,19 @@ func (s *OTPService) SendOTP(ctx context.Context, phone string) (*dto.SendOTPRes
 
 	// Fetch message template from SMSLoader (DB-backed, in-memory cached)
 	msgTemplate := "کد تایید شما: %s"
+	var smsTypeID int64 = 1
 	if s.smsLoader != nil {
 		if tpl, ok := s.smsLoader.GetMessageByType("otp"); ok && tpl != "" {
 			msgTemplate = tpl
+		}
+		if tid, ok := s.smsLoader.GetTypeIDByTitle("otp"); ok && tid > 0 {
+			smsTypeID = tid
 		}
 	}
 	message := fmt.Sprintf(msgTemplate, code)
 
 	// Log initial record in sms_warehouse with status Pending (0)
-	record, apiErr := s.warehouseRepo.Create(ctx, phone, message, dto.SMSStatusPending)
+	record, apiErr := s.warehouseRepo.Create(ctx, smsTypeID, phone, message, dto.SMSStatusPending)
 	if apiErr != nil {
 		return nil, apiErr
 	}

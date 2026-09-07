@@ -8,8 +8,18 @@ import (
 	"database/sql"
 )
 
+type SmsType struct {
+	ID          int64
+	Title       string
+	Description sql.NullString
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
+}
+
 type SmsWarehouse struct {
 	ID                  int64
+	SmsTypeID           int64
 	ReceiverPhoneNumber string
 	Message             string
 	Status              int64

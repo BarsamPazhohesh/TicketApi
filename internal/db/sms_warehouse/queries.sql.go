@@ -7,29 +7,38 @@ package sms_warehouse
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createSMSWarehouseRecord = `-- name: CreateSMSWarehouseRecord :one
 INSERT INTO sms_warehouse (
+    sms_type_id,
     receiver_phone_number,
     message,
     status
 ) VALUES (
-    ?, ?, ?
-) RETURNING id, receiver_phone_number, message, status, created_at, updated_at, deleted_at
+    ?, ?, ?, ?
+) RETURNING id, sms_type_id, receiver_phone_number, message, status, created_at, updated_at, deleted_at
 `
 
 type CreateSMSWarehouseRecordParams struct {
+	SmsTypeID           int64
 	ReceiverPhoneNumber string
 	Message             string
 	Status              int64
 }
 
 func (q *Queries) CreateSMSWarehouseRecord(ctx context.Context, arg CreateSMSWarehouseRecordParams) (SmsWarehouse, error) {
-	row := q.db.QueryRowContext(ctx, createSMSWarehouseRecord, arg.ReceiverPhoneNumber, arg.Message, arg.Status)
+	row := q.db.QueryRowContext(ctx, createSMSWarehouseRecord,
+		arg.SmsTypeID,
+		arg.ReceiverPhoneNumber,
+		arg.Message,
+		arg.Status,
+	)
 	var i SmsWarehouse
 	err := row.Scan(
 		&i.ID,
+		&i.SmsTypeID,
 		&i.ReceiverPhoneNumber,
 		&i.Message,
 		&i.Status,
@@ -41,22 +50,47 @@ func (q *Queries) CreateSMSWarehouseRecord(ctx context.Context, arg CreateSMSWar
 }
 
 const getPendingSMSWarehouseRecords = `-- name: GetPendingSMSWarehouseRecords :many
-SELECT id, receiver_phone_number, message, status, created_at, updated_at, deleted_at FROM sms_warehouse
-WHERE status = 0 AND deleted_at IS NULL
-ORDER BY id ASC
+SELECT
+    sw.id,
+    sw.sms_type_id,
+    st.title AS sms_type_title,
+    sw.receiver_phone_number,
+    sw.message,
+    sw.status,
+    sw.created_at,
+    sw.updated_at,
+    sw.deleted_at
+FROM sms_warehouse sw
+INNER JOIN sms_types st ON st.id = sw.sms_type_id AND st.deleted_at IS NULL
+WHERE sw.status = 0 AND sw.deleted_at IS NULL
+ORDER BY sw.id ASC
 `
 
-func (q *Queries) GetPendingSMSWarehouseRecords(ctx context.Context) ([]SmsWarehouse, error) {
+type GetPendingSMSWarehouseRecordsRow struct {
+	ID                  int64
+	SmsTypeID           int64
+	SmsTypeTitle        string
+	ReceiverPhoneNumber string
+	Message             string
+	Status              int64
+	CreatedAt           string
+	UpdatedAt           string
+	DeletedAt           sql.NullString
+}
+
+func (q *Queries) GetPendingSMSWarehouseRecords(ctx context.Context) ([]GetPendingSMSWarehouseRecordsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getPendingSMSWarehouseRecords)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []SmsWarehouse
+	var items []GetPendingSMSWarehouseRecordsRow
 	for rows.Next() {
-		var i SmsWarehouse
+		var i GetPendingSMSWarehouseRecordsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.SmsTypeID,
+			&i.SmsTypeTitle,
 			&i.ReceiverPhoneNumber,
 			&i.Message,
 			&i.Status,
@@ -78,15 +112,40 @@ func (q *Queries) GetPendingSMSWarehouseRecords(ctx context.Context) ([]SmsWareh
 }
 
 const getSMSWarehouseByID = `-- name: GetSMSWarehouseByID :one
-SELECT id, receiver_phone_number, message, status, created_at, updated_at, deleted_at FROM sms_warehouse
-WHERE id = ? AND deleted_at IS NULL
+SELECT
+    sw.id,
+    sw.sms_type_id,
+    st.title AS sms_type_title,
+    sw.receiver_phone_number,
+    sw.message,
+    sw.status,
+    sw.created_at,
+    sw.updated_at,
+    sw.deleted_at
+FROM sms_warehouse sw
+INNER JOIN sms_types st ON st.id = sw.sms_type_id AND st.deleted_at IS NULL
+WHERE sw.id = ? AND sw.deleted_at IS NULL
 `
 
-func (q *Queries) GetSMSWarehouseByID(ctx context.Context, id int64) (SmsWarehouse, error) {
+type GetSMSWarehouseByIDRow struct {
+	ID                  int64
+	SmsTypeID           int64
+	SmsTypeTitle        string
+	ReceiverPhoneNumber string
+	Message             string
+	Status              int64
+	CreatedAt           string
+	UpdatedAt           string
+	DeletedAt           sql.NullString
+}
+
+func (q *Queries) GetSMSWarehouseByID(ctx context.Context, id int64) (GetSMSWarehouseByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getSMSWarehouseByID, id)
-	var i SmsWarehouse
+	var i GetSMSWarehouseByIDRow
 	err := row.Scan(
 		&i.ID,
+		&i.SmsTypeID,
+		&i.SmsTypeTitle,
 		&i.ReceiverPhoneNumber,
 		&i.Message,
 		&i.Status,

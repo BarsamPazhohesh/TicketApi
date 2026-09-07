@@ -171,11 +171,7 @@ definitions:
     type: object
   dto.TicketByTrackCodeRequestDTO:
     properties:
-      phoneNumber:
-        type: string
       trackCode:
-        type: string
-      username:
         type: string
     required:
     - trackCode
@@ -190,8 +186,6 @@ definitions:
         type: string
       departmentId:
         type: integer
-      phoneNumber:
-        type: string
       ticketTypeId:
         type: integer
       title:

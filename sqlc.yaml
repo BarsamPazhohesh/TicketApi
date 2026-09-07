@@ -85,7 +85,9 @@ sql:
         package: "permissions"
         out: "internal/db/permissions"
 
-  - schema: "db/sms_warehouse/schema.sql"
+  - schema:
+      - "db/sms_types/schema.sql"
+      - "db/sms_warehouse/schema.sql"
     queries: "db/sms_warehouse/queries.sql"
     engine: "sqlite"
     gen:
