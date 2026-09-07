@@ -43,6 +43,7 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 	}
 
 	var currentUserID int64 = 0
+	var guestPhone string
 	if val, exists := c.Get("user"); exists {
 		if claims, ok := val.(*token.AuthClaims); ok {
 			currentUserID = claims.UserID
@@ -51,14 +52,14 @@ func (h *TicketHandler) CreateTicketHandler(c *gin.Context) {
 
 	// For guest tickets, bind phone number directly to verified token claim
 	if currentUserID == 0 {
-		if guestPhone, exists := c.Get("guest_phone"); exists {
-			if phoneStr, ok := guestPhone.(string); ok && phoneStr != "" {
-				req.PhoneNumber = phoneStr
+		if phoneVal, exists := c.Get("guest_phone"); exists {
+			if phoneStr, ok := phoneVal.(string); ok && phoneStr != "" {
+				guestPhone = phoneStr
 			}
 		}
 	}
 
-	createdTicket, apiErr := h.ticketService.CreateTicket(c.Request.Context(), currentUserID, req)
+	createdTicket, apiErr := h.ticketService.CreateTicket(c.Request.Context(), currentUserID, guestPhone, req)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
@@ -85,13 +86,26 @@ func (h *TicketHandler) GetTicketByTrackCodeHandler(c *gin.Context) {
 		return
 	}
 
-	if guestPhone, exists := c.Get("guest_phone"); exists {
-		if phoneStr, ok := guestPhone.(string); ok && phoneStr != "" {
-			req.PhoneNumber = &phoneStr
+	var currentUserID int64 = 0
+	var roleIDs []int64
+	var guestPhone string
+
+	if val, exists := c.Get("user"); exists {
+		if claims, ok := val.(*token.AuthClaims); ok {
+			currentUserID = claims.UserID
+			roleIDs = claims.RoleIDs
 		}
 	}
 
-	ticketDTO, apiErr := h.ticketService.GetTicketByTrackCode(c.Request.Context(), req)
+	if currentUserID == 0 {
+		if phoneVal, exists := c.Get("guest_phone"); exists {
+			if phoneStr, ok := phoneVal.(string); ok && phoneStr != "" {
+				guestPhone = phoneStr
+			}
+		}
+	}
+
+	ticketDTO, apiErr := h.ticketService.GetTicketByTrackCode(c.Request.Context(), req, currentUserID, guestPhone, roleIDs)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return

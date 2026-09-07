@@ -42,7 +42,6 @@ func TestScenario_CompleteTicketLifecycle(t *testing.T) {
 	t.Log("📝 [SCENARIO STEP 3]: Guest User creates a new ticket")
 	phone := "09121234567"
 	ticketReq := dto.TicketCreateRequest{
-		PhoneNumber:  phone,
 		DepartmentID: deptID,
 		TicketTypeID: typeID,
 		Title:        "System Outage in Production",

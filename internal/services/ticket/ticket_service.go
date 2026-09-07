@@ -48,7 +48,7 @@ func NewTicketService(
 }
 
 // CreateTicket orchestrates ticket validation, track code generation, attachment promotion, and persistence
-func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, req dto.TicketCreateRequest) (*dto.TicketCreateResponse, *errx.APIError) {
+func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, phoneNumber string, req dto.TicketCreateRequest) (*dto.TicketCreateResponse, *errx.APIError) {
 	// 1. Validate attachment limit
 	if len(req.Attachments) > 0 {
 		total := len(req.Attachments)
@@ -134,7 +134,7 @@ func (s *TicketService) CreateTicket(ctx context.Context, currentUserID int64, r
 		ID:              ticketID,
 		TrackCode:       trackCode,
 		UserID:          targetUserID,
-		PhoneNumber:     req.PhoneNumber,
+		PhoneNumber:     phoneNumber,
 		TicketTypeID:    req.TicketTypeID,
 		DepartmentID:    req.DepartmentID,
 		TicketStatusID:  openStatus.ID,
@@ -229,8 +229,8 @@ func (s *TicketService) GetTicketByID(ctx context.Context, ticketID string, curr
 	return ticket, nil
 }
 
-// GetTicketByTrackCode fetches ticket verifying username or phone ownership
-func (s *TicketService) GetTicketByTrackCode(ctx context.Context, req dto.TicketByTrackCodeRequestDTO) (*dto.TicketResponse, *errx.APIError) {
+// GetTicketByTrackCode fetches ticket verifying session ownership (user ID or guest phone)
+func (s *TicketService) GetTicketByTrackCode(ctx context.Context, req dto.TicketByTrackCodeRequestDTO, currentUserID int64, guestPhone string, roleIDs []int64) (*dto.TicketResponse, *errx.APIError) {
 	_, parseErr := util.ParsTrackCode(req.TrackCode)
 	if parseErr != nil {
 		return nil, errx.Respond(errx.ErrBadRequest, parseErr)
@@ -241,30 +241,35 @@ func (s *TicketService) GetTicketByTrackCode(ctx context.Context, req dto.Ticket
 		return nil, apiErr
 	}
 
-	// Auth user verification by username
-	if req.Username != nil && *req.Username != "" {
-		user, uErr := s.userRepo.GetUserByUsername(ctx, *req.Username)
-		if uErr != nil {
-			if uErr.Err.Code == errx.ErrUserNotFound {
-				return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("username not found"))
-			}
-			return nil, uErr
+	// Check if admin/agent
+	isAdminOrAgent := false
+	for _, r := range roleIDs {
+		if r == 1 || r == 2 {
+			isAdminOrAgent = true
+			break
 		}
-		if ticket.UserID != user.ID {
-			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("this username did not create this ticket"))
+	}
+	if isAdminOrAgent {
+		return ticket, nil
+	}
+
+	// Auth user verification
+	if currentUserID > 0 {
+		if ticket.UserID != currentUserID {
+			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("ticket not found for this user"))
 		}
 		return ticket, nil
 	}
 
-	// Guest verification by phone number
-	if req.PhoneNumber != nil && *req.PhoneNumber != "" {
-		if ticket.UserID != 0 || ticket.PhoneNumber != *req.PhoneNumber {
-			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("phone number does not match this ticket"))
+	// Guest verification by verified session phone number
+	if guestPhone != "" {
+		if ticket.UserID != 0 || ticket.PhoneNumber != guestPhone {
+			return nil, errx.Respond(errx.ErrTicketNotFound, errors.New("ticket not found for this phone number"))
 		}
 		return ticket, nil
 	}
 
-	return nil, errx.Respond(errx.ErrBadRequest, errors.New("username or phoneNumber is required"))
+	return nil, errx.Respond(errx.ErrUnauthorized, errors.New("authentication required to view ticket"))
 }
 
 func (s *TicketService) GetTicketsList(ctx context.Context, params dto.TicketQueryParams) (*dto.TicketPagingResponse, *errx.APIError) {

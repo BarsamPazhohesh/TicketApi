@@ -18,7 +18,6 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	PhoneNumber    string   `json:"phoneNumber,omitempty" binding:"omitempty,phoneNumber"`
 	TicketTypeID   int64    `json:"ticketTypeId" binding:"required"`
 	DepartmentID   int64    `json:"departmentId" binding:"required"`
 	TicketStatusID int64    `json:"-"`
@@ -49,7 +48,6 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 		ID:              util.GenerateUUID(),
 		TrackCode:       trackCode,
 		UserID:          userID,
-		PhoneNumber:     dto.PhoneNumber,
 		TicketTypeID:    dto.TicketTypeID,
 		DepartmentID:    dto.DepartmentID,
 		TicketStatusID:  dto.TicketStatusID,
@@ -176,9 +174,7 @@ type TicketCreateResponse struct {
 }
 
 type TicketByTrackCodeRequestDTO struct {
-	TrackCode   string  `json:"trackCode" binding:"required"`
-	Username    *string `json:"username,omitempty"`
-	PhoneNumber *string `json:"phoneNumber,omitempty" binding:"omitempty,phoneNumber"`
+	TrackCode string `json:"trackCode" binding:"required"`
 }
 
 type TicketQueryParams struct {

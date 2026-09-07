@@ -115,7 +115,7 @@ func TestTicketService_ValidationLimits(t *testing.T) {
 		Attachments:  []string{"http://storage/temp/1.png", "http://storage/temp/2.png", "http://storage/temp/3.png", "http://storage/temp/4.png", "http://storage/temp/5.png", "http://storage/temp/6.png"},
 	}
 
-	_, apiErr := svc.CreateTicket(ctx, 1, req)
+	_, apiErr := svc.CreateTicket(ctx, 1, "", req)
 	if apiErr == nil {
 		t.Fatalf("expected error for exceeding attachment limit, got nil")
 	}
@@ -125,7 +125,7 @@ func TestTicketService_ValidationLimits(t *testing.T) {
 
 	// 2. User not found
 	req.Attachments = nil
-	_, apiErr = svc.CreateTicket(ctx, 999, req)
+	_, apiErr = svc.CreateTicket(ctx, 999, "", req)
 	if apiErr == nil {
 		t.Fatalf("expected error for non-existent user, got nil")
 	}
@@ -139,7 +139,7 @@ func TestTicketService_ValidationLimits(t *testing.T) {
 		t.Fatalf("failed insert user: %v", err)
 	}
 
-	_, apiErr = svc.CreateTicket(ctx, 1, req)
+	_, apiErr = svc.CreateTicket(ctx, 1, "", req)
 	if apiErr == nil {
 		t.Fatalf("expected error for non-existent ticket type, got nil")
 	}
@@ -153,7 +153,7 @@ func TestTicketService_ValidationLimits(t *testing.T) {
 		t.Fatalf("failed insert ticket type: %v", err)
 	}
 
-	_, apiErr = svc.CreateTicket(ctx, 1, req)
+	_, apiErr = svc.CreateTicket(ctx, 1, "", req)
 	if apiErr == nil {
 		t.Fatalf("expected error for non-existent department, got nil")
 	}
@@ -169,11 +169,9 @@ func TestTicketService_GetTicketByTrackCode_InvalidFormat(t *testing.T) {
 	svc := ticket.NewTicketService(nil, nil, ticketTypeRepo, ticketPriorityRepo, ticketStatusRepo, userRepo, departmentRepo, nil)
 	ctx := context.Background()
 
-	username := "john"
 	_, apiErr := svc.GetTicketByTrackCode(ctx, dto.TicketByTrackCodeRequestDTO{
 		TrackCode: "invalid-track-code",
-		Username:  &username,
-	})
+	}, 1, "", nil)
 	if apiErr == nil {
 		t.Fatalf("expected error on invalid track code format")
 	}
