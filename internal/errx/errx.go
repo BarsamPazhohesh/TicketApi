@@ -112,7 +112,7 @@ func NewRegistry(db *sql.DB) *Registry {
 		defs: map[ErrorCode]ErrorDef{
 			ErrInternalServerError:      {"خطای داخلی سرور", http.StatusInternalServerError},
 			ErrTicketNotFound:           {"تیکت پیدا نشد", http.StatusNotFound},
-			ErrUnauthorized:             {"دسترسی غیرمجاز", http.StatusUnauthorized},
+			ErrUnauthorized:             {"لطفا مجدد احراز هویت کنید.", http.StatusUnauthorized},
 			ErrInvalidInput:             {"داده ورودی نامعتبر است", http.StatusBadRequest},
 			ErrDuplicate:                {"رکورد تکراری است", http.StatusConflict},
 			ErrBadRequest:               {"درخواست نامعتبر", http.StatusBadRequest},
