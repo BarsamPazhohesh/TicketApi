@@ -19,8 +19,8 @@ func AuthorizationMiddleware(tokenService *token.TokenService) gin.HandlerFunc {
 			return
 		}
 
-		// parse and validate the token
-		user, err := tokenService.ParseAuthToken(authToken)
+		// parse and validate the token with Redis revocation check
+		user, err := tokenService.ParseAuthToken(c.Request.Context(), authToken)
 		if err != nil {
 			c.AbortWithStatusJSON(err.HTTPStatus, err)
 			return

@@ -29,7 +29,8 @@ func (q *Queries) AddApiRoute(ctx context.Context, arg AddApiRouteParams) (int64
 
 const getAPIRouteID = `-- name: GetAPIRouteID :one
 SELECT id FROM api_routes
-WHERE deleted = 0
+WHERE deleted_at IS NULL
+AND deleted = 0
 AND status != 0
 AND route = ?
 `
@@ -39,4 +40,53 @@ func (q *Queries) GetAPIRouteID(ctx context.Context, route string) (int64, error
 	var id int64
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getAllActiveApiRoutes = `-- name: GetAllActiveApiRoutes :many
+SELECT id, route, method, description, status, created_at, updated_at
+FROM api_routes
+WHERE deleted_at IS NULL
+AND deleted = 0
+AND status != 0
+`
+
+type GetAllActiveApiRoutesRow struct {
+	ID          int64
+	Route       string
+	Method      string
+	Description sql.NullString
+	Status      int64
+	CreatedAt   string
+	UpdatedAt   string
+}
+
+func (q *Queries) GetAllActiveApiRoutes(ctx context.Context) ([]GetAllActiveApiRoutesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllActiveApiRoutes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllActiveApiRoutesRow
+	for rows.Next() {
+		var i GetAllActiveApiRoutesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Route,
+			&i.Method,
+			&i.Description,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

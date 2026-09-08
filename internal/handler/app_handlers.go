@@ -9,7 +9,6 @@ import (
 )
 
 type AppHandlers struct {
-	Version    *VersionHandler
 	Ticket     *TicketHandler
 	Chat       *ChatHandler
 	User       *UserHandler
@@ -17,26 +16,27 @@ type AppHandlers struct {
 	Captcha    *CaptchaHandler
 	Department *DepartmentHandler
 	File       *FileHandler
+	OTP        *OTPHandler
 }
 
 func NewAppHandlers(repos *repository.AppRepositories, services *services.AppServices) *AppHandlers {
 	return &AppHandlers{
-		Version:    NewVersionHandler(repos.Version),
-		Ticket:     NewTicketHandler(repos.Ticket, repos.TicketTypes, repos.TicketPriorities, repos.TicketStatus, repos.Users, repos.Departments),
-		Chat:       NewChatHandler(repos.Ticket, repos.ChatRepository),
-		User:       NewUserHandler(repos.Users),
-		Auth:       NewAuthHandler(repos.Users, services.Token),
+		Ticket:     NewTicketHandler(services.Ticket),
+		Chat:       NewChatHandler(services.Ticket),
+		User:       NewUserHandler(services.User),
+		Auth:       NewAuthHandler(services.Auth),
 		Captcha:    NewCaptchaHandler(services.Captcha, services.Token),
 		Department: NewDepartmentHandler(repos.Departments),
 		File:       NewFileHandler(services.FileStorage),
+		OTP:        NewOTPHandler(services.OTP, services.Token),
 	}
 }
 
 // bindJSON is a helper to bind JSON and handle errors
 func bindJSON[T any](c *gin.Context, req *T) bool {
 	if err := c.ShouldBindJSON(req); err != nil {
-		apiErr := errx.Respond(errx.ErrBadRequest, err)
-		c.JSON(apiErr.HTTPStatus, apiErr)
+		appErr := errx.Respond(errx.ErrBadRequest, err)
+		c.JSON(appErr.HTTPStatus, appErr)
 		return false
 	}
 	return true

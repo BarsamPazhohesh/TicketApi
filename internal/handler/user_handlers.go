@@ -4,20 +4,20 @@ import (
 	"net/http"
 	"ticket-api/internal/dto"
 	_ "ticket-api/internal/errx"
-	"ticket-api/internal/repository"
+	"ticket-api/internal/services/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	repo *repository.UsersRepository
+	userService *user.UserService
 }
 
-func NewUserHandler(repo *repository.UsersRepository) *UserHandler {
-	return &UserHandler{repo: repo}
+func NewUserHandler(userService *user.UserService) *UserHandler {
+	return &UserHandler{userService: userService}
 }
 
-// GetUsersByIDs handles POST /users/GetUsersByIDs
+// GetUsersByIDs handles POST /users/GetUsersByIDs/
 // @Summary Get all users by IDs
 // @Description Returns a list of all users requested
 // @Tags User
@@ -28,14 +28,14 @@ func NewUserHandler(repo *repository.UsersRepository) *UserHandler {
 // @Failure 400 {object} errx.APIError
 // @Failure 404 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /users/GetUsersByIDs [POST]
+// @Router /users/GetUsersByIDs/ [post]
 func (h *UserHandler) GetUsersByIDs(c *gin.Context) {
 	var req dto.UserIDsDTO
 	if !bindJSON(c, &req) {
 		return
 	}
 
-	users, apiErr := h.repo.GetUsersByIDs(c, req.IDs)
+	users, apiErr := h.userService.GetUsersByIDs(c.Request.Context(), req.IDs)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
@@ -44,25 +44,25 @@ func (h *UserHandler) GetUsersByIDs(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-// GetUserByID handles POST /users/GetUserByID
+// GetUserByID handles POST /users/GetUserByID/
 // @Summary Get user by ID
 // @Description Returns the requested user
 // @Tags User
 // @Accept json
 // @Produce json
-// @Param userID body dto.IDRequest[int64] true "User ID"
+// @Param userID body dto.IDRequestInt64 true "User ID"
 // @Success 200 {object} dto.UserDTO
 // @Failure 400 {object} errx.APIError
 // @Failure 404 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /users/GetUserByID [POST]
+// @Router /users/GetUserByID/ [post]
 func (h *UserHandler) GetUserByID(c *gin.Context) {
-	var req dto.IDRequest[int64]
+	var req dto.IDRequestInt64
 	if !bindJSON(c, &req) {
 		return
 	}
 
-	user, apiErr := h.repo.GetUserByID(c, req.ID)
+	user, apiErr := h.userService.GetUserByID(c.Request.Context(), req.ID)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return
@@ -71,7 +71,7 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-// GetUserByUsername handles POST /users/GetUserByUsername
+// GetUserByUsername handles POST /users/GetUserByUsername/
 // @Summary Get user by username
 // @Description Returns the requested user
 // @Tags User
@@ -82,14 +82,14 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // @Failure 400 {object} errx.APIError
 // @Failure 404 {object} errx.APIError
 // @Failure 500 {object} errx.APIError
-// @Router /users/GetUserByUsername [POST]
+// @Router /users/GetUserByUsername/ [post]
 func (h *UserHandler) GetUserByUsername(c *gin.Context) {
 	var req dto.UsernameDTO
 	if !bindJSON(c, &req) {
 		return
 	}
 
-	user, apiErr := h.repo.GetUserByUsername(c, req.Username)
+	user, apiErr := h.userService.GetUserByUsername(c.Request.Context(), req.Username)
 	if apiErr != nil {
 		c.JSON(apiErr.HTTPStatus, apiErr)
 		return

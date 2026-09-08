@@ -10,6 +10,7 @@ import (
 type ChatMessageDTO struct {
 	ID          string    `json:"id"`
 	SenderID    int64     `json:"senderId"`
+	SenderType  string    `json:"senderType"`
 	Message     string    `json:"message"`
 	Attachments []string  `json:"attachments,omitempty"`
 	CreatedAt   time.Time `json:"createdAt"`
@@ -21,16 +22,16 @@ type ChatMessageResponseID struct {
 }
 
 type ChatMessageCreateRequest struct {
-	SenderID    int64    `json:"senderId"`
-	Message     string   `json:"message"`
+	Message     string   `json:"message" binding:"required"`
 	Attachments []string `json:"attachments,omitempty"`
 }
 
-func (r *ChatMessageCreateRequest) ToModel() *model.ChatMessage {
+func (r *ChatMessageCreateRequest) ToModel(senderID int64, senderType string) *model.ChatMessage {
 	now := time.Now()
 	return &model.ChatMessage{
 		ID:          util.GenerateUUID(),
-		SenderID:    r.SenderID,
+		SenderID:    senderID,
+		SenderType:  senderType,
 		Message:     r.Message,
 		Attachments: r.Attachments,
 		CreatedAt:   now,

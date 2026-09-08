@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"ticket-api/internal/db/ticket_statuses"
+	"ticket-api/internal/db/ticket_types"
 	"ticket-api/internal/model"
 	"ticket-api/internal/util"
 	"time"
@@ -17,8 +18,7 @@ import (
 
 // TicketCreateRequest represents the payload for creating a new ticket
 type TicketCreateRequest struct {
-	UserID         int64    `json:"userId" binding:"required"`
-	TicketTypeID   int64    `json:"ticketTypeID" binding:"required"`
+	TicketTypeID   int64    `json:"ticketTypeId" binding:"required"`
 	DepartmentID   int64    `json:"departmentId" binding:"required"`
 	TicketStatusID int64    `json:"-"`
 	Title          string   `json:"title" binding:"required"`
@@ -27,7 +27,7 @@ type TicketCreateRequest struct {
 }
 
 // ToModel converts a TicketCreateRequest into a model.Ticket
-func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *mongo.Collection) (*model.Ticket, error) {
+func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *mongo.Collection, userID int64) (*model.Ticket, error) {
 	now := time.Now()
 	trackCode, err := util.GenerateUniqueTrackCode(ctx, ticketCollection)
 	if err != nil {
@@ -36,7 +36,8 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 
 	firstMessage := model.ChatMessage{
 		ID:          util.GenerateUUID(),
-		SenderID:    dto.UserID,
+		SenderID:    userID,
+		SenderType:  "user",
 		Message:     dto.Body,
 		Attachments: dto.Attachments,
 		CreatedAt:   now,
@@ -46,7 +47,7 @@ func (dto *TicketCreateRequest) ToModel(ctx context.Context, ticketCollection *m
 	return &model.Ticket{
 		ID:              util.GenerateUUID(),
 		TrackCode:       trackCode,
-		UserID:          dto.UserID,
+		UserID:          userID,
 		TicketTypeID:    dto.TicketTypeID,
 		DepartmentID:    dto.DepartmentID,
 		TicketStatusID:  dto.TicketStatusID,
@@ -67,6 +68,7 @@ type TicketResponse struct {
 	ID             string           `json:"id" bson:"_id"`
 	TrackCode      string           `json:"trackCode" bson:"trackCode"`
 	UserID         int64            `json:"userId" bson:"userId"`
+	PhoneNumber    string           `json:"phoneNumber,omitempty" bson:"phoneNumber,omitempty"`
 	TicketTypeID   int64            `json:"ticketTypeId" bson:"typeId"`
 	DepartmentID   int64            `json:"departmentId" bson:"departmentId"`
 	Title          string           `json:"title" bson:"title"`
@@ -76,6 +78,14 @@ type TicketResponse struct {
 	Chat           []ChatMessageDTO `json:"chat" bson:"chat"`
 }
 
+type TicketPagingResponse struct {
+	Items      []TicketResponse `json:"items"`
+	Total      int64            `json:"total"`
+	Page       int              `json:"page"`
+	PageSize   int              `json:"page_size"`
+	TotalPages int              `json:"total_pages"`
+}
+
 // ToModel converts TicketRaw into model.Ticket
 func (r *TicketResponse) ToModel() *model.Ticket {
 	chat := make([]model.ChatMessage, len(r.Chat))
@@ -83,6 +93,7 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 		chat[i] = model.ChatMessage{
 			ID:          msg.ID,
 			SenderID:    msg.SenderID,
+			SenderType:  msg.SenderType,
 			Message:     msg.Message,
 			Attachments: msg.Attachments,
 			CreatedAt:   msg.CreatedAt,
@@ -94,6 +105,7 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 		ID:             r.ID,
 		TrackCode:      r.TrackCode,
 		UserID:         r.UserID,
+		PhoneNumber:    r.PhoneNumber,
 		TicketTypeID:   r.TicketTypeID,
 		TicketStatusID: r.TicketStatusID,
 		DepartmentID:   r.DepartmentID,
@@ -107,8 +119,9 @@ func (r *TicketResponse) ToModel() *model.Ticket {
 // TicketFullResponse DTO (for API)
 type TicketFullResponse struct {
 	ID             string           `json:"id"`
-	TrackCode      string           `json:"trackId"`
+	TrackCode      string           `json:"trackCode"`
 	UserID         int64            `json:"userId"`
+	PhoneNumber    string           `json:"phoneNumber,omitempty"`
 	Username       string           `json:"username"`
 	TicketTypeID   int64            `json:"ticketTypeId"`
 	TicketType     string           `json:"ticketType"`
@@ -128,6 +141,7 @@ func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 		chatDTOs[i] = ChatMessageDTO{
 			ID:          msg.ID,
 			SenderID:    msg.SenderID,
+			SenderType:  msg.SenderType,
 			Message:     msg.Message,
 			Attachments: msg.Attachments,
 			CreatedAt:   msg.CreatedAt,
@@ -139,6 +153,7 @@ func ToTicketResponse(ticket *model.Ticket) *TicketResponse {
 		ID:             ticket.ID,
 		TrackCode:      ticket.TrackCode,
 		UserID:         ticket.UserID,
+		PhoneNumber:    ticket.PhoneNumber,
 		TicketTypeID:   ticket.TicketTypeID,
 		DepartmentID:   ticket.DepartmentID,
 		Title:          ticket.Title,
@@ -160,7 +175,6 @@ type TicketCreateResponse struct {
 
 type TicketByTrackCodeRequestDTO struct {
 	TrackCode string `json:"trackCode" binding:"required"`
-	Username  string `json:"username" binding:"required"`
 }
 
 type TicketQueryParams struct {
@@ -182,7 +196,7 @@ type TicketTypeDto struct {
 	Description *string `json:"description,omitempty"`
 }
 
-func ToTicketTypeDTO(m *model.TicketType) *TicketTypeDto {
+func ToTicketTypeDTO(m *ticket_types.TicketType) *TicketTypeDto {
 	var description *string
 	if m.Description.Valid {
 		description = &m.Description.String
@@ -195,7 +209,7 @@ func ToTicketTypeDTO(m *model.TicketType) *TicketTypeDto {
 	}
 }
 
-func (dt *TicketTypeDto) ToModel() *model.TicketType {
+func (dt *TicketTypeDto) ToModel() *ticket_types.TicketType {
 	nullDesc := sql.NullString{}
 	if dt.Description != nil {
 		nullDesc = sql.NullString{String: *dt.Description, Valid: true}
@@ -203,12 +217,11 @@ func (dt *TicketTypeDto) ToModel() *model.TicketType {
 		nullDesc = sql.NullString{String: "", Valid: false}
 	}
 
-	return &model.TicketType{
+	return &ticket_types.TicketType{
 		ID:          dt.ID,
 		Title:       dt.Title,
 		Description: nullDesc,
 		Status:      1,
-		Deleted:     0,
 	}
 }
 
@@ -244,7 +257,6 @@ func (dt *TicketStatusDTO) ToModel() *ticket_statuses.TicketStatus {
 		Title:       dt.Title,
 		Description: nullDesc,
 		Status:      1,
-		Deleted:     0,
 	}
 }
 

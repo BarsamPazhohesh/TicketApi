@@ -26,7 +26,7 @@ func (q *Queries) AddApiKey(ctx context.Context, arg AddApiKeyParams) error {
 
 const getActiveAPIKeyID = `-- name: GetActiveAPIKeyID :one
 SELECT id FROM api_keys
-WHERE deleted = 0
+WHERE deleted_at IS NULL
 AND status != 0
 AND key = ?
 `

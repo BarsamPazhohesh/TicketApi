@@ -5,7 +5,7 @@ CREATE TABLE users (
     department_id INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    deleted_at TEXT DEFAULT NULL,
     status INT2 NOT NULL DEFAULT 1,
-    deleted INT2 NOT NULL DEFAULT 0,
-    Foreign Key (department_id) REFERENCES departments(id)
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE CASCADE
 );

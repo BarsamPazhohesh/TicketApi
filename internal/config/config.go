@@ -48,9 +48,10 @@ type Config struct {
 	} `yaml:"api_key"`
 
 	OneTimeToken struct {
-		CleanupInterval  int `yaml:"cleanup_interval"`   // Cleanup interval for expired one-time tokens (minutes)
-		MaxCachedTokens  int `yaml:"max_cashed_tokens"`  // Maximum number of one-time tokens stored in cache
-		ExpiredTimeToken int `yaml:"expired_time_token"` // One-time JWT token TTL (minutes)
+		CleanupInterval  int    `yaml:"cleanup_interval"`   // Cleanup interval for expired one-time tokens (minutes)
+		MaxCachedTokens  int    `yaml:"max_cashed_tokens"`  // Maximum number of one-time tokens stored in cache
+		ExpiredTimeToken int    `yaml:"expired_time_token"` // One-time JWT token TTL (minutes)
+		Name             string `yaml:"name"`               // Identifier name for one-time token
 	} `yaml:"one_time_token"`
 
 	Cache struct {
@@ -78,11 +79,12 @@ type Config struct {
 	} `yaml:"redis"`
 
 	Minio struct {
-		Enable bool   `yaml:"enable"`
-		Host   string `yaml:"host"`
-		Port   int    `yaml:"port"`
-		Bucket string `yaml:"bucket"`
-		UseSSL bool   `yaml:"use_ssl"`
+		Enable    bool   `yaml:"enable"`
+		Host      string `yaml:"host"`
+		Port      int    `yaml:"port"`
+		Bucket    string `yaml:"bucket"`
+		UseSSL    bool   `yaml:"use_ssl"`
+		PublicURL string `yaml:"public_url"`
 	} `yaml:"minio"`
 
 	TicketConfig struct {
@@ -94,6 +96,19 @@ type Config struct {
 		MaxTicketUploadFileSize  int64    `yaml:"max_ticket_upload_file_size"`
 		AcceptableFilesForUpload []string `yaml:"acceptable_files_for_upload"`
 	} `yaml:"ticket"`
+
+	RateLimit struct {
+		Public   int `yaml:"public"`
+		OTP      int `yaml:"otp"`
+		Customer int `yaml:"customer"`
+		Auth     int `yaml:"auth"`
+	} `yaml:"rate_limit"`
+
+	OTP struct {
+		CodeTTLMinutes       int `yaml:"code_ttl_minutes"`
+		RetryIntervalMinutes int `yaml:"retry_interval_minutes"`
+		MaxVerifyAttempts    int `yaml:"max_verify_attempts"`
+	} `yaml:"otp"`
 }
 
 var (

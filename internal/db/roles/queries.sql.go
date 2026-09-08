@@ -20,9 +20,55 @@ func (q *Queries) AddRole(ctx context.Context, title string) (int64, error) {
 	return id, err
 }
 
+const getAllActiveRoles = `-- name: GetAllActiveRoles :many
+SELECT id, title, status, created_at, updated_at
+FROM roles
+WHERE deleted_at IS NULL
+AND deleted = 0
+AND status != 0
+`
+
+type GetAllActiveRolesRow struct {
+	ID        int64
+	Title     string
+	Status    int64
+	CreatedAt string
+	UpdatedAt string
+}
+
+func (q *Queries) GetAllActiveRoles(ctx context.Context) ([]GetAllActiveRolesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllActiveRoles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllActiveRolesRow
+	for rows.Next() {
+		var i GetAllActiveRolesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const isRoleExist = `-- name: IsRoleExist :one
 SELECT count(id) as exist_of_id FROM roles
-WHERE deleted = 0
+WHERE deleted_at IS NULL
+AND deleted = 0
 AND status != 0
 AND id = ?
 `

@@ -12,6 +12,7 @@ import (
 	"ticket-api/internal/errx"
 	"ticket-api/internal/handler"
 	"ticket-api/internal/repository"
+	"ticket-api/internal/security"
 	"ticket-api/internal/services"
 	"time"
 
@@ -33,6 +34,7 @@ type application struct {
 	services *services.AppServices
 	repos    *repository.AppRepositories
 	handlers *handler.AppHandlers
+	security *security.SecurityRegistry
 }
 
 // @title Ticket API
@@ -63,9 +65,15 @@ func main() {
 		fatalIfErr(err)
 	}
 
-	services := services.NewAppService(dbRedis, minioClient)
-	repos := repository.NewRepositories(dbSQL, dbMongo, services)
+	repos := repository.NewRepositories(dbSQL, dbMongo, dbRedis)
+	services := services.NewAppService(dbRedis, minioClient, repos)
 	handlers := handler.NewAppHandlers(repos, services)
+
+	// In-memory security registry initialization & load
+	securityRegistry := security.NewSecurityRegistry(repos.RolesRelations)
+	if err := securityRegistry.Reload(context.Background()); err != nil {
+		log.Printf("⚠️ Warning: failed to load initial security registry: %v", err)
+	}
 
 	app := &application{
 		port:     config.Get().App.Port,
@@ -76,6 +84,7 @@ func main() {
 		services: services,
 		repos:    repos,
 		handlers: handlers,
+		security: securityRegistry,
 	}
 
 	if err := app.serve(); err != nil {
@@ -94,70 +103,101 @@ func fatalIfErr(err error) {
 func ConnectMongo() (*mongo.Database, error) {
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		return nil, errors.New("MONGODB_URI is not set")
+		return nil, errors.New("MONGODB_URI environment variable not set")
 	}
 
-	dbName := env.GetEnvString("MONGODB_DB", config.Get().Mongo.DBName)
-	opts := options.Client().ApplyURI(uri)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
+
 	client, err := mongo.Connect(opts)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	if err := client.Ping(ctx, nil); err != nil {
 		return nil, err
 	}
 
-	log.Println("✅ Connected to MongoDB:", dbName)
+	dbName := os.Getenv("MONGO_INITDB_DATABASE")
+	if dbName == "" {
+		dbName = "ticketdb"
+	}
+
+	log.Printf("✅ Connected to MongoDB: %s", dbName)
 	return client.Database(dbName), nil
 }
 
-// ConnectRedis connects to Redis and returns the client.
+// ConnectRedis initializes the Redis client.
 func ConnectRedis() (*redis.Client, error) {
-	redisCfg := config.Get().Redis
+	host := env.GetEnvString("REDIS_HOST", "localhost")
+	port := env.GetEnvString("REDIS_PORT", "6379")
+	password := os.Getenv("REDIS_PASSWORD")
+	dbStr := env.GetEnvString("REDIS_DB", "0")
+	db, err := strconv.Atoi(dbStr)
+	if err != nil {
+		db = 0
+	}
 
-	addr := redisCfg.Host + ":" + strconv.Itoa(redisCfg.Port)
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: env.GetEnvString("REDIS_PASSWORD", ""),
-		DB:       redisCfg.DB,
+		Addr:     host + ":" + port,
+		Password: password,
+		DB:       db,
 	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Test the connection
 	if err := rdb.Ping(ctx).Err(); err != nil {
 		return nil, err
 	}
 
-	log.Println("✅ Connected to Redis:", addr, "DB:", redisCfg.DB)
+	log.Printf("✅ Connected to Redis: %s:%s DB: %d", host, port, db)
 	return rdb, nil
 }
 
-// ConnectMinio connects to MinIO and returns the client.
+// ConnectMinio initializes the MinIO client and ensures the default bucket exists.
 func ConnectMinio() (*minio.Client, error) {
-	minioCfg := config.Get().Minio
-	accessKey := env.GetEnvString("ACCESS_KEY_MINIO", "")
-	secretKey := env.GetEnvString("SECRET_KEY_MINIO", "")
+	endpoint := env.GetEnvString("MINIO_ENDPOINT", "localhost:9000")
+	accessKey := os.Getenv("ACCESS_KEY_MINIO")
+	if accessKey == "" {
+		accessKey = os.Getenv("MINIO_ROOT_USER")
+	}
+	secretKey := os.Getenv("SECRET_KEY_MINIO")
+	if secretKey == "" {
+		secretKey = os.Getenv("MINIO_ROOT_PASSWORD")
+	}
+	useSSL := config.Get().Minio.UseSSL
+	bucketName := config.Get().Minio.Bucket
 
-	endpoint := minioCfg.Host + ":" + strconv.Itoa(minioCfg.Port)
-	client, err := minio.New(endpoint, &minio.Options{
+	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: minioCfg.UseSSL,
+		Secure: useSSL,
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = client.ListBuckets(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	exists, err := minioClient.BucketExists(ctx, bucketName)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("✅ Connected to MinIO:", endpoint)
-	return client, nil
+	if !exists {
+		err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("✅ Bucket %s created successfully", bucketName)
+	} else {
+		log.Printf("✅ Bucket %s already exists", bucketName)
+	}
+
+	log.Printf("✅ Connected to MinIO: %s", endpoint)
+	return minioClient, nil
 }

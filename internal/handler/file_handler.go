@@ -34,7 +34,7 @@ func NewFileHandler(storage *storage.StorageService) *FileHandler {
 // @Accept       multipart/form-data
 // @Produce      json
 // @Param        file  formData  file  true  "Ticket file to upload"
-// @Success      200   {object}  dto.IDResponse[string]  "Returns uploaded file ID"
+// @Success      200   {object}  dto.IDResponseString  "Returns uploaded file ID"
 // @Failure      400   {object}  errx.APIError
 // @Failure      413   {object}  errx.APIError  "File too large"
 // @Failure      415   {object}  errx.APIError  "Unsupported file extension"
@@ -88,7 +88,7 @@ func (h *FileHandler) UploadTicketFileHandler(c *gin.Context) {
 // @Tags         TicketFile
 // @Produce      json
 // @Param        objectName  path  string  true  "File object name (UUID + extension)"
-// @Param 			 ticketId body dto.IDRequest[string] true "ticket ID for file location"
+// @Param 			 ticketId body dto.IDRequestString true "ticket ID for file location"
 // @Success      200         "Give MinIO download URL"
 // @Failure      400         {object}  errx.APIError
 // @Failure      404         {object}  errx.APIError  "File not found"

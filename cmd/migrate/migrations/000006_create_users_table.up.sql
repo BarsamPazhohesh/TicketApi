@@ -10,4 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     Foreign Key (department_id) REFERENCES departments(id)
 );
 
-INSERT INTO users (username, department_id) VALUES ('SampleUser', 1);
+-- Seed SuperAdmin (username: 09120000000, password: Password123)
+INSERT INTO users (id, username, password, department_id) VALUES
+(1, '09120000000', '$2a$10$NNAVqBU3f0RgRPi76jkCreKMFkpu/Jq97OJ2t3hc7tv4fjF4pG71K', 1);
+

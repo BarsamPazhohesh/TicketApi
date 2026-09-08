@@ -74,3 +74,14 @@ type GenerateSingleUseTokenDTO struct {
 type SingleUseTokenResponseDTO struct {
 	Token string `json:"token"`
 }
+
+type CheckTokenResponseDTO struct {
+	Valid         bool     `json:"valid"`
+	TokenType     string   `json:"tokenType"` // "auth" | "guest" | "captcha" | "none"
+	UserID        *int64   `json:"userId,omitempty"`
+	Username      string   `json:"username,omitempty"`
+	PhoneNumber   string   `json:"phoneNumber,omitempty"`
+	RoleIDs       []int64  `json:"roleIds,omitempty"`
+	Permissions   []string `json:"permissions,omitempty"`
+	PhoneVerified bool     `json:"phoneVerified"`
+}

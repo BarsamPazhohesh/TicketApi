@@ -7,6 +7,7 @@ package roles_relations
 
 import (
 	"context"
+	"database/sql"
 )
 
 const addAPIKeysToRolesRelation = `-- name: AddAPIKeysToRolesRelation :exec
@@ -23,6 +24,20 @@ func (q *Queries) AddAPIKeysToRolesRelation(ctx context.Context, arg AddAPIKeysT
 	return err
 }
 
+const addApiRoutePermissionRelation = `-- name: AddApiRoutePermissionRelation :exec
+INSERT INTO api_routes_permissions_relation (api_route_id, permission_id) VALUES (?, ?)
+`
+
+type AddApiRoutePermissionRelationParams struct {
+	ApiRouteID   int64
+	PermissionID int64
+}
+
+func (q *Queries) AddApiRoutePermissionRelation(ctx context.Context, arg AddApiRoutePermissionRelationParams) error {
+	_, err := q.db.ExecContext(ctx, addApiRoutePermissionRelation, arg.ApiRouteID, arg.PermissionID)
+	return err
+}
+
 const addApiRoutesToRolesRelation = `-- name: AddApiRoutesToRolesRelation :exec
 INSERT INTO api_routes_roles_relation (api_route_id, role_id) VALUES (?, ?)
 `
@@ -34,6 +49,20 @@ type AddApiRoutesToRolesRelationParams struct {
 
 func (q *Queries) AddApiRoutesToRolesRelation(ctx context.Context, arg AddApiRoutesToRolesRelationParams) error {
 	_, err := q.db.ExecContext(ctx, addApiRoutesToRolesRelation, arg.ApiRouteID, arg.RoleID)
+	return err
+}
+
+const addRolePermissionRelation = `-- name: AddRolePermissionRelation :exec
+INSERT INTO roles_permissions_relation (role_id, permission_id) VALUES (?, ?)
+`
+
+type AddRolePermissionRelationParams struct {
+	RoleID       int64
+	PermissionID int64
+}
+
+func (q *Queries) AddRolePermissionRelation(ctx context.Context, arg AddRolePermissionRelationParams) error {
+	_, err := q.db.ExecContext(ctx, addRolePermissionRelation, arg.RoleID, arg.PermissionID)
 	return err
 }
 
@@ -67,7 +96,8 @@ func (q *Queries) AddUsersToRolesRelation(ctx context.Context, arg AddUsersToRol
 
 const getAPIKeyRoleIDs = `-- name: GetAPIKeyRoleIDs :many
 SELECT role_id FROM api_keys_roles_relation
-WHERE deleted = 0
+WHERE deleted_at IS NULL
+AND deleted = 0
 AND status != 0
 AND api_key_id = ?
 `
@@ -97,13 +127,127 @@ func (q *Queries) GetAPIKeyRoleIDs(ctx context.Context, apiKeyID int64) ([]int64
 
 const getAPIRouteRoleIDs = `-- name: GetAPIRouteRoleIDs :many
 SELECT role_id FROM api_routes_roles_relation
-WHERE deleted = 0
+WHERE deleted_at IS NULL
+AND deleted = 0
 AND status != 0
 AND api_route_id = ?
 `
 
 func (q *Queries) GetAPIRouteRoleIDs(ctx context.Context, apiRouteID int64) ([]int64, error) {
 	rows, err := q.db.QueryContext(ctx, getAPIRouteRoleIDs, apiRouteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var role_id int64
+		if err := rows.Scan(&role_id); err != nil {
+			return nil, err
+		}
+		items = append(items, role_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllRolesWithPermissions = `-- name: GetAllRolesWithPermissions :many
+SELECT rpr.role_id, p.name AS permission_name
+FROM roles_permissions_relation rpr
+JOIN permissions p ON p.id = rpr.permission_id
+WHERE rpr.deleted_at IS NULL
+AND rpr.status != 0
+AND p.deleted_at IS NULL
+AND p.status != 0
+`
+
+type GetAllRolesWithPermissionsRow struct {
+	RoleID         int64
+	PermissionName string
+}
+
+func (q *Queries) GetAllRolesWithPermissions(ctx context.Context) ([]GetAllRolesWithPermissionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllRolesWithPermissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllRolesWithPermissionsRow
+	for rows.Next() {
+		var i GetAllRolesWithPermissionsRow
+		if err := rows.Scan(&i.RoleID, &i.PermissionName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllRoutesWithPermissions = `-- name: GetAllRoutesWithPermissions :many
+SELECT ar.route, ar.method, ar.status, p.name AS permission_name
+FROM api_routes ar
+LEFT JOIN api_routes_permissions_relation arpr ON arpr.api_route_id = ar.id AND arpr.deleted_at IS NULL AND arpr.status != 0
+LEFT JOIN permissions p ON p.id = arpr.permission_id AND p.deleted_at IS NULL AND p.status != 0
+WHERE (ar.deleted_at IS NULL)
+AND ar.deleted = 0
+`
+
+type GetAllRoutesWithPermissionsRow struct {
+	Route          string
+	Method         string
+	Status         int64
+	PermissionName sql.NullString
+}
+
+func (q *Queries) GetAllRoutesWithPermissions(ctx context.Context) ([]GetAllRoutesWithPermissionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllRoutesWithPermissions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllRoutesWithPermissionsRow
+	for rows.Next() {
+		var i GetAllRoutesWithPermissionsRow
+		if err := rows.Scan(
+			&i.Route,
+			&i.Method,
+			&i.Status,
+			&i.PermissionName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserRoleIDs = `-- name: GetUserRoleIDs :many
+SELECT role_id FROM users_roles_relation
+WHERE deleted_at IS NULL
+AND deleted = 0
+AND status != 0
+AND user_id = ?
+`
+
+func (q *Queries) GetUserRoleIDs(ctx context.Context, userID int64) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, getUserRoleIDs, userID)
 	if err != nil {
 		return nil, err
 	}

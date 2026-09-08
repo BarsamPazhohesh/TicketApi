@@ -2,10 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/services/captcha"
+	"ticket-api/internal/services/cookie"
 	"ticket-api/internal/services/token"
 
 	"github.com/gin-gonic/gin"
@@ -67,19 +67,12 @@ func (h *CaptchaHandler) VerifyCaptchaHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := h.TokenService.NewCaptchaToken(c.ClientIP())
+	token, err := h.TokenService.NewCaptchaToken(c.ClientIP(), "")
 	if err != nil {
 		c.JSON(err.HTTPStatus, err)
 		return
 	}
-	c.SetCookie(
-		"captcha_token", // cookie name
-		token,           // cookie value
-		config.Get().Captcha.ExpiredTimeToken*60, // max age in seconds
-		"/",                         // path
-		"",                          // domain (empty = current domain)
-		config.Get().Token.Secure,   // secure (true = only send over HTTPS)
-		config.Get().Token.HTTPOnly, // httpOnly (cannot be accessed by JS)
-	)
+	cookieService := cookie.NewCaptchaCookieService()
+	cookieService.Set(c, token)
 	c.JSON(http.StatusOK, nil)
 }

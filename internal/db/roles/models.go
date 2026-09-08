@@ -4,9 +4,16 @@
 
 package roles
 
+import (
+	"database/sql"
+)
+
 type Role struct {
-	ID      int64
-	Title   string
-	Status  int64
-	Deleted int64
+	ID        int64
+	Title     string
+	Status    int64
+	Deleted   int64
+	CreatedAt string
+	UpdatedAt string
+	DeletedAt sql.NullString
 }

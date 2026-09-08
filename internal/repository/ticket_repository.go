@@ -2,16 +2,14 @@ package repository
 
 import (
 	"context"
-	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/dto"
 	"ticket-api/internal/errx"
 	"ticket-api/internal/model"
-	"ticket-api/internal/services/storage"
 	"ticket-api/internal/util"
 
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -19,61 +17,40 @@ import (
 // TicketRepository handles ticket-related MongoDB operations.
 type TicketRepository struct {
 	collection *mongo.Collection
-	storage    *storage.StorageService
 }
 
 // NewTicketRepository initializes a TicketRepository with the "tickets" collection.
 // Returns an empty repository if ENABLE_MONGO is 0.
-func NewTicketRepository(db *mongo.Database, storage *storage.StorageService) *TicketRepository {
-	if !config.Get().Mongo.Enable {
+func NewTicketRepository(db *mongo.Database) *TicketRepository {
+	if !config.Get().Mongo.Enable || db == nil {
 		return &TicketRepository{}
 	}
 	return &TicketRepository{
 		collection: db.Collection(config.Get().Mongo.TicketCollectionName),
-		storage:    storage,
 	}
 }
 
-// CreateTicket inserts a new ticket into MongoDB and returns the ticket ID.
-func (r *TicketRepository) CreateTicket(ctx context.Context, ticketDTO *dto.TicketCreateRequest) (*dto.TicketCreateResponse, *errx.APIError) {
-	// Parse attachment object names
-	attachments, err := util.ParseObjectNames(ticketDTO.Attachments)
-	if err != nil {
-		return nil, errx.Respond(errx.ErrBadRequest, err)
-	}
-	ticketDTO.Attachments = attachments
+func (r *TicketRepository) GetCollection() *mongo.Collection {
+	return r.collection
+}
 
-	// Convert DTO to model
-	ticket, err := ticketDTO.ToModel(ctx, r.collection)
-	if err != nil {
-		return nil, errx.Respond(errx.ErrInvalidInput, err)
+// InsertTicket inserts a model.Ticket directly into MongoDB
+func (r *TicketRepository) InsertTicket(ctx context.Context, ticket *model.Ticket) *errx.APIError {
+	if r.collection == nil {
+		return errx.Respond(errx.ErrInternalServerError, nil)
 	}
-
-	// Move temp attachments to ticket folder if first chat has attachments
-	if len(ticket.Chat) > 0 && len(ticket.Chat[0].Attachments) > 0 {
-		movedAttachments, apiErr := r.storage.MoveTempsFileToTickets(ctx, ticket.ID, attachments)
-		if apiErr != nil {
-			return nil, apiErr
-		}
-		ticket.Chat[0].Attachments = movedAttachments
-		ticket.AttachmentCount = len(movedAttachments)
-	}
-
-	// Insert ticket into MongoDB
 	if _, err := r.collection.InsertOne(ctx, ticket); err != nil {
-		return nil, errx.Respond(errx.ErrInternalServerError, err)
+		return errx.Respond(errx.ErrInternalServerError, err)
 	}
-
-	return &dto.TicketCreateResponse{
-		ID:        ticket.ID,
-		TrackCode: ticket.TrackCode,
-	}, nil
+	return nil
 }
 
 // GetTicketByID retrieves a single ticket by ID and converts it to TicketRaw.
 func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.TicketResponse, *errx.APIError) {
+	if r.collection == nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, nil)
+	}
 
-	// Validate UUID
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrBadRequest, err)
@@ -91,7 +68,10 @@ func (r *TicketRepository) GetTicketByID(ctx context.Context, id string) (*dto.T
 }
 
 func (r *TicketRepository) GetTicketAttachmentCount(ctx context.Context, id string) (int, *errx.APIError) {
-	// Validate UUID
+	if r.collection == nil {
+		return 0, errx.Respond(errx.ErrInternalServerError, nil)
+	}
+
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return 0, errx.Respond(errx.ErrBadRequest, err)
@@ -101,7 +81,6 @@ func (r *TicketRepository) GetTicketAttachmentCount(ctx context.Context, id stri
 		AttachmentCount int `bson:"attachmentCount"`
 	}
 
-	// Use projection to fetch only attachmentCount
 	opts := options.FindOne().SetProjection(bson.M{"attachmentCount": 1})
 	if err := r.collection.FindOne(ctx, bson.M{"_id": uid.String()}, opts).Decode(&result); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -114,6 +93,9 @@ func (r *TicketRepository) GetTicketAttachmentCount(ctx context.Context, id stri
 }
 
 func (r *TicketRepository) GetTicketByTrackCode(ctx context.Context, trackCode string) (*dto.TicketResponse, *errx.APIError) {
+	if r.collection == nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, nil)
+	}
 
 	code, err := util.ParsTrackCode(trackCode)
 	if err != nil {
@@ -157,10 +139,13 @@ func (r *TicketRepository) GetAllTickets(ctx context.Context, userID int) ([]dto
 func (r *TicketRepository) GetTickets(
 	ctx context.Context,
 	query dto.TicketQueryParams,
-) (*dto.PagingResponse[dto.TicketResponse], *errx.APIError) {
+) (*dto.TicketPagingResponse, *errx.APIError) {
+	if r.collection == nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, nil)
+	}
+
 	cfg := config.Get().TicketConfig
 
-	// Ensure pageSize is within allowed range
 	if query.PageSize < cfg.MinPagingSize || query.PageSize > cfg.MaxPagingSize {
 		query.PageSize = cfg.DefaultPagingSize
 	}
@@ -168,7 +153,6 @@ func (r *TicketRepository) GetTickets(
 		query.Page = 1
 	}
 
-	// Build filter
 	filter := bson.M{}
 	if query.StatusID != 0 {
 		filter["ticketStatusId"] = query.StatusID
@@ -183,104 +167,79 @@ func (r *TicketRepository) GetTickets(
 		filter["ticketTypeId"] = query.TicketTypeID
 	}
 
-	// Sorting
 	allowedSortFields := map[string]bool{
-		"createdAt":      true,
-		"updatedAt":      true,
-		"ticketTypeId":   true,
-		"ticketStatusId": true,
-		"departmentId":   true,
+		"createdAt": true,
+		"updatedAt": true,
 	}
 
 	sortField := "createdAt"
-	if query.OrderBy != "" && allowedSortFields[query.OrderBy] {
+	if allowedSortFields[query.OrderBy] {
 		sortField = query.OrderBy
 	}
 
-	orderDir := -1
-	if strings.ToLower(query.OrderDir) == "asc" {
-		orderDir = 1
+	sortDir := -1
+	if query.OrderDir == "asc" {
+		sortDir = 1
 	}
 
-	skip := (query.Page - 1) * query.PageSize
-	// Use bson.D for Sort, bson.M for everything else
+	sortOrder := bson.D{{Key: sortField, Value: sortDir}}
 	findOptions := options.Find().
-		SetSkip(int64(skip)).
-		SetLimit(int64(query.PageSize)).
-		SetSort(bson.M{sortField: orderDir}).
-		SetProjection(bson.M{"chat": 0}) // exclude chat field
+		SetSort(sortOrder).
+		SetSkip(int64((query.Page - 1) * query.PageSize)).
+		SetLimit(int64(query.PageSize))
 
-	// Fetch tickets
+	totalCount, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	}
+
 	cursor, err := r.collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrInternalServerError, err)
 	}
 	defer cursor.Close(ctx)
 
-	var tickets []model.Ticket
-	if err = cursor.All(ctx, &tickets); err != nil {
-		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	var tickets []dto.TicketResponse
+	for cursor.Next(ctx) {
+		var t model.Ticket
+		if err := cursor.Decode(&t); err != nil {
+			return nil, errx.Respond(errx.ErrInternalServerError, err)
+		}
+		tickets = append(tickets, *dto.ToTicketResponse(&t))
 	}
 
-	// Total count with cap
-	max := cfg.MaxCountingItem
-	total, err := r.collection.CountDocuments(ctx, filter, options.Count().SetLimit(max))
-	if err != nil {
-		return nil, errx.Respond(errx.ErrInternalServerError, err)
-	}
+	totalPages := int((totalCount + int64(query.PageSize) - 1) / int64(query.PageSize))
 
-	// Map to DTO
-	ticketsDto := make([]dto.TicketResponse, len(tickets))
-	for i, ticket := range tickets {
-		ticketsDto[i] = *dto.ToTicketResponse(&ticket)
-	}
-
-	// Calculate total pages
-	totalPages := int(total) / query.PageSize
-	if int(total)%query.PageSize != 0 {
-		totalPages++
-	}
-
-	return &dto.PagingResponse[dto.TicketResponse]{
+	return &dto.TicketPagingResponse{
+		Items:      tickets,
+		Total:      totalCount,
 		Page:       query.Page,
 		PageSize:   query.PageSize,
 		TotalPages: totalPages,
-		Total:      total,
-		Items:      ticketsDto,
 	}, nil
 }
 
-func (r *TicketRepository) SetTicketStatus(ctx context.Context, id string, statusId int64) (*dto.TicketResponse, *errx.APIError) {
+func (r *TicketRepository) SetTicketStatus(ctx context.Context, ticketID string, statusID int64) (*dto.TicketResponse, *errx.APIError) {
+	if r.collection == nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, nil)
+	}
 
-	// Validate UUID
-	uid, err := uuid.Parse(id)
-
+	uid, err := uuid.Parse(ticketID)
 	if err != nil {
 		return nil, errx.Respond(errx.ErrBadRequest, err)
 	}
 
 	filter := bson.M{"_id": uid.String()}
+	update := bson.M{"$set": bson.M{"ticketStatusId": statusID}}
 
-	update := bson.D{
-		{Key: "$set", Value: bson.M{
-			"ticketStatusId": statusId,
-		}},
-		{Key: "$currentDate", Value: bson.M{
-			"updatedAt": true,
-		}},
+	res, updateErr := r.collection.UpdateOne(ctx, filter, update)
+	if updateErr != nil {
+		return nil, errx.Respond(errx.ErrInternalServerError, updateErr)
 	}
 
-	// Options: return the updated document
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After).SetProjection(bson.M{"chat": 0})
-
-	var model model.Ticket
-	err = r.collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&model)
-	if err != nil {
-		return nil, errx.Respond(errx.ErrInternalServerError, err)
+	if res.MatchedCount == 0 {
+		return nil, errx.Respond(errx.ErrTicketNotFound, nil)
 	}
 
-	// Convert to DTO
-	ticketDTO := dto.ToTicketResponse(&model)
-
-	return ticketDTO, nil
+	return r.GetTicketByID(ctx, ticketID)
 }

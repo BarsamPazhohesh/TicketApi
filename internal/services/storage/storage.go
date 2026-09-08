@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"net/url"
+	"strings"
 	"ticket-api/internal/config"
 	"ticket-api/internal/errx"
 	"time"
@@ -23,26 +23,11 @@ const (
 	TicketPath = "tickets/files/"
 )
 
-// NewStorageService creates a new MinIO client and ensures the bucket exists
+// NewStorageService creates a new storage service instance
 func NewStorageService(minioClient *minio.Client) *StorageService {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	bucket := config.Get().Minio.Bucket
-	exists, err := minioClient.BucketExists(ctx, bucket)
-	if err != nil {
-		log.Fatal(err)
+	if minioClient == nil {
+		return &StorageService{Client: nil}
 	}
-
-	if !exists {
-		if err := minioClient.MakeBucket(ctx, bucket, minio.MakeBucketOptions{}); err != nil {
-			log.Fatal(err)
-		}
-		log.Printf("✅ Bucket %s created successfully", bucket)
-	} else {
-		log.Printf("✅ Bucket %s already exists", bucket)
-	}
-
 	return &StorageService{Client: minioClient}
 }
 
@@ -92,6 +77,19 @@ func (m *StorageService) GetPresignedURL(ctx context.Context, objectName string,
 			return "", errx.Respond(errx.ErrFileNotFound, err)
 		}
 		return "", errx.Respond(errx.ErrServiceUnavailable, err)
+	}
+
+	publicURL := config.Get().Minio.PublicURL
+	if publicURL != "" {
+		parsedPub, err := url.Parse(publicURL)
+		if err == nil {
+			urlObj.Scheme = parsedPub.Scheme
+			urlObj.Host = parsedPub.Host
+			pubPath := strings.TrimSuffix(parsedPub.Path, "/")
+			if pubPath != "" {
+				urlObj.Path = pubPath + urlObj.Path
+			}
+		}
 	}
 
 	return urlObj.String(), nil

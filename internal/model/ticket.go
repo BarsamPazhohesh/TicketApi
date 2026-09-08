@@ -7,7 +7,8 @@ import (
 // Ticket is the MongoDB model for tickets
 type Ticket struct {
 	ID              string        `bson:"_id"`             // Unique ticket ID (UUID)
-	UserID          int64         `bson:"userId"`          // ID of the user who created the ticket
+	UserID          int64         `bson:"userId"`          // ID of the user who created the ticket (0 for guest)
+	PhoneNumber     string        `bson:"phoneNumber"`     // Phone number for guest tickets
 	DepartmentID    int64         `bson:"departmentId"`    // Department of the user
 	TicketTypeID    int64         `bson:"ticketTypeId"`    // Type/category of the ticket
 	TicketStatusID  int64         `bson:"ticketStatusId"`  // Current status (open, closed, etc.)

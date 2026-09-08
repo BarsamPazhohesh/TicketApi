@@ -43,6 +43,12 @@ const (
 	ErrMaxFileSizeExceeded
 	ErrMaxTicketFilesExceeded
 	ErrRequestBodyTooLarge
+	ErrForbidden
+	ErrNotFound
+	ErrOTPExpired
+	ErrOTPInvalid
+	ErrOTPSendFailed
+	ErrOTPMaxAttemptsExceeded
 )
 
 //
@@ -106,7 +112,7 @@ func NewRegistry(db *sql.DB) *Registry {
 		defs: map[ErrorCode]ErrorDef{
 			ErrInternalServerError:      {"خطای داخلی سرور", http.StatusInternalServerError},
 			ErrTicketNotFound:           {"تیکت پیدا نشد", http.StatusNotFound},
-			ErrUnauthorized:             {"دسترسی غیرمجاز", http.StatusUnauthorized},
+			ErrUnauthorized:             {"لطفا مجدد احراز هویت کنید.", http.StatusUnauthorized},
 			ErrInvalidInput:             {"داده ورودی نامعتبر است", http.StatusBadRequest},
 			ErrDuplicate:                {"رکورد تکراری است", http.StatusConflict},
 			ErrBadRequest:               {"درخواست نامعتبر", http.StatusBadRequest},
@@ -128,6 +134,12 @@ func NewRegistry(db *sql.DB) *Registry {
 			ErrUnsupportedFileExtension: {"فرمت فایل پشتیبانی نمی‌شود", http.StatusBadRequest},
 			ErrMaxFileSizeExceeded:      {"حجم فایل از حد مجاز بیشتر است", http.StatusRequestEntityTooLarge},
 			ErrRequestBodyTooLarge:      {"حجم بدنه درخواست بیش از حد مجاز است", http.StatusRequestEntityTooLarge},
+			ErrForbidden:                {"شما دسترسی لازم برای این عملیات را ندارید", http.StatusForbidden},
+			ErrNotFound:                 {"مسیر یا منبع مورد نظر یافت نشد", http.StatusNotFound},
+			ErrOTPExpired:               {"کد تایید منقضی شده است", http.StatusBadRequest},
+			ErrOTPInvalid:               {"کد تایید نامعتبر است", http.StatusBadRequest},
+			ErrOTPSendFailed:            {"ارسال پیامک با خطا مواجه شد", http.StatusInternalServerError},
+			ErrOTPMaxAttemptsExceeded:   {"حد مجاز خطا در وارد کردن کد یکبار مصرف به پایان رسید. لطفاً مجدداً درخواست دهید.", http.StatusBadRequest},
 		},
 		db: db,
 	}

@@ -15,4 +15,7 @@ type ApiRoute struct {
 	Description sql.NullString
 	Status      int64
 	Deleted     int64
+	CreatedAt   string
+	UpdatedAt   string
+	DeletedAt   sql.NullString
 }

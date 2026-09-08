@@ -1,24 +1,28 @@
 package token
 
 import (
+	"context"
 	"errors"
 	"ticket-api/internal/config"
 	"ticket-api/internal/errx"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 // AuthClaims holds claims for authentication tokens
 type AuthClaims struct {
-	UserID   int64   `json:"user_id"`
-	Username string  `json:"username"`
-	RoleIDs  []int64 `json:"role_ids"`
+	UserID      int64    `json:"user_id"`
+	Username    string   `json:"username"`
+	PhoneNumber string   `json:"phone_number,omitempty"`
+	RoleIDs     []int64  `json:"role_ids"`
+	Permissions []string `json:"permissions,omitempty"`
 
 	jwt.RegisteredClaims
 }
 
-// NewAuthToken creates auth token using config
+// NewAuthToken creates auth token with unique JTI and claims
 func (s *TokenService) NewAuthToken(credential AuthClaims) (string, *errx.APIError) {
 	secret, errSecret := secretKeyBytes()
 	if errSecret != nil {
@@ -26,13 +30,20 @@ func (s *TokenService) NewAuthToken(credential AuthClaims) (string, *errx.APIErr
 	}
 
 	cfg := config.Get().Auth
+	now := time.Now()
+	tokenID := uuid.New().String()
+
 	claims := AuthClaims{
-		UserID:   credential.UserID,
-		Username: credential.Username,
-		RoleIDs:  credential.RoleIDs,
+		UserID:      credential.UserID,
+		Username:    credential.Username,
+		PhoneNumber: credential.PhoneNumber,
+		RoleIDs:     credential.RoleIDs,
+		Permissions: credential.Permissions,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(cfg.ExpiredTimeToken) * time.Minute)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ID:        tokenID,
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Duration(cfg.ExpiredTimeToken) * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
 			Issuer:    "ticket-api",
 		},
 	}
@@ -44,8 +55,8 @@ func (s *TokenService) NewAuthToken(credential AuthClaims) (string, *errx.APIErr
 	return signed, nil
 }
 
-// ParseAuthToken parses auth token
-func (s *TokenService) ParseAuthToken(tokenString string) (*AuthClaims, *errx.APIError) {
+// ParseAuthToken parses, validates, and checks revocation of auth token
+func (s *TokenService) ParseAuthToken(ctx context.Context, tokenString string) (*AuthClaims, *errx.APIError) {
 	secret, errSecret := secretKeyBytes()
 	if errSecret != nil {
 		return nil, errSecret
@@ -64,5 +75,16 @@ func (s *TokenService) ParseAuthToken(tokenString string) (*AuthClaims, *errx.AP
 	if !parsed.Valid {
 		return nil, errx.Respond(errx.ErrUnauthorized, errors.New("invalid or expired token"))
 	}
+
+	if claims.ID != "" {
+		revoked, revErr := s.IsTokenRevoked(ctx, claims.ID)
+		if revErr != nil {
+			return nil, errx.Respond(errx.ErrServiceUnavailable, revErr)
+		}
+		if revoked {
+			return nil, errx.Respond(errx.ErrUnauthorized, errors.New("token has been revoked"))
+		}
+	}
+
 	return claims, nil
 }

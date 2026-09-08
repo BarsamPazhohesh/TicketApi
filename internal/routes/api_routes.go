@@ -10,13 +10,13 @@ type _Prefix struct {
 }
 
 type _APIPrefixes struct {
-	Versions   _Prefix
 	Tickets    _Prefix
 	Auth       _Prefix
 	Captcha    _Prefix
 	User       _Prefix
 	Department _Prefix
 	Files      _Prefix
+	OTP        _Prefix
 }
 
 var _APIRoutesPrefixes = _APIPrefixes{
@@ -26,6 +26,7 @@ var _APIRoutesPrefixes = _APIPrefixes{
 	User:       _Prefix{prefix: "users/"},
 	Department: _Prefix{prefix: "departments/"},
 	Files:      _Prefix{prefix: "files/"},
+	OTP:        _Prefix{prefix: "otp/"},
 }
 
 type HTTPMethod string
@@ -42,10 +43,6 @@ type _APIRoute struct {
 	method      string
 	description string
 	Status      bool
-}
-
-type versions struct {
-	GetCurrentVersion _APIRoute
 }
 
 type tickets struct {
@@ -68,6 +65,7 @@ type auth struct {
 	Login                   _APIRoute
 	GetSingleUseToken       _APIRoute
 	LoginWithSingleUseToken _APIRoute
+	CheckToken              _APIRoute
 }
 
 type users struct {
@@ -85,23 +83,26 @@ type files struct {
 	UploadTicketFile          _APIRoute
 	GetDownloadLinkTicketFile _APIRoute
 }
+
+type otp struct {
+	SendOTP   _APIRoute
+	VerifyOTP _APIRoute
+}
+
 type _APIEndpoints struct {
-	Versions    versions
 	Tickets     tickets
 	Files       files
 	Auth        auth
 	Captcha     captcha
 	Users       users
 	Departments departments
+	OTP         otp
 }
 
 var APIRoutes = _APIEndpoints{
-	Versions: versions{
-		GetCurrentVersion: _APIRoute{Path: "", method: string(GetMethod)},
-	},
 	Tickets: tickets{
 		CreateTicket:               _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "CreateTicket/"), method: string(PostMethod), Status: true},
-		GetTicketByID:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByID/"), method: string(GetMethod), Status: true},
+		GetTicketByID:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByID/"), method: string(PostMethod), Status: true},
 		CreateChat:                 _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, ":id/CreateChat/"), method: string(PostMethod), Status: true},
 		GetTicketByTrackCode:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketByTrackCode/"), method: string(PostMethod), Status: true},
 		GetTicketsList:             _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetTicketsList/"), method: string(PostMethod), Status: true},
@@ -109,11 +110,12 @@ var APIRoutes = _APIEndpoints{
 		GetAllActiveTicketStatuses: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Tickets.prefix, "GetAllActiveTicketStatuses/"), method: string(GetMethod), Status: true},
 	},
 	Auth: auth{
-		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(GetMethod), Status: true},
+		LoginWithNoAuth:         _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithNoAuth/"), method: string(PostMethod), Status: true},
 		SignUp:                  _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "SignUp/"), method: string(PostMethod), Status: true},
 		Login:                   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "Login/"), method: string(PostMethod), Status: true},
 		GetSingleUseToken:       _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "GetSingleUseToken/"), method: string(PostMethod), Status: false},
 		LoginWithSingleUseToken: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "LoginWithSingleUseToken/"), method: string(GetMethod), Status: false},
+		CheckToken:              _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Auth.prefix, "CheckToken/"), method: string(GetMethod), Status: true},
 	},
 	Captcha: captcha{
 		GetCaptcha:    _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Captcha.prefix, "GetCaptcha/"), method: string(GetMethod), Status: true},
@@ -130,6 +132,10 @@ var APIRoutes = _APIEndpoints{
 	Files: files{
 		UploadTicketFile:          _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "UploadTicketFile/"), method: string(PostMethod), Status: true},
 		GetDownloadLinkTicketFile: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.Files.prefix, "GetDownloadLinkTicketFile/:objectName"), method: string(PostMethod), Status: true},
+	},
+	OTP: otp{
+		SendOTP:   _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.OTP.prefix, "send/"), method: string(PostMethod), Status: true},
+		VerifyOTP: _APIRoute{Path: mergeStrings(_APIRoutesPrefixes.OTP.prefix, "verify/"), method: string(PostMethod), Status: true},
 	},
 }
 
@@ -155,6 +161,7 @@ func IsRouteEnabled(path, method string) bool {
 		APIRoutes.Auth.Login,
 		APIRoutes.Auth.GetSingleUseToken,
 		APIRoutes.Auth.LoginWithSingleUseToken,
+		APIRoutes.Auth.CheckToken,
 		APIRoutes.Captcha.GetCaptcha,
 		APIRoutes.Captcha.VerifyCaptcha,
 		APIRoutes.Departments.GetAllActiveDepartments,
@@ -163,6 +170,8 @@ func IsRouteEnabled(path, method string) bool {
 		APIRoutes.Users.GetUsersByIDs,
 		APIRoutes.Files.GetDownloadLinkTicketFile,
 		APIRoutes.Files.UploadTicketFile,
+		APIRoutes.OTP.SendOTP,
+		APIRoutes.OTP.VerifyOTP,
 	}
 	for _, r := range allRoutes {
 		if r.Path == path && r.method == method {
